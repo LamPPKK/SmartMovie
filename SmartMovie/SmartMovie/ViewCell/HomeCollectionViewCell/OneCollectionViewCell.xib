@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="OneCollectionViewCell" id="gTV-IL-0wX" customClass="OneCollectionViewCell" customModule="SmartMovie" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="154" height="221"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
+                <rect key="frame" x="0.0" y="0.0" width="154" height="221"/>
+                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="74E-us-Nkh">
+                        <rect key="frame" x="0.0" y="0.0" width="154" height="221"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="scribble" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="vUC-2d-bUk">
+                                <rect key="frame" x="0.0" y="0.0" width="154" height="153.5"/>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Xex-Bw-mc3">
+                                <rect key="frame" x="4" y="162.5" width="146" height="23.5"/>
+                                <fontDescription key="fontDescription" name="AvenirNext-Medium" family="Avenir Next" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iEF-ZI-M1c">
+                                <rect key="frame" x="4" y="190" width="146" height="20.5"/>
+                                <fontDescription key="fontDescription" name="AvenirNext-Regular" family="Avenir Next" pointSize="15"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="dYp-vj-Zbv">
+                                <rect key="frame" x="120" y="4" width="30" height="30"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="30" id="Teg-Bb-aNz"/>
+                                    <constraint firstAttribute="height" constant="30" id="rwd-Yp-hVG"/>
+                                </constraints>
+                                <state key="normal" backgroundImage="starEmpty"/>
+                                <connections>
+                                    <action selector="funcsetStar:" destination="gTV-IL-0wX" eventType="touchUpInside" id="l25-tH-ahZ"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" red="0.97032821218007137" green="1" blue="0.86614991655242879" alpha="0.87755102040816324" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="dYp-vj-Zbv" firstAttribute="top" secondItem="74E-us-Nkh" secondAttribute="top" constant="4" id="0ij-ra-tDC"/>
+                            <constraint firstAttribute="trailing" secondItem="Xex-Bw-mc3" secondAttribute="trailing" constant="4" id="BBZ-y0-fkk"/>
+                            <constraint firstAttribute="trailing" secondItem="iEF-ZI-M1c" secondAttribute="trailing" constant="4" id="MKK-kM-GVv"/>
+                            <constraint firstItem="vUC-2d-bUk" firstAttribute="leading" secondItem="74E-us-Nkh" secondAttribute="leading" id="Sor-7e-fD9"/>
+                            <constraint firstItem="iEF-ZI-M1c" firstAttribute="leading" secondItem="74E-us-Nkh" secondAttribute="leading" constant="4" id="Ulw-gc-5gI"/>
+                            <constraint firstAttribute="trailing" secondItem="vUC-2d-bUk" secondAttribute="trailing" id="W5S-Ql-vhn"/>
+                            <constraint firstItem="Xex-Bw-mc3" firstAttribute="top" secondItem="vUC-2d-bUk" secondAttribute="bottom" constant="8" id="b4i-1R-KqC"/>
+                            <constraint firstItem="vUC-2d-bUk" firstAttribute="top" secondItem="74E-us-Nkh" secondAttribute="top" id="dy6-o6-rMO"/>
+                            <constraint firstItem="Xex-Bw-mc3" firstAttribute="leading" secondItem="74E-us-Nkh" secondAttribute="leading" constant="4" id="g6t-ME-k4Z"/>
+                            <constraint firstAttribute="trailing" secondItem="dYp-vj-Zbv" secondAttribute="trailing" constant="4" id="hEa-WI-8k3"/>
+                            <constraint firstItem="iEF-ZI-M1c" firstAttribute="top" secondItem="Xex-Bw-mc3" secondAttribute="bottom" constant="4" id="hdj-3w-yw6"/>
+                            <constraint firstItem="iEF-ZI-M1c" firstAttribute="centerX" secondItem="74E-us-Nkh" secondAttribute="centerX" id="oOf-yy-44F"/>
+                            <constraint firstItem="vUC-2d-bUk" firstAttribute="height" secondItem="74E-us-Nkh" secondAttribute="height" multiplier="0.7" id="r7y-8K-e2M"/>
+                            <constraint firstItem="Xex-Bw-mc3" firstAttribute="centerX" secondItem="74E-us-Nkh" secondAttribute="centerX" id="ruB-Qa-xui"/>
+                        </constraints>
+                    </view>
+                </subviews>
+            </view>
+            <viewLayoutGuide key="safeArea" id="ZTg-uK-7eu"/>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="74E-us-Nkh" secondAttribute="bottom" id="2aL-SS-wHM"/>
+                <constraint firstItem="74E-us-Nkh" firstAttribute="leading" secondItem="gTV-IL-0wX" secondAttribute="leading" id="K2i-bR-ZKF"/>
+                <constraint firstItem="74E-us-Nkh" firstAttribute="top" secondItem="gTV-IL-0wX" secondAttribute="top" id="POh-UD-aWw"/>
+                <constraint firstAttribute="trailing" secondItem="74E-us-Nkh" secondAttribute="trailing" id="h1e-59-v5x"/>
+            </constraints>
+            <size key="customSize" width="154" height="221"/>
+            <connections>
+                <outlet property="imgCell1" destination="vUC-2d-bUk" id="sRR-V5-Req"/>
+                <outlet property="likeCell1" destination="dYp-vj-Zbv" id="Gou-Dk-JeZ"/>
+                <outlet property="nameCell1" destination="Xex-Bw-mc3" id="scN-AI-5Og"/>
+                <outlet property="starIMG" destination="dYp-vj-Zbv" id="vs6-OW-nhZ"/>
+                <outlet property="timeCell1" destination="iEF-ZI-M1c" id="iKC-6G-dSX"/>
+            </connections>
+            <point key="canvasLocation" x="207.24637681159422" y="187.16517857142856"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="scribble" catalog="system" width="128" height="118"/>
+        <image name="starEmpty" width="48" height="48"/>
+    </resources>
+</document>
