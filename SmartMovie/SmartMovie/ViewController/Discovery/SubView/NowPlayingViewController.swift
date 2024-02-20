@@ -179,28 +179,28 @@ extension NowPlayingViewController: UICollectionViewDelegateFlowLayout {
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
         if isGrid {
-            return CGSize(width: (UIScreen.main.bounds.width - 50) / 2 , height: 280)
+            return CGSize(width: (collectionView.frame.width - 50) / 2 , height: 280)
         }
         else {
-            return CGSize(width: UIScreen.main.bounds.width - 35, height: 190)
+            return CGSize(width: collectionView.frame.width - 35, height: 190)
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         if isGrid {
-            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8)
+            return UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 8)
 
         } else {
-            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8)
+            return UIEdgeInsets(top: 0, left: 0, bottom: 16, right: 8)
 
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        16
+        8
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        16
+        8
     }
 }

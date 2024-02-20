@@ -52,6 +52,7 @@ class MoviesViewController: UIViewController, UICollectionViewDelegate, UICollec
                                 withReuseIdentifier: "HeaderCollectReusableView")
         collectionView.reloadData()
         collectionView.contentInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8) //khoang cach cua phan content trong collection so voi frame cua collection
+        collectionView.prepareForInterfaceBuilder()
     }
 
     func setupCollectionView(){

@@ -38,8 +38,10 @@ class HomeViewController: UIViewController {
         tabButton3.setTitle("Top Rate", for: .normal)
         tabButton4.setTitle("Up Coming", for: .normal)
         tabButton5.setTitle("Now Playing", for: .normal)
-        self.addChild(pageVC)
-        self.tabContentView.addSubview(pageVC.view)
+        addChild(pageVC)
+        tabContentView.addSubview(pageVC.view)
+        pageVC.view.frame = tabContentView.bounds
+        pageVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         NotificationCenter.default.addObserver(self, selector: #selector(self.changeIndex(_:)), name: NSNotification.Name(rawValue: "updateTabs"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(seeAllMovie(_:)), name: NSNotification.Name("seeAll"), object: nil)
         changeBTN()
