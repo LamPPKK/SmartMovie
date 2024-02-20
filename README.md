@@ -1,8 +1,11 @@
 # Tùng Lâm Smart Movie App
-![image](https://github.com/LamPPKK/SmartMovie/assets/50864894/40b5d3d2-5de9-4ca4-b5d3-bacaf4ad9e36)
-![image](https://github.com/LamPPKK/SmartMovie/assets/50864894/254eaf68-c693-4d80-964b-99e32e239dba)
 
-The Tùng Lâm Smart Movie App, powered by The Movie Database (TMDb) API, is an innovative iOS application designed to bring the latest movie trends to your fingertips. It showcases a curated selection of trending movies, providing users with a seamless and interactive way to discover new films and delve into detailed information about their favorites.
+<p align="center">
+  <img src="https://github.com/LamPPKK/SmartMovie/assets/50864894/ef62e315-5f9d-4fba-9e74-fc4d4ad0f9d7" alt="Main Screen" width="400" />
+  <img src="https://github.com/LamPPKK/SmartMovie/assets/50864894/254eaf68-c693-4d80-964b-99e32e239dba" alt="Details Screen" width="400" />
+</p>
+
+Tùng Lâm Smart Movie App, powered by The Movie Database (TMDb) API, is an innovative iOS application designed to bring the latest movie trends to your fingertips. It showcases a curated selection of trending movies, providing users with a seamless and interactive way to discover new films and delve into detailed information about their favorites.
 
 ## Key Features
 
