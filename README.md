@@ -1,56 +1,50 @@
-# Tùng Lâm Smart Movie
+# Tùng Lâm Smart Movie App
 
-MovieApp is an iOS application that allows users to explore and discover trending movies. It leverages the TMDb (The Movie Database) API to fetch movie data and presents it in a visually appealing and user-friendly interface.
+The Tùng Lâm Smart Movie App, powered by The Movie Database (TMDb) API, is an innovative iOS application designed to bring the latest movie trends to your fingertips. It showcases a curated selection of trending movies, providing users with a seamless and interactive way to discover new films and delve into detailed information about their favorites.
 
-## Features
+## Key Features
 
-- **Trending Movies:** The app displays a list of the top trending movies, showcasing popular and highly-rated films.
-- **Movie Details:** Users can view detailed information about each movie, including the title, description, release date, and average rating.
+- **Discover Trending Movies:** Stay updated with a dynamically curated list of trending movies. Explore popular and highly-rated films from a wide range of genres.
+- **In-depth Movie Details:** Get access to comprehensive movie information including titles, detailed descriptions, release dates, and user ratings, all in one place.
 
-## Technologies Used
+## Built With
 
-The MovieApp is built using the following technologies:
+The app is crafted using state-of-the-art technologies and frameworks:
 
-- **Swift:** The programming language used to develop the iOS application.
-- **UIKit Framework:** The iOS framework that provides the core components and functionalities for building the user interface.
-- **TMDb API:** The TMDb API (The Movie Database API) is used to fetch movie data, including details and images, to populate the app with up-to-date information.
+- **Swift:** The primary programming language for iOS app development, known for its power and efficiency.
+- **UIKit Framework:** A foundational framework that provides the necessary UI components for designing intuitive user interfaces.
+- **TMDb API:** Utilizes The Movie Database API to fetch and display up-to-date movie information and images, ensuring a rich and informative user experience.
 
-## Installation
+## Getting Started
 
-To run the MovieApp on your local machine, follow these steps:
+### Installation
 
-1. Clone the repository:
-```
-git clone https://github.com/LamPPKK/SmartMovie.git
-``` 
-2. Open the project in Xcode.
-3. Build and run the project on a simulator or a physical device
+1. Clone the GitHub repository to your local machine:
+   ```
+   git clone https://github.com/LamPPKK/SmartMovie.git
+   ```
+2. Open the project in Xcode by navigating to the cloned directory and selecting the project file.
+3. Build and run the application on your chosen simulator or physical iOS device to start exploring the world of movies.
 
-## Configuration
+### Configuration
 
-To configure the project with your own TMDb API key:
+Personalize the app with your TMDb API key by following these steps:
 
-1. Open the `APIConnection.swift` file in the project.
-
-2. Replace the `YOUR_API` placeholder with your TMDb API key.
-```
-class APIConnection {
-    let defaultSession = URLSession(configuration: URLSessionConfiguration.default)
-    var dataTask: URLSessionDataTask?
-    private let domain = "YOUR_API"
-}
-```
-   
-3. Save the changes
+1. Navigate to the `APIConnection.swift` file within the project.
+2. Find the placeholder `YOUR_API` and replace it with your personal TMDb API key:
+   ```swift
+   class APIConnection {
+       let defaultSession = URLSession(configuration: URLSessionConfiguration.default)
+       var dataTask: URLSessionDataTask?
+       private let domain = "YOUR_API_KEY_HERE" // Replace YOUR_API_KEY_HERE with your actual API key
+   }
+   ```
+3. Save the file to apply the changes.
 
 ## License
 
-This project is licensed under my :P License. You are free to modify, distribute, and use the code for personal and commercial purposes.
+The Tùng Lâm Smart Movie App is available under the :P License, allowing for both personal and commercial use. Feel free to modify, distribute, and utilize the code as you see fit.
 
-## Acknowledgements
+## Acknowledgments
 
-This project acknowledges the following:
-
-- The TMDb API for providing the movie data used in the app.
-
-
+- A special thank you to The Movie Database (TMDb) for providing the essential movie data that powers our app, enabling us to deliver up-to-date and engaging content to our users.
