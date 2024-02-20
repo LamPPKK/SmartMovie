@@ -32,13 +32,12 @@ To configure the project with your own TMDb API key:
 
 1. Open the `APIConnection.swift` file in the project.
 
-2. Replace the `YOUR_API_KEY` placeholder with your TMDb API key.
+2. Replace the `YOUR_API` placeholder with your TMDb API key.
 ```
-public var apiKey: String {
-  get {
-    //API Key here
-    return "YOUR_API_KEY"
-  }
+class APIConnection {
+    let defaultSession = URLSession(configuration: URLSessionConfiguration.default)
+    var dataTask: URLSessionDataTask?
+    private let domain = "YOUR_API"
 }
 ```
    
@@ -46,7 +45,7 @@ public var apiKey: String {
 
 ## License
 
-This project is licensed under the MIT License. You are free to modify, distribute, and use the code for personal and commercial purposes.
+This project is licensed under my :P License. You are free to modify, distribute, and use the code for personal and commercial purposes.
 
 ## Acknowledgements
 
