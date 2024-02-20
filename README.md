@@ -1,4 +1,6 @@
 # Tùng Lâm Smart Movie App
+![image](https://github.com/LamPPKK/SmartMovie/assets/50864894/40b5d3d2-5de9-4ca4-b5d3-bacaf4ad9e36)
+![image](https://github.com/LamPPKK/SmartMovie/assets/50864894/254eaf68-c693-4d80-964b-99e32e239dba)
 
 The Tùng Lâm Smart Movie App, powered by The Movie Database (TMDb) API, is an innovative iOS application designed to bring the latest movie trends to your fingertips. It showcases a curated selection of trending movies, providing users with a seamless and interactive way to discover new films and delve into detailed information about their favorites.
 
@@ -36,7 +38,7 @@ Personalize the app with your TMDb API key by following these steps:
    class APIConnection {
        let defaultSession = URLSession(configuration: URLSessionConfiguration.default)
        var dataTask: URLSessionDataTask?
-       private let domain = "YOUR_API_KEY_HERE" // Replace YOUR_API_KEY_HERE with your actual API key
+       private let domain = "YOUR_API_HERE"
    }
    ```
 3. Save the file to apply the changes.
