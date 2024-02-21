@@ -22,7 +22,6 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
     var searchResults: SearchResults?
     var moviName: String = ""
 
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         searchColectionView.dataSource = self
@@ -30,10 +29,9 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         searchColectionView.register(UINib(nibName: "SearchCell", bundle: nil),forCellWithReuseIdentifier: "SearchCell")
         searchBarView.delegate = self
         operationQueue.maxConcurrentOperationCount = 1
-        searchBarView.isHidden = true
+        searchBarView.isHidden = false
     }
 
-    
     func fetchListID(movieSearch: String) {
         apiConnection.fetchAPIFromURL("api.themoviedb.org/3/search/movie?api_key=d5b97a6fad46348136d87b78895a0c06&query=\(movieSearch)") { [weak self] (body, errorMessage) in
             guard self != nil else {
@@ -62,9 +60,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             print("Failed to decode JSON \(error)")
         }
     }
-    @IBAction func actionClickSearch(_ sender: Any) {
-        searchBarView.isHidden = false
-    }
+    
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         self.searchBarView.showsCancelButton = true
     }

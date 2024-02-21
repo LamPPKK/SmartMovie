@@ -30,14 +30,14 @@ class SearchCell: UICollectionViewCell {
     func drawStar(scoreAverage: Float) {
         let arrStar: [UIImageView] = [starIMG1, starIMG2, starIMG3, starIMG4, starIMG5]
         for image in arrStar {
-            image.image = #imageLiteral(resourceName: "starEmpty")
+            image.image = UIImage(systemName: "star")
         }
         let numberStar: Int = Int(scoreAverage/2)
         if numberStar == 0 {
             return
         }
         for index in 0..<numberStar {
-            arrStar[index].image = #imageLiteral(resourceName: "starFull")
+            arrStar[index].image = UIImage(systemName: "star.fill")
         }
     }
     

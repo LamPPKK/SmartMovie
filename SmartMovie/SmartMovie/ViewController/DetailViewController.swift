@@ -266,14 +266,14 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func drawStar(scoreAverage: Float) {
         let arrStar: [UIImageView] = [starIMG1, starIMG2, starIMG3, starIMG4, starIMG5]
         for image in arrStar {
-            image.image = UIImage(systemName: "start.fill")
+            image.image = UIImage(systemName: "start")
         }
         let numberStar: Int = Int(scoreAverage/2)
         if numberStar == 0 {
             return
         }
         for index in 0..<numberStar {
-            arrStar[index].image = #imageLiteral(resourceName: "star.fill")
+            arrStar[index].image = UIImage(systemName: "star.fill")
         }
     }
     

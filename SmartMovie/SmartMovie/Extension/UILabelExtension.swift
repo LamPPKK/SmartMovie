@@ -1,19 +1,12 @@
 //
-//  ArtistViewController.swift
+//  UILabelExtension.swift
 //  SmartMovie
 //
-//  Created by Tùng Lâm on 12/25/21.
+//  Created by LamNDT on 21/02/2024.
 //
 
+import Foundation
 import UIKit
-
-class ArtistViewController: UIViewController {
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view.
-    }
-}
 
 extension UILabel {
     func addTrailing(with trailingText: String, moreText: String, moreTextFont: UIFont, moreTextColor: UIColor) {

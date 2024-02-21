@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="21701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="e9J-gz-FX3">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="22505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="e9J-gz-FX3">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21679"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22504"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="collection view cell content view" minToolsVersion="11.0"/>
@@ -24,7 +24,6 @@
                         <segue destination="d98-bS-sMl" kind="relationship" relationship="viewControllers" id="DBn-t4-m9U"/>
                         <segue destination="pSR-NT-FQh" kind="relationship" relationship="viewControllers" id="19V-lM-uqC"/>
                         <segue destination="sDT-eo-Otv" kind="relationship" relationship="viewControllers" id="Xjg-be-QL4"/>
-                        <segue destination="hFa-UC-eer" kind="relationship" relationship="viewControllers" id="7aB-tV-XYu"/>
                     </connections>
                 </tabBarController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Xr6-3l-oO8" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -184,13 +183,7 @@
                             <constraint firstItem="hfa-yU-z3K" firstAttribute="leading" secondItem="dDo-K5-N4d" secondAttribute="leading" id="eW7-9m-tpQ"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" title="Search" id="I0U-FR-KnO">
-                        <barButtonItem key="rightBarButtonItem" title="Item" image="magnifyingglass" catalog="system" id="WWT-2j-Kvn">
-                            <connections>
-                                <action selector="actionClickSearch:" destination="ICp-ow-WL5" id="hJF-OJ-rlx"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" title="Search" id="I0U-FR-KnO"/>
                     <connections>
                         <outlet property="searchBarView" destination="hfa-yU-z3K" id="GDd-AH-5Gw"/>
                         <outlet property="searchColectionView" destination="7kX-0k-uKp" id="fjL-ga-CfE"/>
@@ -501,7 +494,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="uK9-vg-f62" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3047.826086956522" y="1214.7321428571429"/>
+            <point key="canvasLocation" x="280" y="1183"/>
         </scene>
         <!--Genres-->
         <scene sceneID="nMZ-nZ-oqP">
@@ -595,22 +588,6 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="SKN-wz-Ln7" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="3049" y="493"/>
-        </scene>
-        <!--Artist View Controller-->
-        <scene sceneID="Egr-PY-TXb">
-            <objects>
-                <viewController id="j4O-0z-J4f" customClass="ArtistViewController" customModule="SmartMovie" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="bJQ-Fx-fFC">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <viewLayoutGuide key="safeArea" id="zq2-I8-c0n"/>
-                        <color key="backgroundColor" systemColor="systemTealColor"/>
-                    </view>
-                    <navigationItem key="navigationItem" id="R8X-TZ-FY0"/>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="GyE-cD-N8A" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="2206" y="1215"/>
         </scene>
         <!--Discovery-->
         <scene sceneID="DtT-Pd-VnR">
@@ -715,25 +692,6 @@
             </objects>
             <point key="canvasLocation" x="-652" y="1936"/>
         </scene>
-        <!--Artists-->
-        <scene sceneID="omd-8o-ynv">
-            <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="hFa-UC-eer" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Artists" image="person.circle" catalog="system" id="yzn-cG-EKU"/>
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="eDS-uO-lno">
-                        <rect key="frame" x="0.0" y="48" width="414" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="j4O-0z-J4f" kind="relationship" relationship="rootViewController" id="SsO-Fd-5Lx"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="s8k-3x-kWR" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="1296" y="1215"/>
-        </scene>
         <!--Popular View Controller-->
         <scene sceneID="GaZ-sk-DOS">
             <objects>
@@ -742,9 +700,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="amj-GB-MTR">
-                                <rect key="frame" x="0.0" y="39" width="414" height="818"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="amj-GB-MTR">
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="862"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="DMo-rp-Lx3">
                                     <size key="itemSize" width="128" height="128"/>
@@ -766,6 +723,12 @@
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="s2M-Kp-9Tx"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="amj-GB-MTR" firstAttribute="leading" secondItem="s2M-Kp-9Tx" secondAttribute="leading" id="KkM-Sv-Snh"/>
+                            <constraint firstItem="s2M-Kp-9Tx" firstAttribute="bottom" secondItem="amj-GB-MTR" secondAttribute="bottom" id="lsE-Y4-DYo"/>
+                            <constraint firstItem="amj-GB-MTR" firstAttribute="trailing" secondItem="s2M-Kp-9Tx" secondAttribute="trailing" id="t13-2H-YUW"/>
+                            <constraint firstItem="amj-GB-MTR" firstAttribute="top" secondItem="Uhh-J9-bOF" secondAttribute="top" id="vlR-32-ZTZ"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="cnL-KX-fqk"/>
                     <connections>
@@ -776,29 +739,10 @@
             </objects>
             <point key="canvasLocation" x="257.97101449275362" y="-952.23214285714278"/>
         </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="kju-zS-dQo">
-            <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="KaN-s3-jr9" sceneMemberID="viewController">
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="KP9-PN-6UD">
-                        <rect key="frame" x="0.0" y="48" width="414" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="us1-QH-a85" kind="relationship" relationship="rootViewController" id="VAa-fP-gyA"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="aeP-eZ-01V" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-652.17391304347836" y="-952.23214285714278"/>
-        </scene>
     </scenes>
     <resources>
         <image name="infinity" catalog="system" width="128" height="63"/>
         <image name="magnifyingglass" catalog="system" width="128" height="117"/>
-        <image name="person.circle" catalog="system" width="128" height="123"/>
         <image name="rectangle.grid.2x2.fill" catalog="system" width="128" height="97"/>
         <image name="square.grid.2x2.fill" catalog="system" width="128" height="114"/>
         <image name="starEmpty" width="48" height="48"/>

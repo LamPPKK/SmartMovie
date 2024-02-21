@@ -214,20 +214,19 @@ extension MoviesViewController: UICollectionViewDelegateFlowLayout {
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
         if isGrid {
-            return CGSize(width: (collectionView.frame.width - 48) / 2 , height: 280) // kich thuoc cua item. chieu ngang = (collectionWidth - inset(Trai) - contetnInset(Trai) - inset(Phai) - contentInset(Phai) - khoang cach giua 2 item ) / (so item tren 1 hang)
+            return CGSize(width: (collectionView.frame.width - 48) / 2 , height: 280)
         }
         else {
-            return CGSize(width: UIScreen.main.bounds.width - 32, height: 190)
+            return CGSize(width: collectionView.frame.width - 32, height: 190)
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         if isGrid {
-            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8) // Khoang cach cua item so voi phan content trong collection - layout 2 item tren 1 hang
+            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8)
 
         } else {
-            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8) // Khoang cach cua item so voi phan content trong collection
-
+            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8)
         }
     }
     

@@ -38,11 +38,31 @@ class NewCollectionViewCell: UICollectionViewCell {
         rateLBL.text = "\(data.voteAverage)"
         movieIDs = data.movieID
         if let path = data.posterPath {
-            imgMovie.loadFrom(URLAddress: "https://image.tmdb.org/t/p/w780/\(path)")
+            ImageLoader().downloadImage(imageCode: path) { [weak self] data in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    self.imgMovie.image = UIImage(data: data)
+                }
+            }
         }
     }
     
     func overView(data: MovieInfo) {
         nameLBL.text = data.overView
+    }
+}
+
+class ImageLoader {
+    func downloadImage(imageCode: String, completion: @escaping (Data) -> Void) {
+        guard let imageURL = URL(string: "https://image.tmdb.org/t/p/w780" + imageCode) else {
+            return
+        }
+        
+        URLSession.shared.dataTask(with: imageURL) { data, response, error in
+            guard let data = data, error == nil else {
+                return
+            }
+            completion(data)
+        }.resume()
     }
 }

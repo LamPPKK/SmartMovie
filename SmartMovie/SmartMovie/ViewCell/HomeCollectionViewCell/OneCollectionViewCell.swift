@@ -31,10 +31,10 @@ class OneCollectionViewCell: UICollectionViewCell {
         fetchData(movieIDs: movieIDs)
     }
     
-//    override func prepareForReuse() {
-//        super.prepareForReuse()
-//        starIMG.setImage(#imageLiteral(resourceName: "starEmpty"), for: .normal)
-//    }
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        starIMG.imageView?.image = nil
+    }
     
     @IBAction func funcsetStar(_ sender: Any) {
         if DBManager.shared.getfavorite(idMovie: movieIDs) == nil {

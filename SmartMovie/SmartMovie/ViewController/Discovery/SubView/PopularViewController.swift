@@ -46,6 +46,7 @@ final class PopularViewController: UIViewController {
         collectionView.dataSource = self
         collectionView.alwaysBounceVertical = true
         collectionView.register(UINib(nibName: "NewCollectionViewCell", bundle: nil),forCellWithReuseIdentifier: "NewCollectionViewCell")
+        collectionView.contentInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         NotificationCenter.default.addObserver(self, selector: #selector(cellGrid), name: Notification.Name("changeGrid"), object: nil)
         setupLoadmore()
     }
@@ -145,11 +146,22 @@ extension PopularViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: (UIScreen.main.bounds.width - 40) / 2 , height: 300)
+        if isGrid {
+            return CGSize(width: (collectionView.frame.width - 48) / 2, height: 280)
+        }
+        else {
+            return CGSize(width: collectionView.frame.width - 35, height: 190)
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 0, left: 12, bottom: 16, right: 12)
+        if isGrid {
+            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8)
+
+        } else {
+            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8)
+
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
