@@ -8,17 +8,16 @@
 import UIKit
 
 class NewCollectionViewCell: UICollectionViewCell {
-
     private let operationQueue = OperationQueue()
     private let apiService = APIConnection()
     var dataMovieDetail: MovieDetail?
     var movieIDs: Int = 0
     
-    @IBOutlet weak private var rateView: UIView!
-    @IBOutlet weak private var imgMovie: UIImageView!
-    @IBOutlet weak private var rateLBL: UILabel!
-    @IBOutlet weak private var yearLBL: UILabel!
-    @IBOutlet weak private var nameLBL: UILabel!
+    @IBOutlet private var rateView: UIView!
+    @IBOutlet private var imgMovie: UIImageView!
+    @IBOutlet private var rateLBL: UILabel!
+    @IBOutlet private var yearLBL: UILabel!
+    @IBOutlet private var nameLBL: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -58,7 +57,7 @@ class ImageLoader {
             return
         }
         
-        URLSession.shared.dataTask(with: imageURL) { data, response, error in
+        URLSession.shared.dataTask(with: imageURL) { data, _, error in
             guard let data = data, error == nil else {
                 return
             }

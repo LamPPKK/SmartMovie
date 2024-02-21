@@ -8,8 +8,8 @@
 import UIKit
 
 final class PopularViewController: UIViewController {
-    
     // MARK: - Variable
+
     private let apiService = APIConnection()
     private var refreshControl = UIRefreshControl()
     private var listMovie = [MovieInfo]()
@@ -32,7 +32,8 @@ final class PopularViewController: UIViewController {
     }
     
     // MARK: - IBOutlet
-    @IBOutlet weak var collectionView: UICollectionView!
+
+    @IBOutlet var collectionView: UICollectionView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,7 +46,7 @@ final class PopularViewController: UIViewController {
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.alwaysBounceVertical = true
-        collectionView.register(UINib(nibName: "NewCollectionViewCell", bundle: nil),forCellWithReuseIdentifier: "NewCollectionViewCell")
+        collectionView.register(UINib(nibName: "NewCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "NewCollectionViewCell")
         collectionView.contentInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         NotificationCenter.default.addObserver(self, selector: #selector(cellGrid), name: Notification.Name("changeGrid"), object: nil)
         setupLoadmore()
@@ -59,7 +60,7 @@ final class PopularViewController: UIViewController {
     }
     
     @objc
-    func refresh(_ sender:AnyObject) {
+    func refresh(_ sender: AnyObject) {
         self.collectionView.reloadData()
         self.refreshControl.endRefreshing()
     }
@@ -72,7 +73,7 @@ final class PopularViewController: UIViewController {
     }
     
     private func fetchData(_ url: String) {
-        apiService.fetchAPIFromURL(url) { [weak self] (body, error) in
+        apiService.fetchAPIFromURL(url) { [weak self] body, error in
             guard let self = self else {
                 return
             }
@@ -101,13 +102,14 @@ final class PopularViewController: UIViewController {
                 print(list)
                 self.listMovie.append(contentsOf: list)
             }
-        } catch let error {
+        } catch {
             print("Failed to decode JSON \(error)")
         }
     }
 }
 
 // MARK: - UICollectionViewDelegate, UICollectionViewDataSource
+
 extension PopularViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return listMovie.count
@@ -124,9 +126,8 @@ extension PopularViewController: UICollectionViewDelegate, UICollectionViewDataS
         return cell
     }
     
-    
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if indexPath.row == (listMovie.count - 4 ) {
+        if indexPath.row == (listMovie.count - 4) {
             pageNumber += 1
             fetchData(topRateURL)
         }
@@ -142,14 +143,15 @@ extension PopularViewController: UICollectionViewDelegate, UICollectionViewDataS
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout
+
 extension PopularViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+                        sizeForItemAt indexPath: IndexPath) -> CGSize
+    {
         if isGrid {
             return CGSize(width: (collectionView.frame.width - 48) / 2, height: 280)
-        }
-        else {
+        } else {
             return CGSize(width: collectionView.frame.width - 35, height: 190)
         }
     }
@@ -160,7 +162,6 @@ extension PopularViewController: UICollectionViewDelegateFlowLayout {
 
         } else {
             return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8)
-
         }
     }
     

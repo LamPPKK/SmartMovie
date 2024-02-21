@@ -8,25 +8,25 @@
 import UIKit
 
 class GenresViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
-    
     private let apiService = APIConnection()
     var genresURL = "api.themoviedb.org/3/genre/movie/list?api_key=d5b97a6fad46348136d87b78895a0c06&language=en-US"
     var listGenres = [Genres]()
     
-    @IBOutlet weak var genresColectionView: UICollectionView!
+    @IBOutlet var genresColectionView: UICollectionView!
     
     override func viewDidLoad() {
         navigationItem.title = "Genres"
         genresColectionView.dataSource = self
         genresColectionView.delegate = self
-        genresColectionView.register(UINib(nibName: "GenresCollectionViewCell", bundle: nil),forCellWithReuseIdentifier: "GenresCollectionViewCell")
+        genresColectionView.register(UINib(nibName: "GenresCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "GenresCollectionViewCell")
         super.viewDidLoad()
         fetchData(genresURL)
         print(listGenres)
         // Do any additional setup after loading the view.
     }
+
     private func fetchData(_ url: String) {
-        apiService.fetchAPIFromURL(url) { [weak self] (body, error) in
+        apiService.fetchAPIFromURL(url) { [weak self] body, error in
             guard let self = self else {
                 return
             }
@@ -54,7 +54,7 @@ class GenresViewController: UIViewController, UICollectionViewDataSource, UIColl
                     self.genresColectionView.reloadData()
                 }
             }
-        } catch let error {
+        } catch {
             print("Failed to decode JSON \(error)")
         }
     }
@@ -65,7 +65,7 @@ class GenresViewController: UIViewController, UICollectionViewDataSource, UIColl
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = genresColectionView.dequeueReusableCell(withReuseIdentifier: "GenresCollectionViewCell", for: indexPath)
-        if let cell = cell as? GenresCollectionViewCell{
+        if let cell = cell as? GenresCollectionViewCell {
             let Genres = listGenres[indexPath.item]
             cell.nameGenres.text = Genres.genresName
             cell.layer.cornerRadius = 10
@@ -73,22 +73,24 @@ class GenresViewController: UIViewController, UICollectionViewDataSource, UIColl
         return cell
     }
     
-        func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-            print(indexPath)
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            if let vc = storyboard.instantiateViewController(withIdentifier: "MoreViewController") as? MoreViewController {
-                vc.idGenres = listGenres[indexPath.row].idGenres
-                navigationController?.pushViewController(vc, animated: true)
-            }
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        print(indexPath)
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let vc = storyboard.instantiateViewController(withIdentifier: "MoreViewController") as? MoreViewController {
+            vc.idGenres = listGenres[indexPath.row].idGenres
+            navigationController?.pushViewController(vc, animated: true)
         }
+    }
 }
 
 extension GenresViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+                        sizeForItemAt indexPath: IndexPath) -> CGSize
+    {
         return CGSize(width: UIScreen.main.bounds.width - 50, height: 250)
     }
+
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
     }

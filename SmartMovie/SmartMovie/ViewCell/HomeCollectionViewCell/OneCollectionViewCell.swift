@@ -8,17 +8,16 @@
 import UIKit
 
 class OneCollectionViewCell: UICollectionViewCell {
-
     private let operationQueue = OperationQueue()
     private let apiService = APIConnection()
     var dataMovieDetail: MovieDetail?
     var movieIDs: Int = 0
     
-    @IBOutlet weak var starIMG: UIButton!
-    @IBOutlet weak var imgCell1: UIImageView!
-    @IBOutlet weak var nameCell1: UILabel!
-    @IBOutlet weak var timeCell1: UILabel!
-    @IBOutlet weak var likeCell1: UIButton!
+    @IBOutlet var starIMG: UIButton!
+    @IBOutlet var imgCell1: UIImageView!
+    @IBOutlet var nameCell1: UILabel!
+    @IBOutlet var timeCell1: UILabel!
+    @IBOutlet var likeCell1: UIButton!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -51,13 +50,13 @@ class OneCollectionViewCell: UICollectionViewCell {
         imgCell1.image = APIImage.share.cache.object(forKey: NSidImage)
     }
     
-    func showTime(runtime: Int?){
+    func showTime(runtime: Int?) {
         guard let runtime = runtime else {
             return
         }
         timeCell1.text = "\(runtime)"
-
     }
+
     func timeMovieString(_ time: Int) -> String {
         var result = ""
         let hours = Int(time / 60)
@@ -72,7 +71,7 @@ class OneCollectionViewCell: UICollectionViewCell {
     }
     
     func fetchData(movieIDs: Int) {
-        apiService.fetchAPIFromURL("api.themoviedb.org/3/movie/\(movieIDs)?api_key=d5b97a6fad46348136d87b78895a0c06") { [weak self] (body, errorMessage) in
+        apiService.fetchAPIFromURL("api.themoviedb.org/3/movie/\(movieIDs)?api_key=d5b97a6fad46348136d87b78895a0c06") { [weak self] body, errorMessage in
             guard let self = self else {
                 return
             }
@@ -85,6 +84,7 @@ class OneCollectionViewCell: UICollectionViewCell {
             }
         }
     }
+
     private func convertData(_ data: String) {
         let responseData = Data(data.utf8)
         let decoder = JSONDecoder()
@@ -94,7 +94,7 @@ class OneCollectionViewCell: UICollectionViewCell {
                 self.timeCell1.text = self.timeMovieString(self.dataMovieDetail?.runtime ?? 0)
             }
             
-        } catch let error {
+        } catch {
             print("Failed to decode JSON \(error)")
         }
     }

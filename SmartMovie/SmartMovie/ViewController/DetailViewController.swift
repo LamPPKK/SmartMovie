@@ -8,20 +8,19 @@
 import UIKit
 
 class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-    
-    @IBOutlet weak var averagePoint: UILabel!
-    @IBOutlet weak var starIMG5: UIImageView!
-    @IBOutlet weak var starIMG4: UIImageView!
-    @IBOutlet weak var starIMG3: UIImageView!
-    @IBOutlet weak var starIMG2: UIImageView!
-    @IBOutlet weak var starIMG1: UIImageView!
-    @IBOutlet weak var movieGenres: UILabel!
-    @IBOutlet weak var movieName: UILabel!
-    @IBOutlet weak var moviePoster: UIImageView!
-    @IBOutlet weak var overView: UILabel!
-    @IBOutlet weak var releaseDate: UILabel!
-    @IBOutlet weak var language: UILabel!
-    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet var averagePoint: UILabel!
+    @IBOutlet var starIMG5: UIImageView!
+    @IBOutlet var starIMG4: UIImageView!
+    @IBOutlet var starIMG3: UIImageView!
+    @IBOutlet var starIMG2: UIImageView!
+    @IBOutlet var starIMG1: UIImageView!
+    @IBOutlet var movieGenres: UILabel!
+    @IBOutlet var movieName: UILabel!
+    @IBOutlet var moviePoster: UIImageView!
+    @IBOutlet var overView: UILabel!
+    @IBOutlet var releaseDate: UILabel!
+    @IBOutlet var language: UILabel!
+    @IBOutlet var tableView: UITableView!
     private var arrayTitle: [String] = ["Movie Cast", " Similar Movie"]
     
     var dataDetails: [SectionDetail] = [SectionDetail(name: "cast", similar: [], typeCell: .cast),
@@ -48,8 +47,9 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
         fetchData(movieId: movieID)
         fetchCast(movieId: movieID)
     }
+
     func fetchSimilar(movieSearch: String) {
-        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/search/movie?api_key=d5b97a6fad46348136d87b78895a0c06&query=\(movieSearch)") { [weak self] (body, errorMessage) in
+        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/search/movie?api_key=d5b97a6fad46348136d87b78895a0c06&query=\(movieSearch)") { [weak self] body, errorMessage in
             guard self != nil else {
                 print("Self released")
                 return
@@ -63,6 +63,7 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
             }
         }
     }
+
     private func convertSimilar(_ data: String) {
         let responseData = Data(data.utf8)
         let decoder = JSONDecoder()
@@ -76,12 +77,13 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     self.tableView.reloadData()
                 }
             }
-        } catch let error {
+        } catch {
             print("Failed to decode JSON \(error)")
         }
     }
+
     func fetchCast(movieId: Int) {
-        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/movie/\(movieId)/credits?api_key=d5b97a6fad46348136d87b78895a0c06") { [weak self] (body, errorMessage) in
+        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/movie/\(movieId)/credits?api_key=d5b97a6fad46348136d87b78895a0c06") { [weak self] body, errorMessage in
             guard self != nil else {
                 print("Self released")
                 return
@@ -95,6 +97,7 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
             }
         }
     }
+
     private func convertCast(_ data: String) {
         let responseData = Data(data.utf8)
         let decoder = JSONDecoder()
@@ -108,7 +111,7 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     self.tableView.reloadData()
                 }
             }
-        } catch let error {
+        } catch {
             print("Failed to decode JSON \(error)")
         }
     }
@@ -177,8 +180,8 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 } else {
                     dataDetails[1].similar[indexPath.row].isDownload = true
                     let imageName = dataDetails[1].similar[indexPath.row].backdropPath?.replacingOccurrences(of: "/", with: "")
-                    addInQeueDownload(imageName: imageName?.replacingOccurrences(of: ".jpg", with: "") ?? "" ,
-                                      urlposter: dataDetails[1].similar[indexPath.row].backdropPath ?? "" ,
+                    addInQeueDownload(imageName: imageName?.replacingOccurrences(of: ".jpg", with: "") ?? "",
+                                      urlposter: dataDetails[1].similar[indexPath.row].backdropPath ?? "",
                                       indexPath: indexPath,
                                       idImage: dataDetails[1].similar[indexPath.row].movieID)
                 }
@@ -188,7 +191,7 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     func fetchData(movieId: Int) {
-        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/movie/\(movieId)?api_key=d5b97a6fad46348136d87b78895a0c06") { [weak self] (body, errorMessage) in
+        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/movie/\(movieId)?api_key=d5b97a6fad46348136d87b78895a0c06") { [weak self] body, errorMessage in
             guard self != nil else {
                 print("Self released")
                 return
@@ -202,7 +205,7 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 DispatchQueue.main.async { [weak self] in
                     if let dataMovieDetail = self?.dataMovieDetail {
                         let imageName = dataMovieDetail.posterPath?.replacingOccurrences(of: "/", with: "")
-                        self?.addInQeueDownload(imageName: imageName?.replacingOccurrences(of: ".jpg", with: "") ?? "", urlposter: dataMovieDetail.posterPath ?? "", indexPath: [0,0], idImage: dataMovieDetail.movieID)
+                        self?.addInQeueDownload(imageName: imageName?.replacingOccurrences(of: ".jpg", with: "") ?? "", urlposter: dataMovieDetail.posterPath ?? "", indexPath: [0, 0], idImage: dataMovieDetail.movieID)
                         self?.navigationItem.title = dataMovieDetail.movieName
                         self?.movieName.text = dataMovieDetail.movieName
                         self?.overView.text = dataMovieDetail.overView
@@ -217,7 +220,7 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
                         let moreFont = UIFont(name: "Helvetica-Oblique", size: 17.0)
                         let moreFontColor = UIColor.red
                         self?.overView.addTrailing(with: "... ", moreText: "Show more", moreTextFont: moreFont!, moreTextColor: moreFontColor)
-                        let readMoreGesture = UITapGestureRecognizer(target: self, action:#selector(self?.showViewMore(_:)))
+                        let readMoreGesture = UITapGestureRecognizer(target: self, action: #selector(self?.showViewMore(_:)))
                         readMoreGesture.numberOfTapsRequired = 1
                         self?.overView.addGestureRecognizer(readMoreGesture)
                         self?.overView.isUserInteractionEnabled = true
@@ -234,6 +237,7 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
             }
         }
     }
+
     func timeMovieString(_ time: Int) -> String {
         var result = ""
         let hours = Int(time / 60)
@@ -246,12 +250,13 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
         return result
     }
+
     private func convertData(_ data: String) {
         let responseData = Data(data.utf8)
         let decoder = JSONDecoder()
         do {
             dataMovieDetail = try decoder.decode(MovieDetail.self, from: responseData)
-        } catch let error {
+        } catch {
             print("Failed to decode JSON \(error)")
         }
     }
@@ -268,16 +273,16 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
         for image in arrStar {
             image.image = UIImage(systemName: "start")
         }
-        let numberStar: Int = Int(scoreAverage/2)
+        let numberStar = Int(scoreAverage / 2)
         if numberStar == 0 {
             return
         }
-        for index in 0..<numberStar {
+        for index in 0 ..< numberStar {
             arrStar[index].image = UIImage(systemName: "star.fill")
         }
     }
     
-    func addInQeueDownload(imageName: String, urlposter: String, indexPath: IndexPath, idImage: Int ) {
+    func addInQeueDownload(imageName: String, urlposter: String, indexPath: IndexPath, idImage: Int) {
         let operation = DownloadImage(imageName, url: urlposter, idImage: idImage, size: "origin")
         operation.completionBlock = {
             sleep(1)
@@ -289,4 +294,3 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
         operationQueue.addOperation(operation)
     }
 }
-

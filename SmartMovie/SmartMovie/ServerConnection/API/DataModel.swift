@@ -21,10 +21,12 @@ struct SectionDetail {
 struct SearchResults: Codable {
     var results: [MovieInfo]
 }
+
 struct Movies: Codable {
     let page: Int
     let results: [MovieInfo]
 }
+
 struct MovieInfo: Codable {
     let backdropPath: String?
     var genresMovis: [Genres]?
@@ -50,9 +52,11 @@ struct MovieInfo: Codable {
         case releaseTime = "release_date"
     }
 }
+
 struct MovieDetailS: Codable {
     let results: [MovieDetail]
 }
+
 struct MovieDetail: Codable {
     let backdropPath: String?
     var posterPath: String?
@@ -72,17 +76,18 @@ struct MovieDetail: Codable {
         case genresMovie = "genres"
         case overView = "overview"
         case movieID = "id"
-        case runtime = "runtime"
+        case runtime
         case relate = "release_date"
         case lang = "original_language"
     }
 }
+
 struct GenresMovies: Codable {
     var id: Int
     var name: String
     enum odingKeys: String, CodingKey {
-        case id = "id"
-        case name = "name"
+        case id
+        case name
     }
 }
 
@@ -94,9 +99,11 @@ struct Genres: Codable {
         case genresName = "name"
     }
 }
+
 struct Genre: Codable {
     let genres: [Genres]?
 }
+
 class Cast: Codable {
     let castId: Int
     let castName: String?
@@ -108,6 +115,7 @@ class Cast: Codable {
         case profilePath = "profile_path"
     }
 }
+
 struct ListCast: Codable {
     let id: Int
     let cast: [Cast]?

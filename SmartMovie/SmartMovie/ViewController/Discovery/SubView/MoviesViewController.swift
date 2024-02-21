@@ -7,8 +7,6 @@
 
 import UIKit
 
-
-
 class MoviesViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
     @IBOutlet weak var collectionView: UICollectionView!

@@ -29,7 +29,8 @@ extension APIConnection: APIConnectionProtocol {
                 return
             }
             guard let httpResponse = response as? HTTPURLResponse,
-                  (200...299).contains(httpResponse.statusCode) else {
+                  (200 ... 299).contains(httpResponse.statusCode)
+            else {
                 complitionHandler(nil, "HTTP status failed")
                 return
             }
@@ -44,7 +45,7 @@ extension APIConnection: APIConnectionProtocol {
 }
 
 class APIImage {
-    static let share: APIImage = APIImage()
+    static let share: APIImage = .init()
     var cache = NSCache<NSNumber, UIImage>()
     var domain: String = "https://image.tmdb.org/t/p/"
     func startDownload(url: String, imageName: String, idImage: Int, size: String) {
@@ -52,14 +53,16 @@ class APIImage {
         guard let urlConvert = URL(string: domains) else { return }
         downloadImage(from: urlConvert, imageName: imageName, idImage: idImage)
     }
+
     private func downloadImage(from url: URL, imageName: String, idImage: Int) {
         getData(from: url) { data, _, error in
             guard let data = data, error == nil else { return }
-            guard let image = UIImage(data: data) else { return}
+            guard let image = UIImage(data: data) else { return }
             let NSidImage = NSNumber(value: idImage)
             self.cache.setObject(image, forKey: NSidImage)
         }
     }
+
     func getData(from url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
         URLSession.shared.dataTask(with: url, completionHandler: completion).resume()
     }
@@ -70,12 +73,13 @@ class DownloadImage: Operation {
     let url: String
     let idImage: Int
     let size: String
-    init(_ imageName: String, url: String, idImage: Int, size: String ) {
+    init(_ imageName: String, url: String, idImage: Int, size: String) {
         self.imageName = imageName
         self.url = url
         self.idImage = idImage
         self.size = size
     }
+
     override func main() {
         if isCancelled {
             return

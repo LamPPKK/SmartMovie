@@ -8,7 +8,6 @@
 import UIKit
 
 class MoreViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
-
     private var operationQueue = OperationQueue()
     private let apiConnection = APIConnection()
     private var moreURL = "1"
@@ -19,7 +18,7 @@ class MoreViewController: UIViewController, UICollectionViewDelegate, UICollecti
     private var refreshControl = UIRefreshControl()
     private var genres: String = ""
 
-    @IBOutlet weak var collectionView: UICollectionView!
+    @IBOutlet var collectionView: UICollectionView!
     
     override func viewDidLoad() {
         setupCollectionView()
@@ -30,10 +29,11 @@ class MoreViewController: UIViewController, UICollectionViewDelegate, UICollecti
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.contentInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
-        collectionView.register(UINib(nibName: "OneCollectionViewCell", bundle: nil),forCellWithReuseIdentifier: "OneCollectionViewCell")
+        collectionView.register(UINib(nibName: "OneCollectionViewCell", bundle: nil), forCellWithReuseIdentifier: "OneCollectionViewCell")
         fetchData(idGenres: idGenres)
     }
-    func setupCollectionView(){
+
+    func setupCollectionView() {
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.alwaysBounceVertical = true
@@ -42,13 +42,14 @@ class MoreViewController: UIViewController, UICollectionViewDelegate, UICollecti
         self.refreshControl.addTarget(self, action: #selector(self.refresh), for: .valueChanged)
         collectionView!.addSubview(refreshControl)
     }
-    @objc func refresh(_ sender:AnyObject) {
+
+    @objc func refresh(_ sender: AnyObject) {
         self.collectionView.reloadData()
         self.refreshControl.endRefreshing()
     }
     
     func fetchData(idGenres: Int) {
-        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/discover/movie?api_key=d5b97a6fad46348136d87b78895a0c06&language=en-US&page=\(pageNum)&with_genres=\(idGenres)") { [weak self] (body, errorMessage) in
+        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/discover/movie?api_key=d5b97a6fad46348136d87b78895a0c06&language=en-US&page=\(pageNum)&with_genres=\(idGenres)") { [weak self] body, errorMessage in
             guard self != nil else {
                 print("Self released")
                 return
@@ -77,7 +78,7 @@ class MoreViewController: UIViewController, UICollectionViewDelegate, UICollecti
                     self.collectionView.reloadData()
                 }
             }
-        } catch let error {
+        } catch {
             print("Failed to decode JSON \(error)")
         }
     }
@@ -88,7 +89,7 @@ class MoreViewController: UIViewController, UICollectionViewDelegate, UICollecti
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "OneCollectionViewCell", for: indexPath)
-        if let cell = cell as? OneCollectionViewCell{
+        if let cell = cell as? OneCollectionViewCell {
             let movieInfo = listMovie[indexPath.item]
             let NSidImage = NSNumber(value: movieInfo.movieID)
             cell.imgCell1.image = APIImage.share.cache.object(forKey: NSidImage)
@@ -103,6 +104,7 @@ class MoreViewController: UIViewController, UICollectionViewDelegate, UICollecti
         }
         return cell
     }
+
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if listMovie[indexPath.row].backdropPath == nil {
             return
@@ -111,8 +113,8 @@ class MoreViewController: UIViewController, UICollectionViewDelegate, UICollecti
             return
         } else {
             listMovie[indexPath.row].isDownload = true
-            guard let poster = listMovie[indexPath.row].posterPath else {return}
-            addInQeueDownload(imageName:String( listMovie[indexPath.row].movieID), urlposter: poster, indexPath: indexPath, idImage: listMovie[indexPath.row].movieID)
+            guard let poster = listMovie[indexPath.row].posterPath else { return }
+            addInQeueDownload(imageName: String(listMovie[indexPath.row].movieID), urlposter: poster, indexPath: indexPath, idImage: listMovie[indexPath.row].movieID)
         }
     }
     
@@ -125,7 +127,7 @@ class MoreViewController: UIViewController, UICollectionViewDelegate, UICollecti
         print("Has been press")
     }
     
-    func addInQeueDownload(imageName: String, urlposter: String, indexPath: IndexPath, idImage: Int ) {
+    func addInQeueDownload(imageName: String, urlposter: String, indexPath: IndexPath, idImage: Int) {
         let operation = DownloadImage(imageName, url: urlposter, idImage: idImage, size: "w500")
         operation.completionBlock = {
             DispatchQueue.main.async {
@@ -135,11 +137,13 @@ class MoreViewController: UIViewController, UICollectionViewDelegate, UICollecti
         operationQueue.addOperation(operation)
     }
 }
+
 extension MoreViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView,
                         layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: (collectionView.frame.width - 48) / 2 , height: 280)
+                        sizeForItemAt indexPath: IndexPath) -> CGSize
+    {
+        return CGSize(width: (collectionView.frame.width - 48) / 2, height: 280)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {

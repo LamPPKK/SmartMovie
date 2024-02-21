@@ -6,21 +6,16 @@
 //
 //
 
-import Foundation
 import CoreData
+import Foundation
 
-
-extension Favorite {
-
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Favorite> {
+public extension Favorite {
+    @nonobjc class func fetchRequest() -> NSFetchRequest<Favorite> {
         return NSFetchRequest<Favorite>(entityName: "Favorite")
     }
-    
-    @NSManaged public var idMovie: Int32
-    @NSManaged public var isStar: Bool
-    
+
+    @NSManaged var idMovie: Int32
+    @NSManaged var isStar: Bool
 }
 
-extension Favorite : Identifiable {
-
-}
+extension Favorite: Identifiable {}

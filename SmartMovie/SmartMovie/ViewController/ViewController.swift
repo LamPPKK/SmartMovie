@@ -10,7 +10,7 @@ class ViewController {
     var genresURL = "api.themoviedb.org/3/genre/movie/list?api_key=d5b97a6fad46348136d87b78895a0c06&language=en-US"
     var listGenres = [Genres]()
     private func fetchData(_ url: String) {
-        apiService.fetchAPIFromURL(url) { [weak self] (body, error) in
+        apiService.fetchAPIFromURL(url) { [weak self] body, error in
             guard let self = self else {
                 return
             }
@@ -23,7 +23,6 @@ class ViewController {
             }
         }
     }
-    private func convertData(_ data: String) {
-        
-    }
+
+    private func convertData(_ data: String) {}
 }
