@@ -11,6 +11,59 @@ protocol DelegateResultSearch: AnyObject {
     func reloadResultSearch(dataSearch: SearchResults)
 }
 
+//class SearchViewController: UIViewController {
+//    @IBOutlet var searchColectionView: UICollectionView!
+//    @IBOutlet var searchBarView: UISearchBar!
+//
+//    private var viewModel = SearchViewModel()
+//
+//    override func viewDidLoad() {
+//        super.viewDidLoad()
+//        setupBindings()
+//
+//        searchColectionView.dataSource = self
+//        searchColectionView.delegate = self
+//        searchBarView.delegate = self
+//    }
+//
+//    private func setupBindings() {
+//        viewModel.updateSearchResultsClosure = { [weak self] in
+//            self?.searchColectionView.reloadData()
+//        }
+//    }
+//
+//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+//        viewModel.fetchSearchResults(for: searchText)
+//    }
+//
+//}
+//
+//extension SearchViewController: UISearchBarDelegate {
+//    private func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+//        viewModel.fetchMovies(searchQuery: searchText)
+//    }
+//}
+//
+//extension SearchViewController: UICollectionViewDelegate {
+//
+//}
+//
+//extension SearchViewController: UICollectionViewDataSource {
+//    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+//        return viewModel.searchResults?.results.count ?? 0
+//    }
+//
+//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+//        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SearchCell", for: indexPath) as? SearchCell else {
+//            fatalError("Unable to dequeue SearchCell")
+//        }
+//        if let movie = viewModel.searchResults?.results[indexPath.row] {
+//            // Configure cell with movie
+//        }
+//        return cell
+//    }
+//}
+
 class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate {
     @IBOutlet var searchColectionView: UICollectionView!
     @IBOutlet var searchBarView: UISearchBar!

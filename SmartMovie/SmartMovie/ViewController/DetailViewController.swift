@@ -49,7 +49,7 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
 
     func fetchSimilar(movieSearch: String) {
-        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/search/movie?api_key=d5b97a6fad46348136d87b78895a0c06&query=\(movieSearch)") { [weak self] body, errorMessage in
+        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/search/movie?api_key=\(Constants.API_KEY)&query=\(movieSearch)") { [weak self] body, errorMessage in
             guard self != nil else {
                 print("Self released")
                 return
@@ -83,7 +83,7 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
 
     func fetchCast(movieId: Int) {
-        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/movie/\(movieId)/credits?api_key=d5b97a6fad46348136d87b78895a0c06") { [weak self] body, errorMessage in
+        apiConnection.fetchAPIFromURL("api.themoviedb.org/3/movie/\(movieId)/credits?api_key=\(Constants.API_KEY)") { [weak self] body, errorMessage in
             guard self != nil else {
                 print("Self released")
                 return

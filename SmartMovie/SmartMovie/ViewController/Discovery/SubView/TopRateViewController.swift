@@ -108,20 +108,15 @@ class TopRateViewController: UIViewController, UICollectionViewDelegate, UIColle
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if isGrid {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "OneCollectionViewCell", for: indexPath)
-            if let cell = cell as? OneCollectionViewCell {
-                let movieInfo = listMovie[indexPath.item]
-                let NSidImage = NSNumber(value: movieInfo.movieID)
-                cell.imgCell1.image = APIImage.share.cache.object(forKey: NSidImage)
-                cell.nameCell1.text = movieInfo.movieName
-                cell.showTime(runtime: movieInfo.rumtime)
-                cell.fetchData(movieIDs: movieInfo.movieID)
-                cell.setupCell(data: movieInfo)
-                cell.movieIDs = movieInfo.movieID
-                cell.layer.cornerRadius = 20
-                cell.layer.borderWidth = 1
-                cell.layer.borderColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "OneCollectionViewCell", for: indexPath) as? OneCollectionViewCell else {
+                fatalError("Unable to dequeue OneCollectionViewCell")
             }
+            let movieInfo = listMovie[indexPath.row]
+            let cellViewModel = OneCollectionViewModelCell(movie: movieInfo)
+            cell.setupCell(viewModel: cellViewModel)
+            cell.layer.cornerRadius = 20
+            cell.layer.borderWidth = 1
+            cell.layer.borderColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
             return cell
         } else {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TwoCollectionViewCell", for: indexPath)
