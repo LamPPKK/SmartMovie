@@ -44,8 +44,7 @@ class PageViewController: UIPageViewController {
     }
 
     func newColoredViewController(controllerIdentifier: String) -> UIViewController {
-        let vc = UIStoryboard(name: "Main", bundle: nil).
-            instantiateViewController(withIdentifier: controllerIdentifier)
+        let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: controllerIdentifier)
         return vc
     }
 

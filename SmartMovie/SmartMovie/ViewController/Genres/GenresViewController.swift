@@ -43,10 +43,10 @@ class GenresViewController: UIViewController, UICollectionViewDataSource, UIColl
     private func convertData(_ data: String) {
         let responseData = Data(data.utf8)
         let decoder = JSONDecoder()
-        var result: Genre?
+        var result: GenreList?
         
         do {
-            result = try decoder.decode(Genre.self, from: responseData)
+            result = try decoder.decode(GenreList.self, from: responseData)
             if let list = result?.genres {
                 print(list)
                 self.listGenres.append(contentsOf: list)
