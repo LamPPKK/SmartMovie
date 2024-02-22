@@ -8,23 +8,22 @@
 import UIKit
 
 class HomeViewController: UIViewController {
-    
-    @IBOutlet private weak var changeViewBTN: UIButton!
+    @IBOutlet private var changeViewBTN: UIButton!
     var currentSelectedBtn = 0
     var isGrid = true
     
-    @IBOutlet weak var tabButton1: UIButton!
-    @IBOutlet weak var tabButton2: UIButton!
-    @IBOutlet weak var tabButton3: UIButton!
-    @IBOutlet weak var tabButton4: UIButton!
-    @IBOutlet weak var tabButton5: UIButton!
-    @IBOutlet weak var tabContainerView: UIView!
-    @IBOutlet weak var tabContentView: UIView!
+    @IBOutlet var tabButton1: UIButton!
+    @IBOutlet var tabButton2: UIButton!
+    @IBOutlet var tabButton3: UIButton!
+    @IBOutlet var tabButton4: UIButton!
+    @IBOutlet var tabButton5: UIButton!
+    @IBOutlet var tabContainerView: UIView!
+    @IBOutlet var tabContentView: UIView!
     
     let myPageView = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "pageview") as! PageViewController
     var pageVC = PageViewController(transitionStyle:
-                                        UIPageViewController.TransitionStyle.scroll, navigationOrientation:
-                                            UIPageViewController.NavigationOrientation.horizontal, options: nil)
+        UIPageViewController.TransitionStyle.scroll, navigationOrientation:
+        UIPageViewController.NavigationOrientation.horizontal, options: nil)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,14 +54,15 @@ class HomeViewController: UIViewController {
         updateButton(index)
     }
     
-    @objc func changeIndex(_ notification: NSNotification){
+    @objc func changeIndex(_ notification: NSNotification) {
         if let dict = notification.userInfo as NSDictionary? {
-            if let index = dict["index"] as? Int{
+            if let index = dict["index"] as? Int {
                 updateButton(index)
             }
         }
     }
-    func changeBTN(){
+
+    func changeBTN() {
         if !isGrid {
             changeViewBTN.setImage(UIImage(systemName: "rectangle.grid.1x2.fill"), for: .normal)
         }
@@ -71,7 +71,7 @@ class HomeViewController: UIViewController {
         }
     }
     
-    func updateButton(_ index:Int) {
+    func updateButton(_ index: Int) {
         switch index {
         case 0:
             updateButtons(selectedBtn: tabButton1,
@@ -113,7 +113,6 @@ class HomeViewController: UIViewController {
                           unselectedBtn4: tabButton4)
             currentSelectedBtn = 4
             
-            
         default:
             updateButtons(selectedBtn: tabButton1,
                           unselectedBtn1: tabButton2,
@@ -121,51 +120,50 @@ class HomeViewController: UIViewController {
                           unselectedBtn3: tabButton4,
                           unselectedBtn4: tabButton5)
             currentSelectedBtn = 0
-        }    }
+        }
+    }
     
-    @IBAction func tab1Clicled(_sender: UIButton){
+    @IBAction func tab1Clicled(_sender: UIButton) {
         updateButtons(selectedBtn: tabButton1,
                       unselectedBtn1: tabButton2,
                       unselectedBtn2: tabButton3,
                       unselectedBtn3: tabButton4,
                       unselectedBtn4: tabButton5)
         pageVC.changeViewController(currentIndex: currentSelectedBtn, nextIndex: 0)
-        currentSelectedBtn=0
-        
+        currentSelectedBtn = 0
     }
-    @IBAction func tab2Clicled(_sender: UIButton){
+
+    @IBAction func tab2Clicled(_sender: UIButton) {
         updateButtons(selectedBtn: tabButton2,
                       unselectedBtn1: tabButton1,
                       unselectedBtn2: tabButton3,
                       unselectedBtn3: tabButton4,
                       unselectedBtn4: tabButton5)
         pageVC.changeViewController(currentIndex: currentSelectedBtn, nextIndex: 1)
-        currentSelectedBtn=1
-        
+        currentSelectedBtn = 1
     }
-    @IBAction func tab3Clicled(_sender: UIButton){
+
+    @IBAction func tab3Clicled(_sender: UIButton) {
         updateButtons(selectedBtn: tabButton3,
                       unselectedBtn1: tabButton2,
                       unselectedBtn2: tabButton1,
                       unselectedBtn3: tabButton4,
                       unselectedBtn4: tabButton5)
         pageVC.changeViewController(currentIndex: currentSelectedBtn, nextIndex: 2)
-        currentSelectedBtn=2
-        
+        currentSelectedBtn = 2
     }
     
-    @IBAction func tab4Clicled(_sender: UIButton){
+    @IBAction func tab4Clicled(_sender: UIButton) {
         updateButtons(selectedBtn: tabButton4,
                       unselectedBtn1: tabButton2,
                       unselectedBtn2: tabButton3,
                       unselectedBtn3: tabButton1,
                       unselectedBtn4: tabButton5)
         pageVC.changeViewController(currentIndex: currentSelectedBtn, nextIndex: 3)
-        currentSelectedBtn=3
-        
+        currentSelectedBtn = 3
     }
     
-    @IBAction func tab5Clicled(_sender: UIButton){
+    @IBAction func tab5Clicled(_sender: UIButton) {
         updateButtons(selectedBtn: tabButton5,
                       unselectedBtn1: tabButton2,
                       unselectedBtn2: tabButton3,
@@ -173,16 +171,15 @@ class HomeViewController: UIViewController {
                       unselectedBtn4: tabButton1)
         pageVC.changeViewController(currentIndex: currentSelectedBtn, nextIndex: 4)
         currentSelectedBtn = 4
-        
     }
-    @IBAction func changeCell(_sender: UIButton){
+
+    @IBAction func changeCell(_sender: UIButton) {
         isGrid = !isGrid
         changeBTN()
         NotificationCenter.default.post(name: NSNotification.Name("changeGrid"), object: nil)
     }
     
-    func updateButtons(selectedBtn: UIButton, unselectedBtn1: UIButton, unselectedBtn2: UIButton, unselectedBtn3: UIButton, unselectedBtn4: UIButton){
-        
+    func updateButtons(selectedBtn: UIButton, unselectedBtn1: UIButton, unselectedBtn2: UIButton, unselectedBtn3: UIButton, unselectedBtn4: UIButton) {
         selectedBtn.setTitleColor(.white, for: .normal)
         selectedBtn.setTitleColor(.white, for: .selected)
         selectedBtn.backgroundColor = .systemTeal
@@ -207,7 +204,5 @@ class HomeViewController: UIViewController {
         unselectedBtn4.setTitleColor(.black, for: .selected)
         unselectedBtn4.backgroundColor = .clear
         unselectedBtn4.layer.cornerRadius = 10
-        
     }
-    
 }

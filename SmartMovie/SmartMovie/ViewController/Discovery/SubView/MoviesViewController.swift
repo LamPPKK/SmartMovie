@@ -7,8 +7,6 @@
 
 import UIKit
 
-
-
 class MoviesViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
     
     @IBOutlet weak var collectionView: UICollectionView!
@@ -120,19 +118,15 @@ class MoviesViewController: UIViewController, UICollectionViewDelegate, UICollec
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if isGrid {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "OneCollectionViewCell", for: indexPath)
-            if let cell = cell as? OneCollectionViewCell{
-                let movieInfo = loadMovie[indexPath.section].results[indexPath.item]
-                let NSidImage = NSNumber(value: movieInfo.movieID)
-                cell.imgCell1.image = APIImage.share.cache.object(forKey: NSidImage)
-                cell.nameCell1.text = movieInfo.movieName
-                cell.fetchData(movieIDs: movieInfo.movieID)
-                cell.setupCell(data: movieInfo)
-                cell.movieIDs = movieInfo.movieID
-                cell.layer.cornerRadius = 20
-                cell.layer.borderWidth = 1
-                cell.layer.borderColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "OneCollectionViewCell", for: indexPath) as? OneCollectionViewCell else {
+                fatalError("Unable to dequeue OneCollectionViewCell")
             }
+            let movieInfo = listMovie[indexPath.row]
+            let cellViewModel = OneCollectionViewModelCell(movie: movieInfo)
+            cell.setupCell(viewModel: cellViewModel)
+            cell.layer.cornerRadius = 20
+            cell.layer.borderWidth = 1
+            cell.layer.borderColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
             return cell
         } else {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TwoCollectionViewCell", for: indexPath)
@@ -214,20 +208,19 @@ extension MoviesViewController: UICollectionViewDelegateFlowLayout {
                         layout collectionViewLayout: UICollectionViewLayout,
                         sizeForItemAt indexPath: IndexPath) -> CGSize {
         if isGrid {
-            return CGSize(width: (collectionView.frame.width - 48) / 2 , height: 280) // kich thuoc cua item. chieu ngang = (collectionWidth - inset(Trai) - contetnInset(Trai) - inset(Phai) - contentInset(Phai) - khoang cach giua 2 item ) / (so item tren 1 hang)
+            return CGSize(width: (collectionView.frame.width - 48) / 2 , height: 280)
         }
         else {
-            return CGSize(width: UIScreen.main.bounds.width - 32, height: 190)
+            return CGSize(width: collectionView.frame.width - 32, height: 190)
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         if isGrid {
-            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8) // Khoang cach cua item so voi phan content trong collection - layout 2 item tren 1 hang
+            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8)
 
         } else {
-            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8) // Khoang cach cua item so voi phan content trong collection
-
+            return UIEdgeInsets(top: 0, left: 8, bottom: 16, right: 8)
         }
     }
     

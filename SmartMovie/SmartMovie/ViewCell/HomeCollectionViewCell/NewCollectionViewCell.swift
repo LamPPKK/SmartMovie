@@ -8,17 +8,16 @@
 import UIKit
 
 class NewCollectionViewCell: UICollectionViewCell {
-
     private let operationQueue = OperationQueue()
     private let apiService = APIConnection()
     var dataMovieDetail: MovieDetail?
     var movieIDs: Int = 0
     
-    @IBOutlet weak private var rateView: UIView!
-    @IBOutlet weak private var imgMovie: UIImageView!
-    @IBOutlet weak private var rateLBL: UILabel!
-    @IBOutlet weak private var yearLBL: UILabel!
-    @IBOutlet weak private var nameLBL: UILabel!
+    @IBOutlet private var rateView: UIView!
+    @IBOutlet private var imgMovie: UIImageView!
+    @IBOutlet private var rateLBL: UILabel!
+    @IBOutlet private var yearLBL: UILabel!
+    @IBOutlet private var nameLBL: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -38,11 +37,31 @@ class NewCollectionViewCell: UICollectionViewCell {
         rateLBL.text = "\(data.voteAverage)"
         movieIDs = data.movieID
         if let path = data.posterPath {
-            imgMovie.loadFrom(URLAddress: "https://image.tmdb.org/t/p/w780/\(path)")
+            ImageLoader().downloadImage(imageCode: path) { [weak self] data in
+                guard let self = self else { return }
+                DispatchQueue.main.async {
+                    self.imgMovie.image = UIImage(data: data)
+                }
+            }
         }
     }
     
     func overView(data: MovieInfo) {
         nameLBL.text = data.overView
+    }
+}
+
+class ImageLoader {
+    func downloadImage(imageCode: String, completion: @escaping (Data) -> Void) {
+        guard let imageURL = URL(string: "https://image.tmdb.org/t/p/w780" + imageCode) else {
+            return
+        }
+        
+        URLSession.shared.dataTask(with: imageURL) { data, _, error in
+            guard let data = data, error == nil else {
+                return
+            }
+            completion(data)
+        }.resume()
     }
 }

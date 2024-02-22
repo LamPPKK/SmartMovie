@@ -6,10 +6,8 @@
 //
 //
 
-import Foundation
 import CoreData
+import Foundation
 
 @objc(Favorite)
-public class Favorite: NSManagedObject {
-
-}
+public class Favorite: NSManagedObject {}

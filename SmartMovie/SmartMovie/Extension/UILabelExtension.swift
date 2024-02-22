@@ -1,19 +1,12 @@
 //
-//  ArtistViewController.swift
+//  UILabelExtension.swift
 //  SmartMovie
 //
-//  Created by Tùng Lâm on 12/25/21.
+//  Created by LamNDT on 21/02/2024.
 //
 
+import Foundation
 import UIKit
-
-class ArtistViewController: UIViewController {
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        // Do any additional setup after loading the view.
-    }
-}
 
 extension UILabel {
     func addTrailing(with trailingText: String, moreText: String, moreTextFont: UIFont, moreTextColor: UIColor) {
@@ -21,9 +14,9 @@ extension UILabel {
         
         let lengthForVisibleString: Int = self.vissibleTextLength
         let mutableString: String = self.text!
-        let trimmedString: String? = (mutableString as NSString).replacingCharacters(in: NSRange(location: lengthForVisibleString, length: ((self.text?.count)! - lengthForVisibleString)), with: "")
+        let trimmedString: String? = (mutableString as NSString).replacingCharacters(in: NSRange(location: lengthForVisibleString, length: (self.text?.count)! - lengthForVisibleString), with: "")
         let readMoreLength: Int = (readMoreText.count)
-        let trimmedForReadMore: String = (trimmedString! as NSString).replacingCharacters(in: NSRange(location: ((trimmedString?.count ?? 0) - readMoreLength), length: readMoreLength), with: "") + trailingText
+        let trimmedForReadMore: String = (trimmedString! as NSString).replacingCharacters(in: NSRange(location: (trimmedString?.count ?? 0) - readMoreLength, length: readMoreLength), with: "") + trailingText
         let answerAttributed = NSMutableAttributedString(string: trimmedForReadMore, attributes: [NSAttributedString.Key.font: self.font as Any])
         let readMoreAttributed = NSMutableAttributedString(string: moreText, attributes: [NSAttributedString.Key.font: moreTextFont, NSAttributedString.Key.foregroundColor: moreTextColor])
         answerAttributed.append(readMoreAttributed)
@@ -38,12 +31,12 @@ extension UILabel {
         let sizeConstraint = CGSize(width: labelWidth, height: CGFloat.greatestFiniteMagnitude)
         
         let attributes: [AnyHashable: Any] = [NSAttributedString.Key.font: font]
-        let attributedText = NSAttributedString(string: self.text!, attributes: attributes as? [NSAttributedString.Key : Any])
+        let attributedText = NSAttributedString(string: self.text!, attributes: attributes as? [NSAttributedString.Key: Any])
         let boundingRect: CGRect = attributedText.boundingRect(with: sizeConstraint, options: .usesLineFragmentOrigin, context: nil)
         
         if boundingRect.size.height > labelHeight {
-            var index: Int = 0
-            var prev: Int = 0
+            var index = 0
+            var prev = 0
             let characterSet = CharacterSet.whitespacesAndNewlines
             repeat {
                 prev = index
@@ -52,7 +45,7 @@ extension UILabel {
                 } else {
                     index = (self.text! as NSString).rangeOfCharacter(from: characterSet, options: [], range: NSRange(location: index + 1, length: self.text!.count - index - 1)).location
                 }
-            } while index != NSNotFound && index < self.text!.count && (self.text! as NSString).substring(to: index).boundingRect(with: sizeConstraint, options: .usesLineFragmentOrigin, attributes: attributes as? [NSAttributedString.Key : Any], context: nil).size.height <= labelHeight
+            } while index != NSNotFound && index < self.text!.count && (self.text! as NSString).substring(to: index).boundingRect(with: sizeConstraint, options: .usesLineFragmentOrigin, attributes: attributes as? [NSAttributedString.Key: Any], context: nil).size.height <= labelHeight
             return prev
         }
         return self.text!.count
