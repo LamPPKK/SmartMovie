@@ -11,62 +11,12 @@ protocol DelegateResultSearch: AnyObject {
     func reloadResultSearch(dataSearch: SearchResults)
 }
 
-//class SearchViewController: UIViewController {
-//    @IBOutlet var searchColectionView: UICollectionView!
-//    @IBOutlet var searchBarView: UISearchBar!
-//
-//    private var viewModel = SearchViewModel()
-//
-//    override func viewDidLoad() {
-//        super.viewDidLoad()
-//        setupBindings()
-//
-//        searchColectionView.dataSource = self
-//        searchColectionView.delegate = self
-//        searchBarView.delegate = self
-//    }
-//
-//    private func setupBindings() {
-//        viewModel.updateSearchResultsClosure = { [weak self] in
-//            self?.searchColectionView.reloadData()
-//        }
-//    }
-//
-//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        viewModel.fetchSearchResults(for: searchText)
-//    }
-//
-//}
-//
-//extension SearchViewController: UISearchBarDelegate {
-//    private func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-//        viewModel.fetchMovies(searchQuery: searchText)
-//    }
-//}
-//
-//extension SearchViewController: UICollectionViewDelegate {
-//
-//}
-//
-//extension SearchViewController: UICollectionViewDataSource {
-//    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-//        return viewModel.searchResults?.results.count ?? 0
-//    }
-//
-//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-//        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SearchCell", for: indexPath) as? SearchCell else {
-//            fatalError("Unable to dequeue SearchCell")
-//        }
-//        if let movie = viewModel.searchResults?.results[indexPath.row] {
-//            // Configure cell with movie
-//        }
-//        return cell
-//    }
-//}
-
-class SearchViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UISearchBarDelegate {
+class SearchViewController: UIViewController {
     @IBOutlet var searchColectionView: UICollectionView!
     @IBOutlet var searchBarView: UISearchBar!
+
+    private var viewModel = SearchViewModel()
+
     private let operationQueue = OperationQueue()
     weak var delegate: DelegateResultSearch?
     let apiConnection = APIConnection()
@@ -76,12 +26,20 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupBindings()
+
         searchColectionView.dataSource = self
         searchColectionView.delegate = self
-        searchColectionView.register(UINib(nibName: "SearchCell", bundle: nil), forCellWithReuseIdentifier: "SearchCell")
         searchBarView.delegate = self
+
+        searchColectionView.register(UINib(nibName: "SearchCell", bundle: nil), forCellWithReuseIdentifier: "SearchCell")
         operationQueue.maxConcurrentOperationCount = 1
-        searchBarView.isHidden = false
+    }
+
+    private func setupBindings() {
+        viewModel.updateSearchResultsClosure = { [weak self] in
+            self?.searchColectionView.reloadData()
+        }
     }
 
     func fetchListID(movieSearch: String) {
@@ -113,6 +71,12 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             print("Failed to decode JSON \(error)")
         }
     }
+}
+
+extension SearchViewController: UISearchBarDelegate {
+//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+//        viewModel.fetchSearchResults(for: searchText)
+//    }
 
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         self.searchBarView.showsCancelButton = true
@@ -134,10 +98,39 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         self.view.endEditing(true)
         self.searchBarView.showsCancelButton = false
     }
+}
 
+// extension SearchViewController: UICollectionViewDataSource {
+//    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+//        return viewModel.searchResults?.results.count ?? 0
+//    }
+//
+//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+//        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SearchCell", for: indexPath) as? SearchCell else {
+//            fatalError("Unable to dequeue SearchCell")
+//        }
+//        if let movie = viewModel.searchResults?.results[indexPath.row] {
+//            // Configure cell with movie
+//        }
+//        return cell
+//    }
+// }
+
+extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return searchResults?.results.count ?? 0
     }
+    
+//    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+//        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SearchCell", for: indexPath) as? SearchCell,
+//              let movieDetail = viewModel.searchResults?.results[indexPath.row] else {
+//            return UICollectionViewCell()
+//        }
+//
+//        let cellViewModel = SearchCellViewModel(movieDetail: movieDetail)
+//        cell.configure(with: cellViewModel)
+//        return cell
+//    }
 
     func collectionView(_ collectionView: UICollectionView,
                         cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
@@ -146,6 +139,7 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
         if let cell = cell as? SearchCell {
             if let searchResult = searchResults {
                 cell.layer.cornerRadius = 10
+                
                 cell.drawStar(scoreAverage: searchResult.results[indexPath.row].voteAverage)
                 cell.movieName.text = searchResult.results[indexPath.row].movieName
                 cell.genresMove(genresMove: searchResult.results[indexPath.row].genresMovie)
@@ -189,7 +183,9 @@ class SearchViewController: UIViewController, UICollectionViewDelegate, UICollec
             }
         }
     }
+}
 
+extension SearchViewController {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         print(indexPath)
         let storyboard = UIStoryboard(name: "Main", bundle: nil)

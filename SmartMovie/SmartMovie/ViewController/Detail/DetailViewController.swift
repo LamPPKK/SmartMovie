@@ -21,6 +21,7 @@ class DetailViewController: UIViewController, UITableViewDelegate, UITableViewDa
     @IBOutlet var releaseDate: UILabel!
     @IBOutlet var language: UILabel!
     @IBOutlet var tableView: UITableView!
+    
     private var arrayTitle: [String] = ["Movie Cast", " Similar Movie"]
     
     var dataDetails: [SectionDetail] = [SectionDetail(name: "cast", similar: [], typeCell: .cast),

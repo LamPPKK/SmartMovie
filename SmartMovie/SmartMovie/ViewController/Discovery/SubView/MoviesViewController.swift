@@ -49,7 +49,7 @@ class MoviesViewController: UIViewController, UICollectionViewDelegate, UICollec
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
                                 withReuseIdentifier: "HeaderCollectReusableView")
         collectionView.reloadData()
-        collectionView.contentInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8) //khoang cach cua phan content trong collection so voi frame cua collection
+        collectionView.contentInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         collectionView.prepareForInterfaceBuilder()
     }
 
