@@ -1,0 +1,62 @@
+import Foundation
+
+public protocol CatalogRepository: Sendable {
+    func home(mediaType: MediaType, language: String) async throws -> HomeFeed
+    func genres(mediaType: MediaType, language: String) async throws -> [Genre]
+    func discover(
+        mediaType: MediaType,
+        filter: DiscoverFilter,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary>
+    func search(
+        query: String,
+        scope: SearchScope,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary>
+    func detail(mediaType: MediaType, id: Int, language: String) async throws -> TitleDetail
+    func imageConfiguration() async throws -> ImageConfiguration
+}
+
+public enum LibraryCollection: String, CaseIterable, Identifiable, Sendable {
+    case favorites
+    case watchlist
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .favorites: String(localized: "Favorites", bundle: .module)
+        case .watchlist: String(localized: "Watchlist", bundle: .module)
+        }
+    }
+}
+
+public enum LibrarySort: String, CaseIterable, Identifiable, Sendable {
+    case recentlyAdded
+    case title
+    case releaseDate
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .recentlyAdded: String(localized: "Recently added", bundle: .module)
+        case .title: String(localized: "Title", bundle: .module)
+        case .releaseDate: String(localized: "Release date", bundle: .module)
+        }
+    }
+}
+
+@MainActor
+public protocol LibraryRepository: AnyObject {
+    func contains(_ title: TitleSummary, in collection: LibraryCollection) throws -> Bool
+    func toggle(_ title: TitleSummary, in collection: LibraryCollection) throws
+    func items(
+        in collection: LibraryCollection,
+        mediaType: MediaType?,
+        sort: LibrarySort
+    ) throws -> [LibrarySnapshot]
+    func reconcileDuplicates() throws
+}

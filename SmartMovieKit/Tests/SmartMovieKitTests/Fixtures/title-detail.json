@@ -1,0 +1,18 @@
+{
+  "id": 42,
+  "media_type": "movie",
+  "title": "A Test Story",
+  "original_title": "A Test Story",
+  "overview": "A fixture used to prove the stable contract.",
+  "poster_path": "/poster.jpg",
+  "backdrop_path": "/backdrop.jpg",
+  "release_date": "2026-08-14",
+  "vote_average": 8.4,
+  "genres": [{"id": 18, "name": "Drama"}],
+  "runtime_minutes": 123,
+  "number_of_seasons": null,
+  "status": "Released",
+  "cast": [{"id": 7, "name": "Actor", "character": "Lead", "profile_path": "/actor.jpg"}],
+  "videos": [{"id": "video", "key": "abc", "name": "Trailer", "site": "YouTube", "type": "Trailer", "official": true, "language": "en-US"}],
+  "similar": []
+}
