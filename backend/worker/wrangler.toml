@@ -1,0 +1,28 @@
+name = "smartmovie-catalog"
+main = "src/index.ts"
+compatibility_date = "2026-08-01"
+
+[observability]
+enabled = false
+
+[env.staging]
+name = "smartmovie-catalog-staging"
+
+[[env.staging.ratelimits]]
+name = "CATALOG_RATE_LIMITER"
+namespace_id = "1001"
+
+[env.staging.ratelimits.simple]
+limit = 120
+period = 60
+
+[env.production]
+name = "smartmovie-catalog-production"
+
+[[env.production.ratelimits]]
+name = "CATALOG_RATE_LIMITER"
+namespace_id = "1002"
+
+[env.production.ratelimits.simple]
+limit = 120
+period = 60

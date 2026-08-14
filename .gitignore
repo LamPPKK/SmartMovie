@@ -1,0 +1,14 @@
+.DS_Store
+
+# Xcode per-user state
+**/xcuserdata/
+*.xcuserstate
+
+# Swift Package Manager
+.build/
+
+# Cloudflare Worker
+backend/worker/node_modules/
+backend/worker/.wrangler/
+backend/worker/.dev.vars
+backend/worker/coverage/
