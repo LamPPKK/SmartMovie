@@ -65,6 +65,7 @@
 "Trailer" = "预告片";
 "Trailer unavailable" = "无法播放预告片";
 "Install the YouTube app to watch this trailer." = "请安装 YouTube 应用以观看此预告片。";
+"No trailer is available for this title." = "此影视条目暂无预告片。";
 "OK" = "好";
 "Try again" = "重试";
 "Try another title or content type." = "请尝试其他标题或内容类型。";

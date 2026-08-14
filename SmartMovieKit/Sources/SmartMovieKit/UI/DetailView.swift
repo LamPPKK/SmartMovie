@@ -4,17 +4,20 @@ public struct DetailView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.locale) private var locale
     @Environment(\.openURL) private var openURL
-    #if os(macOS)
+    #if os(macOS) || os(visionOS)
     @Environment(\.openWindow) private var openWindow
     #endif
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var model: DetailViewModel?
     @State private var trailerStatus: String?
+    @State private var didAutoplayTrailer = false
     private let summary: TitleSummary
+    private let autoplayTrailer: Bool
 
-    public init(summary: TitleSummary) {
+    public init(summary: TitleSummary, autoplayTrailer: Bool = false) {
         self.summary = summary
+        self.autoplayTrailer = autoplayTrailer
     }
 
     public var body: some View {
@@ -23,7 +26,7 @@ public struct DetailView: View {
         }
         .inlineNavigationTitle()
         .toolbar {
-            #if os(macOS)
+            #if os(macOS) || os(visionOS)
             Button {
                 openWindow(value: summary)
             } label: {
@@ -48,6 +51,17 @@ public struct DetailView: View {
                 model = DetailViewModel(summary: summary, catalog: container.catalog, library: container.library)
             }
             await model?.load(language: LocaleResolver.tmdbLanguage(for: locale))
+            guard let model else { return }
+            syncWatchRemote(model)
+            if autoplayTrailer, !didAutoplayTrailer {
+                didAutoplayTrailer = true
+                playTrailer(model)
+            }
+        }
+        .onChange(of: container.watchRemoteCoordinator.libraryRevision) {
+            guard let model else { return }
+            model.refreshLibraryState()
+            syncWatchRemote(model)
         }
     }
 
@@ -141,18 +155,7 @@ public struct DetailView: View {
                         systemImage: "play.fill",
                         prominent: true
                     ) {
-                        guard let trailer = model.preferredTrailer(language: LocaleResolver.tmdbLanguage(for: locale)) else { return }
-                        #if os(tvOS)
-                        guard let url = URL(string: "youtube://watch?v=\(trailer.key)") else { return }
-                        openURL(url) { accepted in
-                            if !accepted {
-                                trailerStatus = String(localized: "Install the YouTube app to watch this trailer.", bundle: .module)
-                            }
-                        }
-                        #else
-                        guard let url = URL(string: "https://www.youtube.com/watch?v=\(trailer.key)") else { return }
-                        openURL(url)
-                        #endif
+                        playTrailer(model)
                     }
                     .disabled(model.preferredTrailer(language: LocaleResolver.tmdbLanguage(for: locale)) == nil)
 
@@ -160,13 +163,19 @@ public struct DetailView: View {
                         title: String(localized: "Favorite", bundle: .module),
                         systemImage: model.isFavorite ? "heart.fill" : "heart",
                         prominent: false
-                    ) { model.toggle(.favorites) }
+                    ) {
+                        model.toggle(.favorites)
+                        syncWatchRemote(model)
+                    }
 
                     ActionPill(
                         title: String(localized: "Watchlist", bundle: .module),
                         systemImage: model.isWatchlisted ? "bookmark.fill" : "bookmark",
                         prominent: false
-                    ) { model.toggle(.watchlist) }
+                    ) {
+                        model.toggle(.watchlist)
+                        syncWatchRemote(model)
+                    }
                 }
             }
             .padding(24)
@@ -249,6 +258,38 @@ public struct DetailView: View {
         let hours = minutes / 60
         let remaining = minutes % 60
         return hours > 0 ? "\(hours)h \(remaining)m" : "\(remaining)m"
+    }
+
+    private func playTrailer(_ model: DetailViewModel) {
+        guard let trailer = model.preferredTrailer(language: LocaleResolver.tmdbLanguage(for: locale)) else {
+            trailerStatus = String(localized: "No trailer is available for this title.", bundle: .module)
+            return
+        }
+        #if os(tvOS)
+        guard let url = URL(string: "youtube://watch?v=\(trailer.key)") else { return }
+        openURL(url) { accepted in
+            if !accepted {
+                trailerStatus = String(localized: "Install the YouTube app to watch this trailer.", bundle: .module)
+            }
+        }
+        #else
+        guard let url = URL(string: "https://www.youtube.com/watch?v=\(trailer.key)") else { return }
+        openURL(url)
+        #endif
+    }
+
+    private func syncWatchRemote(_ model: DetailViewModel) {
+        guard case .loaded(let detail) = model.state else { return }
+        let language = LocaleResolver.tmdbLanguage(for: locale)
+        container.watchRemoteSession?.update(
+            context: WatchRemoteContext(
+                title: detail.summary,
+                artworkURL: container.imageURL(path: detail.posterPath ?? detail.backdropPath, kind: .poster),
+                isFavorite: model.isFavorite,
+                isWatchlisted: model.isWatchlisted,
+                hasTrailer: model.preferredTrailer(language: language) != nil
+            )
+        )
     }
 }
 

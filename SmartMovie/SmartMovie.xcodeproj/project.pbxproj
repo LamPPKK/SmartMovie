@@ -8,27 +8,72 @@
 
 /* Begin PBXBuildFile section */
 		0D08A7A78CD6AAB6C4F15AB6 /* AppRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB92A27DD15BC2C78D87BDF2 /* AppRuntime.swift */; };
+		12B2E3FF0DEB8A43E38923EC /* WatchRemoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5749C89DCCD4507AB75B6864 /* WatchRemoteView.swift */; };
 		1C2990DD3B872F0F8E073742 /* AppRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB92A27DD15BC2C78D87BDF2 /* AppRuntime.swift */; };
+		1D69FA8166A2DCFC5B2929A8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F85CC962DB9DE1290EF2BA6D /* Assets.xcassets */; };
+		24C2E6D9030DD484EF64D0B4 /* WatchRemoteModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469810849D43B8B6DFBFEA6B /* WatchRemoteModel.swift */; };
 		2E9D69E94322C4D4B4E7284E /* SmartMovieApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B0E5B46B48BC1676BC2CF /* SmartMovieApp.swift */; };
 		3C11DF2B9D0C2B4B714B4235 /* SmartMovieNativeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C6A8DDA9A34E0FE61E69A96 /* SmartMovieNativeApp.swift */; };
 		4A09F30208C082025626FCD7 /* SmartMovieKit in Frameworks */ = {isa = PBXBuildFile; productRef = 164A9F72D5C8ABDC6E7AA236 /* SmartMovieKit */; };
+		4C0D09BB413C22E104599A03 /* SmartMovieWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E33BB3AA9F4C1C2F6A7F8A1 /* SmartMovieWatchApp.swift */; };
 		4CC0B2F2A6FCA0D790DBB7D9 /* SmartMovieApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A99B0E5B46B48BC1676BC2CF /* SmartMovieApp.swift */; };
+		59594CAFBC3B15318D55B1BF /* PhoneWatchRemoteController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302D02F548142B58AC6F85D4 /* PhoneWatchRemoteController.swift */; };
+		5A702B8873C953016494C03F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F85CC962DB9DE1290EF2BA6D /* Assets.xcassets */; };
+		5C7B42528B292D78C7A9DDFE /* AppRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB92A27DD15BC2C78D87BDF2 /* AppRuntime.swift */; };
+		5CE14FDD2B99133FE92CD1E7 /* PhoneWatchRemoteController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302D02F548142B58AC6F85D4 /* PhoneWatchRemoteController.swift */; };
 		67601470B470E2FA1121C77B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F85CC962DB9DE1290EF2BA6D /* Assets.xcassets */; };
 		69A5814C667A0FBA3C95947E /* AppRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB92A27DD15BC2C78D87BDF2 /* AppRuntime.swift */; };
 		730B25DBCDFCBFD69B91D97C /* SmartMovieKit in Frameworks */ = {isa = PBXBuildFile; productRef = 01D2C8913C5F6A76F713FDDE /* SmartMovieKit */; };
+		7E29B18BFA69E4404CA6C492 /* SmartMovieVisionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1476EAC03B136C56C0D434F6 /* SmartMovieVisionApp.swift */; };
+		8D63AA64D597114EFB8CF059 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 78DBA40194370C493B8D1D26 /* Localizable.xcstrings */; };
 		9731C54EC66AD51767B79035 /* SmartMovieKit in Frameworks */ = {isa = PBXBuildFile; productRef = 09D8AEDDAC9E8955DCA4F68E /* SmartMovieKit */; };
 		CA5EDA97D089CECC4DFEF6D6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F85CC962DB9DE1290EF2BA6D /* Assets.xcassets */; };
+		DA3116D6FDEC78EE997344A5 /* SmartMovieKit in Frameworks */ = {isa = PBXBuildFile; productRef = 265FD02CDBA42626184EF141 /* SmartMovieKit */; };
+		F017DA4C2B65FD2BF33025DE /* SmartMovieWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = B2C70D1F8D15158D4C5DE99C /* SmartMovieWatch.app */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		FFFCCE267803DFF3F4467840 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F85CC962DB9DE1290EF2BA6D /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		9D9F2491C3A45DE8D50FD1BF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 04A4F8159119B02C9180BC3D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1668528A18134AF3FACCE942;
+			remoteInfo = SmartMovieWatch;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BE958B13B413BB4A1DB5F24C /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				F017DA4C2B65FD2BF33025DE /* SmartMovieWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		111FFAC87FC846BB59490462 /* SmartMovieVision.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SmartMovieVision.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1476EAC03B136C56C0D434F6 /* SmartMovieVisionApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartMovieVisionApp.swift; sourceTree = "<group>"; };
 		1BF7E187505DD9509C6010DF /* SmartMovieKit */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SmartMovieKit; path = ../SmartMovieKit; sourceTree = SOURCE_ROOT; };
+		1E33BB3AA9F4C1C2F6A7F8A1 /* SmartMovieWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartMovieWatchApp.swift; sourceTree = "<group>"; };
+		302D02F548142B58AC6F85D4 /* PhoneWatchRemoteController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneWatchRemoteController.swift; sourceTree = "<group>"; };
 		3C6A8DDA9A34E0FE61E69A96 /* SmartMovieNativeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartMovieNativeApp.swift; sourceTree = "<group>"; };
 		3D88F68B4A3CEFA21827097A /* SmartMovieNativeMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SmartMovieNativeMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		444883642F866E9D12868F90 /* SmartMovie.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SmartMovie.entitlements; sourceTree = "<group>"; };
+		469810849D43B8B6DFBFEA6B /* WatchRemoteModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRemoteModel.swift; sourceTree = "<group>"; };
 		57029DCF0637A2303DB24217 /* SmartMovieNative.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SmartMovieNative.entitlements; sourceTree = "<group>"; };
+		5749C89DCCD4507AB75B6864 /* WatchRemoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchRemoteView.swift; sourceTree = "<group>"; };
 		5926056AF18D2AA11D553B4F /* SmartMovieTV.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SmartMovieTV.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		78DBA40194370C493B8D1D26 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		A99B0E5B46B48BC1676BC2CF /* SmartMovieApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmartMovieApp.swift; sourceTree = "<group>"; };
+		B2C70D1F8D15158D4C5DE99C /* SmartMovieWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SmartMovieWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B7D498D8507C3F25189A95A0 /* SmartMovieVision.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SmartMovieVision.entitlements; sourceTree = "<group>"; };
 		CF86635291D0B3F85B1E288B /* SmartMovie.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SmartMovie.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB92A27DD15BC2C78D87BDF2 /* AppRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRuntime.swift; sourceTree = "<group>"; };
 		F85CC962DB9DE1290EF2BA6D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -40,6 +85,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				4A09F30208C082025626FCD7 /* SmartMovieKit in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		400770C982D9B8AD1F5052FD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DA3116D6FDEC78EE997344A5 /* SmartMovieKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -68,6 +121,8 @@
 				CF86635291D0B3F85B1E288B /* SmartMovie.app */,
 				3D88F68B4A3CEFA21827097A /* SmartMovieNativeMac.app */,
 				5926056AF18D2AA11D553B4F /* SmartMovieTV.app */,
+				111FFAC87FC846BB59490462 /* SmartMovieVision.app */,
+				B2C70D1F8D15158D4C5DE99C /* SmartMovieWatch.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -90,12 +145,23 @@
 			name = Packages;
 			sourceTree = "<group>";
 		};
+		4587E437C32941BB9F0D4C36 /* Vision */ = {
+			isa = PBXGroup;
+			children = (
+				B7D498D8507C3F25189A95A0 /* SmartMovieVision.entitlements */,
+				1476EAC03B136C56C0D434F6 /* SmartMovieVisionApp.swift */,
+			);
+			path = Vision;
+			sourceTree = "<group>";
+		};
 		49A3351A310A29DFA4E7D580 /* Apps */ = {
 			isa = PBXGroup;
 			children = (
 				6AC4E4AE8D36B94527BA4F91 /* NativeMac */,
 				CF85DEB513C4AA8FAC577E05 /* Shared */,
 				BC1984247610A1CA650B3688 /* Universal */,
+				4587E437C32941BB9F0D4C36 /* Vision */,
+				ED82A26B9D323D5CC49C93EE /* Watch */,
 			);
 			path = Apps;
 			sourceTree = "<group>";
@@ -120,6 +186,7 @@
 		BC1984247610A1CA650B3688 /* Universal */ = {
 			isa = PBXGroup;
 			children = (
+				302D02F548142B58AC6F85D4 /* PhoneWatchRemoteController.swift */,
 				444883642F866E9D12868F90 /* SmartMovie.entitlements */,
 				A99B0E5B46B48BC1676BC2CF /* SmartMovieApp.swift */,
 			);
@@ -134,9 +201,38 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
+		ED82A26B9D323D5CC49C93EE /* Watch */ = {
+			isa = PBXGroup;
+			children = (
+				78DBA40194370C493B8D1D26 /* Localizable.xcstrings */,
+				1E33BB3AA9F4C1C2F6A7F8A1 /* SmartMovieWatchApp.swift */,
+				469810849D43B8B6DFBFEA6B /* WatchRemoteModel.swift */,
+				5749C89DCCD4507AB75B6864 /* WatchRemoteView.swift */,
+			);
+			path = Watch;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		1668528A18134AF3FACCE942 /* SmartMovieWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3F2459E3EAC51A5951597724 /* Build configuration list for PBXNativeTarget "SmartMovieWatch" */;
+			buildPhases = (
+				7E6047F898CB4E9D94DDE62B /* Sources */,
+				3CC80F89B219208347C34A93 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SmartMovieWatch;
+			packageProductDependencies = (
+			);
+			productName = SmartMovieWatch;
+			productReference = B2C70D1F8D15158D4C5DE99C /* SmartMovieWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
 		2EB3620C7CD7B75878F99317 /* SmartMovieNativeMac */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 19CBE835D7CD5C5A15411D6F /* Build configuration list for PBXNativeTarget "SmartMovieNativeMac" */;
@@ -157,6 +253,26 @@
 			productReference = 3D88F68B4A3CEFA21827097A /* SmartMovieNativeMac.app */;
 			productType = "com.apple.product-type.application";
 		};
+		4F485B12CEFA20499F9609EE /* SmartMovieVision */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D5EFFE724888AB6590B515AA /* Build configuration list for PBXNativeTarget "SmartMovieVision" */;
+			buildPhases = (
+				38D0863D6D82C28000207AF5 /* Sources */,
+				9F246419BD16A34B58499EEE /* Resources */,
+				400770C982D9B8AD1F5052FD /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SmartMovieVision;
+			packageProductDependencies = (
+				265FD02CDBA42626184EF141 /* SmartMovieKit */,
+			);
+			productName = SmartMovieVision;
+			productReference = 111FFAC87FC846BB59490462 /* SmartMovieVision.app */;
+			productType = "com.apple.product-type.application";
+		};
 		D129ED95C082EA02DA92051A /* SmartMovie */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5576E8F7F68FC35CA8E69A43 /* Build configuration list for PBXNativeTarget "SmartMovie" */;
@@ -164,10 +280,12 @@
 				49C13C74197DC29473B4260C /* Sources */,
 				7CC98C6030214ECA7E9CD163 /* Resources */,
 				5B8F3CA59067E692BD7FE1FA /* Frameworks */,
+				BE958B13B413BB4A1DB5F24C /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				B6EC9A8CAFD6407C7A9EE981 /* PBXTargetDependency */,
 			);
 			name = SmartMovie;
 			packageProductDependencies = (
@@ -214,6 +332,11 @@
 			knownRegions = (
 				Base,
 				en,
+				ja,
+				ko,
+				vi,
+				"zh-Hans",
+				"zh-Hant",
 			);
 			mainGroup = 0DE5162C5267DF6AA51DC729;
 			minimizedProjectReferenceProxies = 1;
@@ -228,6 +351,8 @@
 				D129ED95C082EA02DA92051A /* SmartMovie */,
 				E73119EB32B0D7FAAD3EDAA0 /* SmartMovieTV */,
 				2EB3620C7CD7B75878F99317 /* SmartMovieNativeMac */,
+				1668528A18134AF3FACCE942 /* SmartMovieWatch */,
+				4F485B12CEFA20499F9609EE /* SmartMovieVision */,
 			);
 		};
 /* End PBXProject section */
@@ -241,11 +366,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3CC80F89B219208347C34A93 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5A702B8873C953016494C03F /* Assets.xcassets in Resources */,
+				8D63AA64D597114EFB8CF059 /* Localizable.xcstrings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		7CC98C6030214ECA7E9CD163 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				FFFCCE267803DFF3F4467840 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9F246419BD16A34B58499EEE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1D69FA8166A2DCFC5B2929A8 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -260,11 +402,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		38D0863D6D82C28000207AF5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C7B42528B292D78C7A9DDFE /* AppRuntime.swift in Sources */,
+				7E29B18BFA69E4404CA6C492 /* SmartMovieVisionApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		49C13C74197DC29473B4260C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				0D08A7A78CD6AAB6C4F15AB6 /* AppRuntime.swift in Sources */,
+				59594CAFBC3B15318D55B1BF /* PhoneWatchRemoteController.swift in Sources */,
 				4CC0B2F2A6FCA0D790DBB7D9 /* SmartMovieApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -274,6 +426,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				69A5814C667A0FBA3C95947E /* AppRuntime.swift in Sources */,
+				5CE14FDD2B99133FE92CD1E7 /* PhoneWatchRemoteController.swift in Sources */,
 				2E9D69E94322C4D4B4E7284E /* SmartMovieApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -287,9 +440,47 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7E6047F898CB4E9D94DDE62B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4C0D09BB413C22E104599A03 /* SmartMovieWatchApp.swift in Sources */,
+				24C2E6D9030DD484EF64D0B4 /* WatchRemoteModel.swift in Sources */,
+				12B2E3FF0DEB8A43E38923EC /* WatchRemoteView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		B6EC9A8CAFD6407C7A9EE981 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			platformFilter = ios;
+			target = 1668528A18134AF3FACCE942 /* SmartMovieWatch */;
+			targetProxy = 9D9F2491C3A45DE8D50FD1BF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		17AB6AA603DE860C1FE70305 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SmartMovie;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = LamNDT.SmartMovie;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
+				INFOPLIST_KEY_WKWatchKitApp = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = LamNDT.SmartMovie.watchkitapp;
+				PRODUCT_NAME = SmartMovie;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
 		1E725CDF0DF61AF93079F4C1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -314,6 +505,28 @@
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		3EC03505B0FD5551F386991F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Apps/Vision/SmartMovieVision.entitlements;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CATALOG_BASE_URL = "$(CATALOG_BASE_URL)";
+				INFOPLIST_KEY_CFBundleDisplayName = "$(PRODUCT_NAME)";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = LamNDT.SmartMovie;
+				PRODUCT_NAME = SmartMovie;
+				SDKROOT = xros;
+				TARGETED_DEVICE_FAMILY = 7;
+				XROS_DEPLOYMENT_TARGET = 1.0;
 			};
 			name = Release;
 		};
@@ -410,6 +623,8 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
 				TVOS_DEPLOYMENT_TARGET = 17.0;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+				XROS_DEPLOYMENT_TARGET = 1.0;
 			};
 			name = Debug;
 		};
@@ -457,6 +672,25 @@
 			};
 			name = Debug;
 		};
+		B7EADF8D1A7FB143C8052D8D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SmartMovie;
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = LamNDT.SmartMovie;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = NO;
+				INFOPLIST_KEY_WKWatchKitApp = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = LamNDT.SmartMovie.watchkitapp;
+				PRODUCT_NAME = SmartMovie;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 		D6D2C92D07CCE96F7F0DACB7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -478,6 +712,28 @@
 				TVOS_DEPLOYMENT_TARGET = 17.0;
 			};
 			name = Release;
+		};
+		E7FEB47998A2157E67EDCB87 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Apps/Vision/SmartMovieVision.entitlements;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CATALOG_BASE_URL = "$(CATALOG_BASE_URL)";
+				INFOPLIST_KEY_CFBundleDisplayName = "$(PRODUCT_NAME)";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.entertainment";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = LamNDT.SmartMovie;
+				PRODUCT_NAME = SmartMovie;
+				SDKROOT = xros;
+				TARGETED_DEVICE_FAMILY = 7;
+				XROS_DEPLOYMENT_TARGET = 1.0;
+			};
+			name = Debug;
 		};
 		EF103A88EBE4414A4575D761 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -538,6 +794,8 @@
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
 				TVOS_DEPLOYMENT_TARGET = 17.0;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+				XROS_DEPLOYMENT_TARGET = 1.0;
 			};
 			name = Release;
 		};
@@ -575,6 +833,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		3F2459E3EAC51A5951597724 /* Build configuration list for PBXNativeTarget "SmartMovieWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				17AB6AA603DE860C1FE70305 /* Debug */,
+				B7EADF8D1A7FB143C8052D8D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		5576E8F7F68FC35CA8E69A43 /* Build configuration list for PBXNativeTarget "SmartMovie" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -602,6 +869,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
+		D5EFFE724888AB6590B515AA /* Build configuration list for PBXNativeTarget "SmartMovieVision" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E7FEB47998A2157E67EDCB87 /* Debug */,
+				3EC03505B0FD5551F386991F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -621,6 +897,10 @@
 			productName = SmartMovieKit;
 		};
 		164A9F72D5C8ABDC6E7AA236 /* SmartMovieKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SmartMovieKit;
+		};
+		265FD02CDBA42626184EF141 /* SmartMovieKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SmartMovieKit;
 		};

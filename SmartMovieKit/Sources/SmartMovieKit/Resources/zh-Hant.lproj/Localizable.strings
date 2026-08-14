@@ -65,6 +65,7 @@
 "Trailer" = "預告片";
 "Trailer unavailable" = "無法播放預告片";
 "Install the YouTube app to watch this trailer." = "請安裝 YouTube App 以觀看此預告片。";
+"No trailer is available for this title." = "此影視項目暫無預告片。";
 "OK" = "好";
 "Try again" = "再試一次";
 "Try another title or content type." = "請嘗試其他標題或內容類型。";

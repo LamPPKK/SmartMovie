@@ -43,6 +43,14 @@ jobs:
             scheme: SmartMovieNativeMac
             destination: generic/platform=macOS
             artifact: macos-build-analyze
+          - name: watchOS
+            scheme: SmartMovieWatch
+            destination: generic/platform=watchOS
+            artifact: watchos-build-analyze
+          - name: visionOS
+            scheme: SmartMovieVision
+            destination: generic/platform=visionOS
+            artifact: visionos-build-analyze
     env:
       PROJECT: SmartMovie/SmartMovie.xcodeproj
       RESULT_BUNDLE_NAME: ${{ matrix.artifact }}.xcresult

@@ -12,9 +12,10 @@ SmartMovie keeps unit and contract tests deterministic and independent of TMDb, 
 | Feature models | 6 | Home refresh, Explore pagination/deduplication, Search debounce/cancellation/error state, trailer selection |
 | SwiftData Library | 3 | Independent Favorite/Watchlist state, CloudKit-style duplicate reconciliation, filtering/sorting/offline snapshots |
 | Domain and configuration | 5 | Detail fixture, six locale mappings, Movie/TV fallbacks, Worker acronym decoding, image URL normalization |
+| Watch remote | 2 | Remote presentation intent, dismissal, Library revision, and title/context state |
 | Cloudflare Worker | 19 | Route and query validation, cache behavior, rate limiting, TMDb error mapping, Home/Detail contracts, fallback language, token isolation |
 
-Baseline: 20 Swift tests plus 19 Worker tests, all passing on 15 August 2026.
+Baseline: 22 Swift tests plus 19 Worker tests, all passing on 15 August 2026.
 
 ## Run unit and contract tests
 
@@ -57,7 +58,7 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 ## GitHub Actions
 
 - `Swift` runs strict SwiftLint and the SmartMovieKit unit tests with code coverage.
-- `Xcode - Build and Analyze` builds and analyzes iOS, tvOS, Mac Catalyst, and native macOS independently.
+- `Xcode - Build and Analyze` builds and analyzes iOS, tvOS, watchOS, visionOS, Mac Catalyst, and native macOS independently.
 - `iOS` selects an available iPhone Simulator dynamically, builds the app, installs it, and performs a launch smoke test. SmartMovieKit unit tests remain in the `Swift` workflow because the package-generated Xcode scheme has no test action.
 
 All workflows run for pushes and pull requests targeting `main` or `develop`, support manual dispatch, use read-only repository permissions, cancel stale runs on the same ref, and upload Xcode result bundles only when a job fails.
@@ -95,9 +96,13 @@ xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovieTV \
   -destination 'generic/platform=tvOS' CODE_SIGNING_ALLOWED=NO build
 xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovieNativeMac \
   -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovieWatch \
+  -destination 'generic/platform=watchOS' CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovieVision \
+  -destination 'generic/platform=visionOS' CODE_SIGNING_ALLOWED=NO build
 ```
 
-All four unsigned builds currently succeed. Asset warnings for tvOS Top Shelf/App Icon, the Mac/Catalyst icon set, and the iOS launch configuration must be resolved before release.
+All six destinations are enforced in CI. visionOS build and Simulator validation require an Apple-silicon host with the visionOS runtime installed. Asset warnings for tvOS Top Shelf/App Icon, watchOS/visionOS production icons, the Mac/Catalyst icon set, and the iOS launch configuration must be resolved before release.
 
 ## Adding tests
 
@@ -109,4 +114,4 @@ All four unsigned builds currently succeed. Asset warnings for tvOS Top Shelf/Ap
 
 ## Manual release checks
 
-Automated tests do not replace end-to-end verification on signed devices. Follow [Release runbook](RELEASE_RUNBOOK.md) for staging Worker checks, CloudKit synchronization, keyboard and Remote focus, accessibility, localization, App Store assets, and production promotion.
+Automated tests do not replace end-to-end verification on signed devices. Follow [Release runbook](RELEASE_RUNBOOK.md) for staging Worker checks, CloudKit synchronization, WatchConnectivity delivery, spatial windows, keyboard and Remote focus, accessibility, localization, App Store assets, and production promotion.

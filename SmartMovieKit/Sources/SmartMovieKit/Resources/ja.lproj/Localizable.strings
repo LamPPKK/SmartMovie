@@ -65,6 +65,7 @@
 "Trailer" = "予告編";
 "Trailer unavailable" = "予告編を再生できません";
 "Install the YouTube app to watch this trailer." = "この予告編を見るには YouTube アプリをインストールしてください。";
+"No trailer is available for this title." = "この作品の予告編はありません。";
 "OK" = "OK";
 "Try again" = "再試行";
 "Try another title or content type." = "別のタイトルまたは種類をお試しください。";

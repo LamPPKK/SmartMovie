@@ -250,7 +250,7 @@ public final class DetailViewModel {
             ?? youtube.first(where: { $0.type.caseInsensitiveCompare("Teaser") == .orderedSame })
     }
 
-    private func refreshLibraryState(using value: TitleSummary? = nil) {
+    public func refreshLibraryState(using value: TitleSummary? = nil) {
         let title = value ?? summary
         do {
             isFavorite = try library.contains(title, in: .favorites)

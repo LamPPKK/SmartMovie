@@ -23,7 +23,21 @@ final class AppRuntime {
         let serviceURL = URL(string: baseURL ?? "") ?? URL(string: "http://127.0.0.1:8787")!
         let catalog = RemoteCatalogRepository(client: APIClient(baseURL: serviceURL))
         let library = SwiftDataLibraryRepository(context: ModelContext(persistentContainer))
-        container = AppContainer(catalog: catalog, library: library)
+        let remoteCoordinator = WatchRemoteCoordinator()
+        #if os(iOS) && !targetEnvironment(macCatalyst)
+        let watchRemoteSession: (any WatchRemoteSession)? = PhoneWatchRemoteController(
+            library: library,
+            coordinator: remoteCoordinator
+        )
+        #else
+        let watchRemoteSession: (any WatchRemoteSession)? = nil
+        #endif
+        container = AppContainer(
+            catalog: catalog,
+            library: library,
+            watchRemoteSession: watchRemoteSession,
+            watchRemoteCoordinator: remoteCoordinator
+        )
     }
 
     private static func makeModelContainer() -> ModelContainer {

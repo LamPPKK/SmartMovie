@@ -1,0 +1,123 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Favorite" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "お気に入り" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "즐겨찾기" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Yêu thích" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "收藏" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "收藏" } }
+      }
+    },
+    "iPhone connected" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "iPhoneに接続済み" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "iPhone 연결됨" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Đã kết nối iPhone" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "iPhone 已连接" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "iPhone 已連線" } }
+      }
+    },
+    "MOVIE" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "映画" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "영화" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "PHIM" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "电影" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "電影" } }
+      }
+    },
+    "OK" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "확인" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "好" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "好" } }
+      }
+    },
+    "Open" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "開く" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "열기" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Mở" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "開啟" } }
+      }
+    },
+    "Open a title on your iPhone to start controlling it." : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "iPhoneで作品を開くと操作を開始できます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "iPhone에서 작품을 열어 제어를 시작하세요." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Mở một tựa phim trên iPhone để bắt đầu điều khiển." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在 iPhone 上打开一个影视条目即可开始控制。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "在 iPhone 上開啟一個影視項目即可開始控制。" } }
+      }
+    },
+    "Open iPhone app" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "iPhoneアプリを開く" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "iPhone 앱 열기" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Mở app iPhone" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开 iPhone App" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "開啟 iPhone App" } }
+      }
+    },
+    "Open SmartMovie on your iPhone to use the remote." : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "リモコンを使うにはiPhoneでSmartMovieを開いてください。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "리모컨을 사용하려면 iPhone에서 SmartMovie를 여세요." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Mở SmartMovie trên iPhone để sử dụng điều khiển." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请在 iPhone 上打开 SmartMovie 以使用遥控器。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "請在 iPhone 上開啟 SmartMovie 以使用遙控器。" } }
+      }
+    },
+    "SERIES" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "シリーズ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "시리즈" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "PHIM BỘ" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "剧集" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "影集" } }
+      }
+    },
+    "SmartMovie Remote" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "SmartMovieリモコン" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "SmartMovie 리모컨" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Điều khiển SmartMovie" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "SmartMovie 遥控器" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "SmartMovie 遙控器" } }
+      }
+    },
+    "The iPhone did not receive the command." : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "iPhoneがコマンドを受信できませんでした。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "iPhone이 명령을 받지 못했습니다." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "iPhone chưa nhận được lệnh." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "iPhone 未收到命令。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "iPhone 未收到指令。" } }
+      }
+    },
+    "Trailer" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "予告編" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "예고편" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Trailer" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "预告片" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "預告片" } }
+      }
+    },
+    "Watchlist" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ウォッチリスト" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "관심 목록" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Danh sách xem" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "想看" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "待看清單" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

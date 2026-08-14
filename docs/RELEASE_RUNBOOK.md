@@ -2,10 +2,10 @@
 
 ## Prerequisites
 
-- Xcode with iOS, tvOS, and macOS platform SDKs, plus access to the Apple Developer team.
+- Xcode on Apple silicon with iOS, tvOS, watchOS, visionOS, and macOS platform SDKs, plus access to the Apple Developer team.
 - XcodeGen 2.46 or newer, Node.js, npm, and a Cloudflare account authenticated by Wrangler.
-- Editable App IDs for `LamNDT.SmartMovie` and `LamNDT.SmartMovie.NativeMac`.
-- Private CloudKit container `iCloud.LamNDT.SmartMovie` assigned to both App IDs.
+- Editable App IDs for `LamNDT.SmartMovie`, `LamNDT.SmartMovie.watchkitapp`, and `LamNDT.SmartMovie.NativeMac`.
+- Private CloudKit container `iCloud.LamNDT.SmartMovie` assigned to the universal and native Mac catalog App IDs.
 - A newly issued TMDb API Read Access Token. Revoke the historical key that was committed before SmartMovie 2.0.
 
 Select the full Xcode toolchain once on each build machine (this requires an administrator password):
@@ -15,7 +15,7 @@ sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 xcode-select --print-path
 ```
 
-Verification: the printed path is `/Applications/Xcode.app/Contents/Developer` and `xcodebuild -showsdks` includes iOS, tvOS, and macOS SDKs.
+Verification: the printed path is `/Applications/Xcode.app/Contents/Developer` and `xcodebuild -showsdks` includes iOS, tvOS, watchOS, visionOS, and macOS SDKs.
 
 ## 1. Verify the source tree
 
@@ -34,7 +34,7 @@ npm test
 
 Verification: Swift tests, Worker type-check, and Worker contract tests all complete with zero failures. Search the repository for `api_key=` and confirm no credential is present.
 
-Current automated baseline: 20 Swift tests and 19 Worker tests. See [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the test suite changed intentionally; zero failures is always required.
+Current automated baseline: 22 Swift tests and 19 Worker tests. See [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the test suite changed intentionally; zero failures is always required.
 
 ## 2. Deploy Worker staging
 
@@ -66,11 +66,13 @@ xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovie -destinat
 xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovie -destination 'platform=macOS,variant=Mac Catalyst' build
 xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovieTV -destination 'generic/platform=tvOS' build
 xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovieNativeMac -destination 'generic/platform=macOS' build
+xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovieWatch -destination 'generic/platform=watchOS' build
+xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovieVision -destination 'generic/platform=visionOS' build
 ```
 
-Verification: all four commands succeed with signing enabled. Exercise Home → Search/Explore → Detail → Favorite/Watchlist in every target; verify keyboard shortcuts on Mac/iPad and Remote focus/search on Apple TV. Check all six languages, large Dynamic Type, VoiceOver, Increase Contrast, and Reduce Motion.
+Verification: all six commands succeed with signing enabled. Exercise Home → Search/Explore → Detail → Favorite/Watchlist in every full catalog target; verify keyboard shortcuts on Mac/iPad, Remote focus/search on Apple TV, resizable and secondary detail windows on Vision Pro, and Watch remote commands while the iPhone app is reachable. Check all six languages, large Dynamic Type, VoiceOver, Increase Contrast, and Reduce Motion.
 
-Before archiving, asset compilation must no longer report a missing tvOS App Icon/Top Shelf collection, an unassigned Mac/Catalyst icon, or a missing iOS launch configuration. These warnings do not block the current unsigned development builds, but they are release blockers.
+Before archiving, asset compilation must no longer report missing tvOS, watchOS, or visionOS production artwork, an unassigned Mac/Catalyst icon, or a missing iOS launch configuration. These warnings do not block the current unsigned development builds, but they are release blockers.
 
 ## 5. Promote production
 
@@ -88,4 +90,4 @@ Rollback/escalation: roll the Worker back independently if catalog traffic fails
 
 ## 6. App Store submission
 
-Use one App Store record/universal purchase for iOS, tvOS, and Catalyst with `LamNDT.SmartMovie`. Use a separate record named `SmartMovie for Mac` for `LamNDT.SmartMovie.NativeMac`. Add the approved TMDb logo and required notice, public [privacy policy](PRIVACY.md), support URL, export-compliance answers, and platform-specific screenshots before submitting.
+Use one App Store record/universal purchase for iOS, tvOS, visionOS, Catalyst, and the embedded watchOS companion with `LamNDT.SmartMovie`. Use a separate record named `SmartMovie for Mac` for `LamNDT.SmartMovie.NativeMac`. Add the approved TMDb logo and required notice, public [privacy policy](PRIVACY.md), support URL, export-compliance answers, and platform-specific screenshots before submitting.

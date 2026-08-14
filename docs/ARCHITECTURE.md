@@ -2,9 +2,11 @@
 
 ## Current behavior
 
-Each app target contains only a SwiftUI lifecycle and platform shell. `SmartMovieKit` owns shared domain models, the Worker client, SwiftData library storage, observable feature state, design components, and localized UI for `en`, `vi`, `ja`, `ko`, `zh-Hans`, and `zh-Hant`.
+Each app target contains only a SwiftUI lifecycle and platform shell. `SmartMovieKit` owns shared domain models, the Worker client, SwiftData library storage, observable feature state, design components, and localized UI for `en`, `vi`, `ja`, `ko`, `zh-Hans`, and `zh-Hant`. visionOS uses the full shared catalog in resizable SwiftUI windows with multi-window details. The watchOS companion is intentionally smaller and acts as a remote for the title currently open on the paired iPhone.
 
 The client never contacts the TMDb API for catalog JSON. It calls the Cloudflare Worker under `/v1`. Poster, backdrop, and profile images are loaded from the TMDb CDN using `/v1/configuration`; `URLCache` provides memory and disk caching. Favorite and Watchlist snapshots remain readable offline in SwiftData and sync through the user's private CloudKit database when available.
+
+The iPhone publishes the selected title, artwork URL, trailer availability, and Favorite/Watchlist state through `WCSession.updateApplicationContext`. Apple Watch sends immediate open, trailer, Favorite, and Watchlist commands with `sendMessage`. A shared observable coordinator presents remote navigation requests without NotificationCenter or singleton routing. Commands are accepted only for the title context held by the iPhone, and no WatchConnectivity payload leaves the paired devices.
 
 ## Key interfaces
 
@@ -27,7 +29,7 @@ Automated tests are split at the network boundary:
 
 - `SmartMovieKitTests` uses repository fakes, an in-memory SwiftData container, a controlled clock, and a custom `URLProtocol` to verify domain models, observable feature state, Library behavior, request construction, decoding, cancellation, pagination, and retry policy without live services.
 - Worker tests mock TMDb and the Cloudflare Cache API to verify the public `/v1` contract, route/query allowlists, language handling, error normalization, cache HIT/MISS behavior, rate-limit identity, localized detail fallback, and token isolation.
-- Generic Xcode builds verify that the shared package compiles in iOS, tvOS, Mac Catalyst, and native macOS app shells.
+- Generic Xcode builds verify iOS, tvOS, watchOS, visionOS, Mac Catalyst, and native macOS app shells. Watch remote state transitions are covered in the Swift test suite; paired-device delivery remains a manual integration boundary.
 
 Tests must not depend on a real TMDb token, Cloudflare account, iCloud account, wall-clock delay, or public network response. Cross-device CloudKit synchronization, accessibility, focus behavior, and App Store assets remain staging/device checks described in the release runbook.
 

@@ -6,6 +6,8 @@ import Observation
 public final class AppContainer {
     public let catalog: any CatalogRepository
     public let library: any LibraryRepository
+    public let watchRemoteSession: (any WatchRemoteSession)?
+    public let watchRemoteCoordinator: WatchRemoteCoordinator
     public private(set) var imageConfiguration = ImageConfiguration(
         secureBaseURL: "https://image.tmdb.org/t/p/",
         posterSizes: ["w342", "w500", "original"],
@@ -13,9 +15,16 @@ public final class AppContainer {
         profileSizes: ["w185", "h632", "original"]
     )
 
-    public init(catalog: any CatalogRepository, library: any LibraryRepository) {
+    public init(
+        catalog: any CatalogRepository,
+        library: any LibraryRepository,
+        watchRemoteSession: (any WatchRemoteSession)? = nil,
+        watchRemoteCoordinator: WatchRemoteCoordinator = WatchRemoteCoordinator()
+    ) {
         self.catalog = catalog
         self.library = library
+        self.watchRemoteSession = watchRemoteSession
+        self.watchRemoteCoordinator = watchRemoteCoordinator
     }
 
     public func prepare() async {

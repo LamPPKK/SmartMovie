@@ -48,12 +48,32 @@ public struct SmartMovieRootView: View {
     public var body: some View {
         platformNavigation
             .task { await container.prepare() }
+            .sheet(item: remotePresentation) { presentation in
+                NavigationStack {
+                    DetailView(
+                        summary: presentation.title,
+                        autoplayTrailer: presentation.playsTrailer
+                    )
+                }
+                .environment(container)
+            }
             .cinemaScreen()
+    }
+
+    private var remotePresentation: Binding<WatchRemotePresentation?> {
+        Binding(
+            get: { container.watchRemoteCoordinator.presentation },
+            set: { value in
+                if value == nil {
+                    container.watchRemoteCoordinator.dismissPresentation()
+                }
+            }
+        )
     }
 
     @ViewBuilder
     private var platformNavigation: some View {
-        #if os(macOS)
+        #if os(macOS) || os(visionOS)
         sidebarNavigation
         #elseif os(tvOS)
         tabNavigation

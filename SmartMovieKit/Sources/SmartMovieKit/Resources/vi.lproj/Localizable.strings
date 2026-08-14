@@ -65,6 +65,7 @@
 "Trailer" = "Trailer";
 "Trailer unavailable" = "Không mở được trailer";
 "Install the YouTube app to watch this trailer." = "Hãy cài ứng dụng YouTube để xem trailer này.";
+"No trailer is available for this title." = "Tựa phim này chưa có trailer.";
 "OK" = "OK";
 "Try again" = "Thử lại";
 "Try another title or content type." = "Thử tên hoặc loại nội dung khác.";

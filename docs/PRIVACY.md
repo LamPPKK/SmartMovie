@@ -11,6 +11,7 @@ SmartMovie is a free, advertising-free catalog app. It does not create a SmartMo
 - Library: Favorite and Watchlist metadata is stored locally with SwiftData. If the user enables iCloud, Apple stores and synchronizes it in the user's private CloudKit database.
 - Artwork: poster, backdrop, and cast images load from TMDb's image CDN. TMDb and its infrastructure providers receive the network information required to serve those files.
 - Trailers: opening a trailer sends the selected YouTube video identifier to YouTube or the system browser.
+- Apple Watch remote: the title currently open on iPhone and Favorite/Watchlist control messages are exchanged locally between the user's paired devices through Apple's WatchConnectivity service. SmartMovie does not send these remote-control messages to its Worker.
 
 ## Service providers
 

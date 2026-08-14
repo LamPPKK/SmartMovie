@@ -1,10 +1,11 @@
 # SmartMovie 2.0
 
-SmartMovie is a cinematic Movie and TV Series catalog for iPhone, iPad, Apple TV, Mac Catalyst, and native macOS. The UI is SwiftUI, library data is stored with SwiftData and CloudKit, and TMDb credentials stay behind a Cloudflare Worker.
+SmartMovie is a cinematic Movie and TV Series catalog for iPhone, iPad, Apple TV, Apple Vision Pro, Mac Catalyst, and native macOS, with an Apple Watch companion remote. The UI is SwiftUI, library data is stored with SwiftData and CloudKit, and TMDb credentials stay behind a Cloudflare Worker.
 
 ## Products
 
-- `SmartMovie` — iOS, iPadOS, tvOS, and Mac Catalyst; bundle ID `LamNDT.SmartMovie`.
+- `SmartMovie` — iOS, iPadOS, tvOS, visionOS, and Mac Catalyst; bundle ID `LamNDT.SmartMovie`.
+- `SmartMovie Watch` — watchOS companion remote; bundle ID `LamNDT.SmartMovie.watchkitapp`.
 - `SmartMovie for Mac` — native macOS; bundle ID `LamNDT.SmartMovie.NativeMac`.
 
 Both products share `SmartMovieKit`, Worker APIs, and the private CloudKit container `iCloud.LamNDT.SmartMovie`.
@@ -18,7 +19,7 @@ Both products share `SmartMovieKit`, Worker APIs, and the private CloudKit conta
 
 ## Local development
 
-Requirements: Xcode with iOS, tvOS, and macOS SDKs; XcodeGen; Node.js and npm.
+Requirements: Xcode with iOS, tvOS, watchOS, visionOS, and macOS SDKs; XcodeGen; Node.js and npm. Building or simulating visionOS requires Apple silicon.
 
 ```sh
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
@@ -41,7 +42,7 @@ npm run check
 npm test
 ```
 
-The current baseline is 20 Swift unit tests and 19 Worker contract tests. The shared Swift core has 74.20% line coverage when UI, generated accessors, and test sources are excluded. All four Apple targets build successfully without code signing: iOS, tvOS, Mac Catalyst, and native macOS.
+The current baseline is 22 Swift unit tests and 19 Worker contract tests. The shared Swift core has 74.20% line coverage when UI, generated accessors, and test sources are excluded. CI builds six Apple destinations: iOS, tvOS, watchOS, visionOS, Mac Catalyst, and native macOS.
 
 See [Testing](docs/TESTING.md) for the test matrix, coverage command, and platform build commands. Worker secrets are never stored in the repository. See [Release runbook](docs/RELEASE_RUNBOOK.md) for staging, CloudKit, and production steps.
 

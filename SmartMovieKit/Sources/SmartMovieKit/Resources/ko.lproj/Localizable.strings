@@ -65,6 +65,7 @@
 "Trailer" = "예고편";
 "Trailer unavailable" = "예고편을 재생할 수 없음";
 "Install the YouTube app to watch this trailer." = "이 예고편을 보려면 YouTube 앱을 설치하세요.";
+"No trailer is available for this title." = "이 작품의 예고편을 찾을 수 없습니다.";
 "OK" = "확인";
 "Try again" = "다시 시도";
 "Try another title or content type." = "다른 제목이나 콘텐츠 유형을 시도하세요.";
