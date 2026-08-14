@@ -40,7 +40,11 @@ public struct LibraryView: View {
             .padding(.horizontal)
 
             if let error = model.errorMessage {
-                StateMessageView(icon: "exclamationmark.triangle", title: String(localized: "Library unavailable", bundle: .module), message: error)
+                StateMessageView(
+                    icon: "exclamationmark.triangle",
+                    title: String(localized: "Library unavailable", bundle: .module),
+                    message: error
+                )
             } else if model.items.isEmpty {
                 StateMessageView(
                     icon: model.collection == .favorites ? "heart" : "bookmark",

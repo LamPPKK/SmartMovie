@@ -163,8 +163,11 @@ private actor CatalogStub: CatalogRepository {
 
     func search(query: String, scope: SearchScope, page: Int, language: String) async throws -> PagedResult<TitleSummary> {
         if searchFailure { throw APIError.server(status: 503, requestID: "feature-test") }
-        if query == "old" { try await Task.sleep(for: .milliseconds(500)) }
-        else { try await Task.sleep(for: .milliseconds(20)) }
+        if query == "old" {
+            try await Task.sleep(for: .milliseconds(500))
+        } else {
+            try await Task.sleep(for: .milliseconds(20))
+        }
         let result = TitleSummary(id: query == "old" ? 1 : 2, mediaType: .movie, title: query, originalTitle: query, overview: "")
         return PagedResult(page: 1, totalPages: 1, results: [result])
     }

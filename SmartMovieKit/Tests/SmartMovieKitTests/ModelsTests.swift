@@ -27,7 +27,19 @@ final class ModelsTests: XCTestCase {
     }
 
     func testTVSummaryUsesSharedFallbackFields() throws {
-        let data = Data(#"{"id":77,"media_type":"tv","title":"","original_title":"原題","overview":"","release_date":"2025-04-03","vote_average":8.2,"genre_ids":[18]}"#.utf8)
+        let json = #"""
+        {
+          "id": 77,
+          "media_type": "tv",
+          "title": "",
+          "original_title": "原題",
+          "overview": "",
+          "release_date": "2025-04-03",
+          "vote_average": 8.2,
+          "genre_ids": [18]
+        }
+        """#
+        let data = Data(json.utf8)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
 

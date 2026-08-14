@@ -1,0 +1,76 @@
+name: Xcode - Build and Analyze
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-analyze:
+    name: ${{ matrix.name }}
+    runs-on: macos-15
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: iOS
+            scheme: SmartMovie
+            destination: generic/platform=iOS
+            artifact: ios-build-analyze
+          - name: Mac Catalyst
+            scheme: SmartMovie
+            destination: generic/platform=macOS,variant=Mac Catalyst
+            artifact: catalyst-build-analyze
+          - name: tvOS
+            scheme: SmartMovieTV
+            destination: generic/platform=tvOS
+            artifact: tvos-build-analyze
+          - name: Native macOS
+            scheme: SmartMovieNativeMac
+            destination: generic/platform=macOS
+            artifact: macos-build-analyze
+    env:
+      PROJECT: SmartMovie/SmartMovie.xcodeproj
+      RESULT_BUNDLE_NAME: ${{ matrix.artifact }}.xcresult
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build and analyze
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project "$PROJECT" \
+            -scheme "${{ matrix.scheme }}" \
+            -configuration Debug \
+            -destination "${{ matrix.destination }}" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData-${{ matrix.artifact }}" \
+            -resultBundlePath "$RUNNER_TEMP/$RESULT_BUNDLE_NAME" \
+            CODE_SIGNING_ALLOWED=NO \
+            clean build analyze
+
+      - name: Upload failed result bundle
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}-result
+          path: ${{ runner.temp }}/${{ env.RESULT_BUNDLE_NAME }}
+          if-no-files-found: ignore
+          retention-days: 7

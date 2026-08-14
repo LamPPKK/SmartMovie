@@ -16,19 +16,7 @@ final class AppRuntime {
             diskPath: "SmartMovieArtwork"
         )
 
-        let persistentContainer: ModelContainer
-        do {
-            persistentContainer = try LibraryStoreFactory.makeContainer(
-                cloudKitContainerIdentifier: Self.cloudKitContainerIdentifier
-            )
-        } catch {
-            // A local store keeps the app usable when iCloud is unavailable or an
-            // unsigned development build does not have CloudKit entitlements yet.
-            persistentContainer = try! LibraryStoreFactory.makeContainer(
-                cloudKitContainerIdentifier: nil,
-                inMemory: false
-            )
-        }
+        let persistentContainer = Self.makeModelContainer()
         modelContainer = persistentContainer
 
         let baseURL = Bundle.main.object(forInfoDictionaryKey: "CATALOG_BASE_URL") as? String
@@ -36,5 +24,40 @@ final class AppRuntime {
         let catalog = RemoteCatalogRepository(client: APIClient(baseURL: serviceURL))
         let library = SwiftDataLibraryRepository(context: ModelContext(persistentContainer))
         container = AppContainer(catalog: catalog, library: library)
+    }
+
+    private static func makeModelContainer() -> ModelContainer {
+        do {
+            return try LibraryStoreFactory.makeContainer(
+                cloudKitContainerIdentifier: activeCloudKitContainerIdentifier
+            )
+        } catch {
+            // A local store keeps the app usable when iCloud is unavailable or an
+            // unsigned development build does not have CloudKit entitlements yet.
+            do {
+                return try LibraryStoreFactory.makeContainer(
+                    cloudKitContainerIdentifier: nil,
+                    inMemory: false
+                )
+            } catch {
+                do {
+                    return try LibraryStoreFactory.makeContainer(
+                        cloudKitContainerIdentifier: nil,
+                        inMemory: true
+                    )
+                } catch {
+                    preconditionFailure("Unable to initialize SmartMovie library storage: \(error)")
+                }
+            }
+        }
+    }
+
+    private static var activeCloudKitContainerIdentifier: String? {
+        #if targetEnvironment(simulator)
+        // Unsigned simulator and CI builds cannot access CloudKit entitlements.
+        nil
+        #else
+        cloudKitContainerIdentifier
+        #endif
     }
 }

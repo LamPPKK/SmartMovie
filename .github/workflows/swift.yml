@@ -1,0 +1,48 @@
+name: Swift
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  swiftlint:
+    name: SwiftLint
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Show SwiftLint version
+        run: swiftlint version
+
+      - name: Lint Swift sources
+        run: swiftlint lint --strict --no-cache
+
+  unit-tests:
+    name: Swift package tests
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Show Swift toolchain
+        run: swift --version
+
+      - name: Run SmartMovieKit tests
+        run: swift test --package-path SmartMovieKit --enable-code-coverage

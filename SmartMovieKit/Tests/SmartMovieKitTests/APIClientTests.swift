@@ -98,7 +98,10 @@ final class APIClientTests: XCTestCase {
 
         XCTAssertEqual(response.page, 3)
         let request = try XCTUnwrap(URLProtocolStub.requests.first)
-        let query = Dictionary(uniqueKeysWithValues: try XCTUnwrap(URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)?.queryItems).map { ($0.name, $0.value) })
+        let url = try XCTUnwrap(request.url)
+        let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
+        let queryItems = try XCTUnwrap(components.queryItems)
+        let query = Dictionary(uniqueKeysWithValues: queryItems.map { ($0.name, $0.value) })
         XCTAssertEqual(query["genre_ids"], "12,28")
         XCTAssertEqual(query["year"], "2026")
         XCTAssertEqual(query["vote_average_gte"], "7.5")
@@ -155,7 +158,7 @@ private actor FixedClientID: ClientIDProviding {
     func clientID() -> String { "unit-test-client" }
 }
 
-private final class URLProtocolStub: URLProtocol, @unchecked Sendable {
+private class URLProtocolStub: URLProtocol, @unchecked Sendable {
     private struct Stub {
         let status: Int
         let headers: [String: String]

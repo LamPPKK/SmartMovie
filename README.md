@@ -45,6 +45,8 @@ The current baseline is 20 Swift unit tests and 19 Worker contract tests. The sh
 
 See [Testing](docs/TESTING.md) for the test matrix, coverage command, and platform build commands. Worker secrets are never stored in the repository. See [Release runbook](docs/RELEASE_RUNBOOK.md) for staging, CloudKit, and production steps.
 
+GitHub Actions runs three CI workflows on `main`, `develop`, and pull requests: SwiftLint plus Swift package tests, Xcode Build & Analyze for every Apple target, and an iOS Simulator build and launch-smoke workflow.
+
 ## Release status
 
 The source implementation and automated checks are complete. Before App Store submission, the release owner must still:

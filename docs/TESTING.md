@@ -42,6 +42,26 @@ npm test
 
 No test command requires a TMDb Bearer token. Tests must use the existing URL protocol stub, repository fakes, in-memory SwiftData configuration, mocked Worker globals, or fixture data as appropriate.
 
+## Enforce Swift style
+
+Install SwiftLint and run it from the repository root:
+
+```sh
+brew install swiftlint
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+  swiftlint lint --strict --no-cache
+```
+
+`.swiftlint.yml` is the canonical rule configuration. CI treats every SwiftLint warning as a failure; do not introduce a baseline or inline suppression when a small code change can satisfy the rule.
+
+## GitHub Actions
+
+- `Swift` runs strict SwiftLint and the SmartMovieKit unit tests with code coverage.
+- `Xcode - Build and Analyze` builds and analyzes iOS, tvOS, Mac Catalyst, and native macOS independently.
+- `iOS` selects an available iPhone Simulator dynamically, builds the app, installs it, and performs a launch smoke test. SmartMovieKit unit tests remain in the `Swift` workflow because the package-generated Xcode scheme has no test action.
+
+All workflows run for pushes and pull requests targeting `main` or `develop`, support manual dispatch, use read-only repository permissions, cancel stale runs on the same ref, and upload Xcode result bundles only when a job fails.
+
 ## Measure Swift core coverage
 
 ```sh
