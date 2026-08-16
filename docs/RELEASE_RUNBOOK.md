@@ -38,6 +38,10 @@ Current automated baseline: 22 Swift tests and 19 Worker tests. See [Testing](TE
 
 ## 2. Deploy Worker staging
 
+The preferred path is the `Worker CI` GitHub Actions workflow. Run it manually with production deployment disabled. The workflow installs the rotated secret, deploys the `staging` Wrangler environment, and smoke-tests configuration, Home, Genres, Discover, Search, and Detail in `en-US`, `vi-VN`, `ja-JP`, `ko-KR`, `zh-CN`, and `zh-TW`.
+
+The staging environment owns the Cloudflare custom domain `staging-catalog.smartmovie.app`. Confirm its DNS record and TLS certificate are active before running the workflow. The equivalent manual commands are:
+
 ```sh
 cd backend/worker
 npx wrangler login
@@ -76,7 +80,9 @@ Before archiving, asset compilation must no longer report missing tvOS, watchOS,
 
 ## 5. Promote production
 
-Deploy the CloudKit Development schema to Production in CloudKit Console. Then set the production Worker secret and deploy:
+Deploy the CloudKit Development schema to Production in CloudKit Console. Then rerun the protected `Worker CI` workflow with `deploy_production` enabled. The production job depends on successful staging deployment and smoke tests and uses the protected `production` environment for manual approval.
+
+The production environment owns the Cloudflare custom domain `catalog.smartmovie.app`. The equivalent manual commands are:
 
 ```sh
 cd backend/worker

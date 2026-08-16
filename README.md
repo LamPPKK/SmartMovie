@@ -122,7 +122,7 @@ Choose one of the shared schemes in Xcode and run it on a compatible destination
 
 ### Configure the catalog service
 
-The app never contains a TMDb credential. Debug currently points to the placeholder staging URL `https://staging-catalog.smartmovie.app/`, while Release points to `https://catalog.smartmovie.app/`.
+The app never contains a TMDb credential. Debug points to the staging custom domain `https://staging-catalog.smartmovie.app/`, while Release points to `https://catalog.smartmovie.app/`. Both hostnames are declared in Wrangler and must have active Cloudflare DNS/TLS before release.
 
 To use another Worker, update `CATALOG_BASE_URL` in `SmartMovie/project.yml` and regenerate the Xcode project. To run the Worker locally:
 
@@ -167,7 +167,7 @@ Read the [Privacy overview](docs/PRIVACY.md) before configuring production servi
 
 ## Release status
 
-Before App Store submission, the release owner must deploy the staging and production Workers, rotate any historical TMDb credential, configure signing and CloudKit, add approved TMDb and platform artwork, replace placeholder service domains, publish support/privacy URLs, and complete platform-specific metadata and screenshots.
+Before App Store submission, the release owner must rotate any historical TMDb credential, activate the Worker custom domains, run the protected staging-to-production Worker workflow, configure signing and CloudKit, add approved TMDb and platform artwork, publish support/privacy URLs, and complete platform-specific metadata and screenshots.
 
 Follow the [Release runbook](docs/RELEASE_RUNBOOK.md) for the staging, CloudKit, production, TestFlight, and App Review sequence.
 

@@ -1,0 +1,115 @@
+name: Catalog Worker
+
+on:
+  push:
+    branches: [main, develop]
+    paths: [backend/worker/**, .github/workflows/worker.yml]
+  pull_request:
+    branches: [main, develop]
+    paths: [backend/worker/**, .github/workflows/worker.yml]
+  workflow_dispatch:
+    inputs:
+      deploy_production:
+        description: Deploy production after staging smoke tests
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: backend/worker
+
+jobs:
+  test:
+    name: TypeScript and 19 contract tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/worker/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+
+  staging:
+    name: Deploy and smoke staging
+    if: github.event_name == 'workflow_dispatch'
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
+      BASE_URL: https://staging-catalog.smartmovie.app
+      CLIENT_ID: 00000000-0000-4000-8000-000000000001
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/worker/package-lock.json
+      - run: npm ci
+      - name: Set required TMDb secret
+        run: |
+          : "${TMDB_BEARER_TOKEN:?Missing staging TMDB_BEARER_TOKEN}"
+          printf '%s' "$TMDB_BEARER_TOKEN" | npx wrangler secret put TMDB_BEARER_TOKEN --env staging
+      - run: npm run deploy:staging
+      - name: Smoke all contracts and locales
+        run: |
+          set -euo pipefail
+          curl --fail --retry 8 --retry-all-errors -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/configuration"
+          for locale in en-US vi-VN ja-JP ko-KR zh-CN zh-TW; do
+            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/home?media_type=movie&language=$locale"
+            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/genres/movie?language=$locale"
+            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/discover/movie?page=1&language=$locale&sort_by=popularity.desc&vote_average_gte=0.0"
+            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/search?query=Dune&scope=all&page=1&language=$locale"
+            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/titles/movie/550?language=$locale"
+          done
+
+  production:
+    name: Approved production deploy
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_production
+    needs: staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
+      BASE_URL: https://catalog.smartmovie.app
+      CLIENT_ID: 00000000-0000-4000-8000-000000000002
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/worker/package-lock.json
+      - run: npm ci
+      - name: Set required TMDb secret
+        run: |
+          : "${TMDB_BEARER_TOKEN:?Missing production TMDB_BEARER_TOKEN}"
+          printf '%s' "$TMDB_BEARER_TOKEN" | npx wrangler secret put TMDB_BEARER_TOKEN --env production
+      - run: npm run deploy:production
+      - name: Production smoke test
+        run: |
+          set -euo pipefail
+          curl --fail --retry 8 --retry-all-errors -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/configuration"
+          for locale in en-US vi-VN ja-JP ko-KR zh-CN zh-TW; do
+            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/home?media_type=tv&language=$locale"
+            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/genres/tv?language=$locale"
+            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/discover/tv?page=1&language=$locale&sort_by=popularity.desc&vote_average_gte=0.0"
+            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/search?query=Shogun&scope=tv&page=1&language=$locale"
+            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/titles/tv/1399?language=$locale"
+          done

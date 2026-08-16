@@ -8,6 +8,10 @@ enabled = false
 [env.staging]
 name = "smartmovie-catalog-staging"
 
+[[env.staging.routes]]
+pattern = "staging-catalog.smartmovie.app"
+custom_domain = true
+
 [[env.staging.ratelimits]]
 name = "CATALOG_RATE_LIMITER"
 namespace_id = "1001"
@@ -18,6 +22,10 @@ period = 60
 
 [env.production]
 name = "smartmovie-catalog-production"
+
+[[env.production.routes]]
+pattern = "catalog.smartmovie.app"
+custom_domain = true
 
 [[env.production.ratelimits]]
 name = "CATALOG_RATE_LIMITER"
