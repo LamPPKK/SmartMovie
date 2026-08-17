@@ -23,12 +23,16 @@ The Worker accepts only:
 
 Errors use `{ "error": { "code", "message", "request_id", "retry_after" } }`. The client retries 429 and transient 5xx responses at most twice and honors `Retry-After`.
 
+`backend/worker/contract/openapi.json` is the canonical OpenAPI 3.1 contract. Its versioned manifest records the OpenAPI and fixture checksums. `/v1` changes are additive only; removing fields, changing types, or changing established semantics requires a separately served `/v2`. The native Android and Compose desktop/web clients consume a vendored snapshot, while Swift tests read the canonical fixtures directly.
+
+Worker Cache API keys include the Cloudflare Worker version metadata ID. A new deployment therefore cannot serve a previous deployment's normalized response, and rollback immediately returns to the previous version's cache namespace.
+
 ## Verification boundaries
 
 Automated tests are split at the network boundary:
 
 - `SmartMovieKitTests` uses repository fakes, an in-memory SwiftData container, a controlled clock, and a custom `URLProtocol` to verify domain models, observable feature state, Library behavior, request construction, decoding, cancellation, pagination, and retry policy without live services.
-- Worker tests mock TMDb and the Cloudflare Cache API to verify the public `/v1` contract, route/query allowlists, language handling, error normalization, cache HIT/MISS behavior, rate-limit identity, localized detail fallback, and token isolation.
+- Worker tests mock TMDb and the Cloudflare Cache API to verify the public `/v1` contract, every response schema, route/query allowlists, language handling, error normalization, cache HIT/MISS behavior, rate-limit identity, localized detail fallback, and token isolation.
 - Generic Xcode builds verify iOS, tvOS, watchOS, visionOS, Mac Catalyst, and native macOS app shells. Watch remote state transitions are covered in the Swift test suite; paired-device delivery remains a manual integration boundary.
 
 Tests must not depend on a real TMDb token, Cloudflare account, iCloud account, wall-clock delay, or public network response. Cross-device CloudKit synchronization, accessibility, focus behavior, and App Store assets remain staging/device checks described in the release runbook.
@@ -45,7 +49,7 @@ Tests must not depend on a real TMDb token, Cloudflare account, iCloud account, 
 
 ## Open release items
 
-- Replace placeholder Worker hostnames in `SmartMovie/project.yml` with deployed staging and production domains.
+- Activate DNS/TLS and deployed Worker routes for the staging and production hostnames already declared in XcodeGen and Wrangler.
 - Add an approved, unmodified TMDb logo asset from the official logos page to About before App Review. The required notice is already present.
 - Add the required tvOS App Icon & Top Shelf Image brand asset collection; simulator builds currently emit a notice because only the legacy iOS/macOS icon set is available.
 - Resolve the launch-configuration notice emitted by the generic iOS build and the unassigned 1024-pixel icon warning emitted by Mac/Catalyst asset compilation.

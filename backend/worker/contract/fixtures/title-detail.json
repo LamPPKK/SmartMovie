@@ -1,0 +1,19 @@
+{
+  "id": 42,
+  "media_type": "movie",
+  "title": "The Example",
+  "original_title": "The Example",
+  "overview": "A deterministic catalog fixture.",
+  "poster_path": "/poster.jpg",
+  "backdrop_path": "/backdrop.jpg",
+  "release_date": "2026-08-17",
+  "vote_average": 8.4,
+  "genre_ids": [12, 18],
+  "genres": [{ "id": 12, "name": "Adventure" }],
+  "runtime_minutes": 124,
+  "number_of_seasons": null,
+  "status": "Released",
+  "cast": [{ "id": 7, "name": "Example Actor", "character": "Lead", "profile_path": null }],
+  "videos": [{ "id": "video-1", "key": "example", "name": "Official Trailer", "site": "YouTube", "type": "Trailer", "official": true, "language": "en" }],
+  "similar": []
+}

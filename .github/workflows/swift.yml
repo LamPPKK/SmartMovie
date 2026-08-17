@@ -27,6 +27,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v7
 
+      - name: Verify release train and contract checksum
+        run: ./scripts/verify-release.sh
+
       - name: Show SwiftLint version
         run: swiftlint version
 

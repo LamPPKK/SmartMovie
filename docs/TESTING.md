@@ -12,10 +12,17 @@ SmartMovie keeps unit and contract tests deterministic and independent of TMDb, 
 | Feature models | 6 | Home refresh, Explore pagination/deduplication, Search debounce/cancellation/error state, trailer selection |
 | SwiftData Library | 3 | Independent Favorite/Watchlist state, CloudKit-style duplicate reconciliation, filtering/sorting/offline snapshots |
 | Domain and configuration | 5 | Detail fixture, six locale mappings, Movie/TV fallbacks, Worker acronym decoding, image URL normalization |
+| Catalog conformance | 3 | Canonical success/error fixtures, additive fields, and omitted nullable fields across the native Swift models |
 | Watch remote | 2 | Remote presentation intent, dismissal, Library revision, and title/context state |
-| Cloudflare Worker | 19 | Route and query validation, cache behavior, rate limiting, TMDb error mapping, Home/Detail contracts, fallback language, token isolation |
+| Cloudflare Worker | 28 | Route/query validation, schema validation for all six routes and errors, fixture validation, cache behavior, rate limiting, TMDb mapping, fallback language, token isolation |
 
-Baseline: 22 Swift tests plus 19 Worker tests, all passing on 15 August 2026.
+Consolidated baseline: 25 Swift tests plus 28 Worker tests. The pre-consolidation evidence and local toolchain boundary are recorded in [Baseline](BASELINE.md).
+
+## Latest local verification
+
+The 17 August 2026 verification run passed all 25 SmartMovieKit tests, strict SwiftLint across 31 files, and an unsigned iOS Simulator build. The app installed on an iPhone 16 Pro with iOS 18.6, launched with a valid process identifier, remained alive for the three-second CI smoke window, and terminated normally. This run therefore did not reproduce a launch crash on iOS Simulator.
+
+This result does not clear the separate native macOS signing check. An unsigned `SmartMovieNativeMac` build can compile successfully and then terminate when CloudKit initializes because the process lacks the `com.apple.developer.icloud-services` entitlement. Use a Development-signed build with the configured iCloud container for native macOS launch verification; `CODE_SIGNING_ALLOWED=NO` is suitable for build/analyze only.
 
 ## Run unit and contract tests
 
@@ -39,6 +46,12 @@ cd backend/worker
 npm ci
 npm run check
 npm test
+```
+
+Verify the release train, contract version, and checksum from the repository root:
+
+```sh
+./scripts/verify-release.sh
 ```
 
 No test command requires a TMDb Bearer token. Tests must use the existing URL protocol stub, repository fakes, in-memory SwiftData configuration, mocked Worker globals, or fixture data as appropriate.

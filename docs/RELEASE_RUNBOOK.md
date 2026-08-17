@@ -3,10 +3,11 @@
 ## Prerequisites
 
 - Xcode on Apple silicon with iOS, tvOS, watchOS, visionOS, and macOS platform SDKs, plus access to the Apple Developer team.
-- XcodeGen 2.46 or newer, Node.js, npm, and a Cloudflare account authenticated by Wrangler.
+- XcodeGen 2.46 or newer, Node.js 24, npm, and a Cloudflare account authenticated by Wrangler.
 - Editable App IDs for `LamNDT.SmartMovie`, `LamNDT.SmartMovie.watchkitapp`, and `LamNDT.SmartMovie.NativeMac`.
 - Private CloudKit container `iCloud.LamNDT.SmartMovie` assigned to the universal and native Mac catalog App IDs.
 - A newly issued TMDb API Read Access Token. Revoke the historical key that was committed before SmartMovie 2.0.
+- Repository secret `ANDROID_CONTRACT_SYNC_TOKEN`, limited to Contents and Pull requests on `LamPPKK/Android.Smart.Movie`, so canonical contract changes can open snapshot PRs.
 
 Select the full Xcode toolchain once on each build machine (this requires an administrator password):
 
@@ -34,11 +35,13 @@ npm test
 
 Verification: Swift tests, Worker type-check, and Worker contract tests all complete with zero failures. Search the repository for `api_key=` and confirm no credential is present.
 
-Current automated baseline: 22 Swift tests and 19 Worker tests. See [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the test suite changed intentionally; zero failures is always required.
+Current automated baseline: 25 Swift tests and 28 Worker tests. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the test suite changed intentionally; zero failures is always required.
+
+When the contract or release train changes on `main`, confirm the `Sync catalog contract to Android` workflow opens a pull request and that Android native plus desktop conformance CI passes before merging it. Production promotion remains blocked until the Android snapshot is on `main`.
 
 ## 2. Deploy Worker staging
 
-The preferred path is the `Worker CI` GitHub Actions workflow. Run it manually with production deployment disabled. The workflow installs the rotated secret, deploys the `staging` Wrangler environment, and smoke-tests configuration, Home, Genres, Discover, Search, and Detail in `en-US`, `vi-VN`, `ja-JP`, `ko-KR`, `zh-CN`, and `zh-TW`.
+The preferred path is the `Catalog Worker` GitHub Actions workflow. Run it manually with production deployment disabled. The workflow installs the rotated secret, deploys the `staging` Wrangler environment, and schema-validates configuration, Home, Genres, paginated Discover, Search, Detail, and normalized errors in `en-US`, `vi-VN`, `ja-JP`, `ko-KR`, `zh-CN`, and `zh-TW`. The smoke runner retries transient 429/5xx responses and requires every response to come from one Worker version. Client pagination deduplication and cancellation remain deterministic native/KMP test responsibilities.
 
 The staging environment owns the Cloudflare custom domain `staging-catalog.smartmovie.app`. Confirm its DNS record and TLS certificate are active before running the workflow. The equivalent manual commands are:
 
@@ -53,7 +56,7 @@ Set the actual staging hostname in `SmartMovie/project.yml` under Debug `CATALOG
 
 Verification: request `/v1/configuration`, `/v1/home?media_type=movie&language=en-US`, and a deliberately invalid query. Valid routes must return JSON and the invalid request must return status 400 with a request ID. Responses and Cloudflare logs must not contain the Bearer token or search text.
 
-Rollback/escalation: deploy the previous known-good Worker version from Cloudflare deployment history. If upstream 401/403 persists, rotate the TMDb secret; do not place it in source or an app build setting.
+Rollback/escalation: the protected workflow automatically runs `wrangler rollback` if post-deploy smoke validation fails. If upstream 401/403 persists, rotate the TMDb secret; do not place it in source or an app build setting.
 
 ## 3. Configure and test CloudKit development
 
@@ -80,7 +83,7 @@ Before archiving, asset compilation must no longer report missing tvOS, watchOS,
 
 ## 5. Promote production
 
-Deploy the CloudKit Development schema to Production in CloudKit Console. Then rerun the protected `Worker CI` workflow with `deploy_production` enabled. The production job depends on successful staging deployment and smoke tests and uses the protected `production` environment for manual approval.
+Deploy the CloudKit Development schema to Production in CloudKit Console. Then rerun the protected `Catalog Worker` workflow with `deploy_production` enabled. The production job depends on successful staging deployment and smoke tests, requires Android `main` to match the OpenAPI checksum, fixture checksum, contract version, and release train, and uses the protected `production` environment for manual approval.
 
 The production environment owns the Cloudflare custom domain `catalog.smartmovie.app`. The equivalent manual commands are:
 

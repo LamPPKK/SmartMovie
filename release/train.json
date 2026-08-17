@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "train_version": "2.0.0",
+  "contract_version": "1.0.0",
+  "contract_openapi_sha256": "70fba83a8e26c49c5d8c6572f12e6119d7e6b5fa23b34fdd8da4f63071a4e13c",
+  "apple": {
+    "marketing_version": "2.0.0",
+    "build_number": 1
+  },
+  "android": {
+    "version_name": "2.0.0",
+    "version_code": 1
+  },
+  "parity_exceptions": []
+}

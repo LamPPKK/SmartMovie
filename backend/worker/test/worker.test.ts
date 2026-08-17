@@ -71,7 +71,7 @@ describe("request validation", () => {
 });
 
 describe("catalog contract", () => {
-  it("serves the second identical request from Cache API", async () => {
+  it("serves identical requests from a version-isolated Cache API", async () => {
     const entries = new Map<string, Response>();
     vi.stubGlobal("caches", {
       default: {
@@ -89,14 +89,24 @@ describe("catalog contract", () => {
     const pending: Promise<unknown>[] = [];
     const cacheContext = { waitUntil: (promise: Promise<unknown>) => { pending.push(promise); } };
     const request = new Request("https://catalog.example/v1/configuration");
+    const firstVersion = env({ CF_VERSION_METADATA: { id: "version-1" } });
 
-    const miss = await worker.fetch(request, env(), cacheContext);
+    const miss = await worker.fetch(request, firstVersion, cacheContext);
     await Promise.all(pending);
-    const hit = await worker.fetch(request, env(), cacheContext);
+    const hit = await worker.fetch(request, firstVersion, cacheContext);
+    const nextVersion = await worker.fetch(
+      request,
+      env({ CF_VERSION_METADATA: { id: "version-2" } }),
+      cacheContext,
+    );
+    await Promise.all(pending);
 
     expect(miss.headers.get("X-SmartMovie-Cache")).toBe("MISS");
     expect(hit.headers.get("X-SmartMovie-Cache")).toBe("HIT");
-    expect(upstream).toHaveBeenCalledTimes(1);
+    expect(hit.headers.get("X-SmartMovie-Worker-Version")).toBe("version-1");
+    expect(nextVersion.headers.get("X-SmartMovie-Cache")).toBe("MISS");
+    expect(nextVersion.headers.get("X-SmartMovie-Worker-Version")).toBe("version-2");
+    expect(upstream).toHaveBeenCalledTimes(2);
   });
 
   it("removes people from All search and never exposes the token", async () => {

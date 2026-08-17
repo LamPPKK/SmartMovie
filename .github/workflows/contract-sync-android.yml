@@ -1,0 +1,102 @@
+name: Sync catalog contract to Android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - backend/worker/contract/**
+      - release/train.json
+      - .github/workflows/contract-sync-android.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Open Android contract snapshot PR
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.ANDROID_CONTRACT_SYNC_TOKEN }}
+      ANDROID_REPOSITORY: LamPPKK/Android.Smart.Movie
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Require the least-privilege cross-repository token
+        run: |
+          if [[ -z "$GH_TOKEN" ]]; then
+            echo "ANDROID_CONTRACT_SYNC_TOKEN must allow Contents and Pull requests on $ANDROID_REPOSITORY." >&2
+            exit 1
+          fi
+
+      - name: Verify the canonical contract and release manifest
+        run: ./scripts/verify-release.sh
+
+      - name: Check out the Android repository
+        run: |
+          gh auth setup-git
+          gh repo clone "$ANDROID_REPOSITORY" "$RUNNER_TEMP/android-smartmovie"
+
+      - name: Update the vendored snapshot
+        env:
+          ANDROID_DIR: ${{ runner.temp }}/android-smartmovie
+        run: |
+          set -euo pipefail
+          cd "$ANDROID_DIR"
+          branch="contract-sync-${GITHUB_SHA:0:12}"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            git fetch origin "$branch"
+            git switch -C "$branch" "origin/$branch"
+          else
+            git switch -c "$branch"
+          fi
+          cd "$GITHUB_WORKSPACE"
+          mkdir -p "$ANDROID_DIR/catalog-contract/v1" "$ANDROID_DIR/release"
+          rsync -a --delete backend/worker/contract/ "$ANDROID_DIR/catalog-contract/v1/"
+          cp release/train.json "$ANDROID_DIR/release/train.json"
+          python3 - "$ANDROID_DIR/catalog-contract/manifest.json" backend/worker/contract/manifest.json "$GITHUB_SHA" <<'PY'
+          import json
+          import sys
+
+          destination, canonical_path, commit = sys.argv[1:]
+          with open(canonical_path, encoding="utf-8") as source:
+              canonical = json.load(source)
+          snapshot = {
+              "schema_version": 1,
+              "contract_version": canonical["contract_version"],
+              "upstream_repository": "LamPPKK/SmartMovie",
+              "upstream_commit": commit,
+              "openapi_sha256": canonical["openapi_sha256"],
+              "fixtures_sha256": canonical["fixtures_sha256"],
+          }
+          with open(destination, "w", encoding="utf-8") as output:
+              json.dump(snapshot, output, indent=2)
+              output.write("\n")
+          PY
+
+      - name: Open or refresh the Android pull request
+        env:
+          ANDROID_DIR: ${{ runner.temp }}/android-smartmovie
+        run: |
+          set -euo pipefail
+          cd "$ANDROID_DIR"
+          branch="contract-sync-${GITHUB_SHA:0:12}"
+          git config user.name "smartmovie-contract-bot"
+          git config user.email "actions@users.noreply.github.com"
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add catalog-contract release/train.json
+            git commit -m "chore: sync catalog contract ${GITHUB_SHA:0:12}"
+            git push --set-upstream origin "$branch"
+          elif ! git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            echo "Android main already contains this contract snapshot."
+            exit 0
+          fi
+          if [[ -z "$(gh pr list --repo "$ANDROID_REPOSITORY" --head "$branch" --json url --jq '.[0].url')" ]]; then
+            gh pr create \
+              --repo "$ANDROID_REPOSITORY" \
+              --base main \
+              --head "$branch" \
+              --title "chore: sync SmartMovie catalog contract" \
+              --body "Automated snapshot of the canonical catalog contract from LamPPKK/SmartMovie@$GITHUB_SHA. Merge only after Android and desktop conformance CI passes."
+          fi

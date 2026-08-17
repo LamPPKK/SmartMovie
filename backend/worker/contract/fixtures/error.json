@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "rate_limited",
+    "message": "Too many requests. Please retry shortly.",
+    "request_id": "00000000-0000-4000-8000-000000000001",
+    "retry_after": 60
+  }
+}

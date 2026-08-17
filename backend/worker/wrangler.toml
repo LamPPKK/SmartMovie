@@ -8,6 +8,9 @@ enabled = false
 [env.staging]
 name = "smartmovie-catalog-staging"
 
+[env.staging.version_metadata]
+binding = "CF_VERSION_METADATA"
+
 [[env.staging.routes]]
 pattern = "staging-catalog.smartmovie.app"
 custom_domain = true
@@ -22,6 +25,9 @@ period = 60
 
 [env.production]
 name = "smartmovie-catalog-production"
+
+[env.production.version_metadata]
+binding = "CF_VERSION_METADATA"
 
 [[env.production.routes]]
 pattern = "catalog.smartmovie.app"

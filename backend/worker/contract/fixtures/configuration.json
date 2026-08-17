@@ -1,0 +1,6 @@
+{
+  "secure_base_url": "https://image.tmdb.org/t/p/",
+  "poster_sizes": ["w342", "w500", "original"],
+  "backdrop_sizes": ["w780", "w1280", "original"],
+  "profile_sizes": ["w185", "h632", "original"]
+}

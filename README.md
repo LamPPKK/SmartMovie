@@ -78,6 +78,8 @@ flowchart LR
 
 `SmartMovieKit` contains domain models and repository protocols, the async/await API client, SwiftData library storage, observable feature state, localization, and shared SwiftUI components. Each application target owns only its lifecycle and platform adapter.
 
+The Worker-owned OpenAPI 3.1 document and deterministic fixtures under `backend/worker/contract` are the catalog source of truth. Swift decodes them directly in conformance tests; the Android repository vendors a checksummed snapshot and production Worker promotion is blocked until Android `main` pins the same OpenAPI checksum, fixture checksum, contract version, and release train.
+
 The Worker exposes an allowlisted `/v1` surface for Home, Discover, Search, Details, Genres, and image configuration. Search responses are cached for 5 minutes, Home and Discover for 15 minutes, Details for 1 hour, and Genres/Configuration for 24 hours. The default limit is 120 requests per minute per client identity.
 
 See [Architecture](docs/ARCHITECTURE.md) for the repository contracts, synchronization rules, and invariants.
@@ -89,6 +91,8 @@ SmartMovie/
 ├── SmartMovie/          # XcodeGen spec, Xcode project, app shells, entitlements, assets
 ├── SmartMovieKit/       # Shared Swift package, UI, data layer, localization, unit tests
 ├── backend/worker/      # TypeScript Cloudflare Worker and contract tests
+├── release/             # Shared 2.0 release-train manifest
+├── scripts/             # Read-only Doctor and release consistency checks
 ├── docs/                # Architecture, testing, privacy, release operations, screenshots
 └── .github/workflows/   # Swift, Xcode build/analyze, and iOS Simulator CI
 ```
@@ -100,7 +104,7 @@ SmartMovie/
 - Xcode with the iOS, tvOS, watchOS, visionOS, and macOS SDKs
 - XcodeGen 2.46 or newer
 - SwiftLint
-- Node.js and npm
+- Node.js 24 and npm
 - Apple silicon for visionOS builds and Simulator testing
 
 Select the complete Xcode toolchain if the machine currently points to Command Line Tools:
@@ -108,6 +112,8 @@ Select the complete Xcode toolchain if the machine currently points to Command L
 ```sh
 sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 ```
+
+Run `./scripts/doctor.sh` to verify Xcode, Swift 6, XcodeGen, SwiftLint, Node 24, and npm without changing the machine.
 
 Clone and generate the project:
 
@@ -147,9 +153,12 @@ cd backend/worker
 npm ci
 npm run check
 npm test
+
+cd ../..
+./scripts/verify-release.sh
 ```
 
-The current baseline is 22 Swift tests and 19 Worker contract tests. CI also builds and analyzes iOS, Mac Catalyst, tvOS, native macOS, watchOS, and visionOS independently, then installs and launches the iOS app in Simulator as a smoke test.
+The consolidated baseline is 25 Swift tests and 28 Worker tests, including canonical fixture decoding and OpenAPI schema validation. CI also builds and analyzes iOS, Mac Catalyst, tvOS, native macOS, watchOS, and visionOS independently, then installs and launches the iOS app in Simulator as a smoke test.
 
 SwiftLint is enforced in strict mode. New behavior should include deterministic tests and must not depend on live TMDb, Cloudflare, CloudKit, wall-clock delays, or private credentials.
 
@@ -169,7 +178,7 @@ Read the [Privacy overview](docs/PRIVACY.md) before configuring production servi
 
 Before App Store submission, the release owner must rotate any historical TMDb credential, activate the Worker custom domains, run the protected staging-to-production Worker workflow, configure signing and CloudKit, add approved TMDb and platform artwork, publish support/privacy URLs, and complete platform-specific metadata and screenshots.
 
-Follow the [Release runbook](docs/RELEASE_RUNBOOK.md) for the staging, CloudKit, production, TestFlight, and App Review sequence.
+Follow the [Release runbook](docs/RELEASE_RUNBOOK.md) for the staging, CloudKit, production, TestFlight, and App Review sequence. [Release readiness](release/READINESS.md) separates automated source gates from credentials, DNS, artwork, and store-owner actions that cannot live in the repository.
 
 ## Attribution
 

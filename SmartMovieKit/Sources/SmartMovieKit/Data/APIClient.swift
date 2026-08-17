@@ -135,11 +135,11 @@ public actor APIClient {
     }
 }
 
-private struct ErrorEnvelope: Decodable {
+struct ErrorEnvelope: Decodable {
     let error: ErrorBody
 }
 
-private struct ErrorBody: Decodable {
+struct ErrorBody: Decodable {
     let code: String
     let message: String
     let requestId: String?

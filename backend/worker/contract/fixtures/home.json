@@ -1,0 +1,35 @@
+{
+  "media_type": "movie",
+  "hero": {
+    "id": 42,
+    "media_type": "movie",
+    "title": "The Example",
+    "original_title": "The Example",
+    "overview": "A deterministic catalog fixture.",
+    "poster_path": "/poster.jpg",
+    "backdrop_path": "/backdrop.jpg",
+    "release_date": "2026-08-17",
+    "vote_average": 8.4,
+    "genre_ids": [12, 18]
+  },
+  "sections": [
+    {
+      "id": "trending",
+      "title": "Trending",
+      "items": [
+        {
+          "id": 42,
+          "media_type": "movie",
+          "title": "The Example",
+          "original_title": "The Example",
+          "overview": "A deterministic catalog fixture.",
+          "poster_path": "/poster.jpg",
+          "backdrop_path": "/backdrop.jpg",
+          "release_date": "2026-08-17",
+          "vote_average": 8.4,
+          "genre_ids": [12, 18]
+        }
+      ]
+    }
+  ]
+}

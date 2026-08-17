@@ -20,6 +20,7 @@ export interface Env {
   TMDB_BEARER_TOKEN: string;
   TMDB_BASE_URL?: string;
   CATALOG_RATE_LIMITER?: RateLimitBinding;
+  CF_VERSION_METADATA?: { id: string; tag?: string; timestamp?: string };
 }
 
 type Execution = Pick<ExecutionContext, "waitUntil">;
@@ -29,6 +30,7 @@ const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
 export default {
   async fetch(request: Request, env: Env, context: Execution): Promise<Response> {
     const requestId = crypto.randomUUID();
+    const workerVersion = env.CF_VERSION_METADATA?.id ?? "development";
     try {
       if (request.method !== "GET") {
         throw new RequestProblem(400, "unsupported_method", "Only GET requests are supported.");
@@ -38,18 +40,18 @@ export default {
       if (!match) throw new RequestProblem(404, "not_found", "The requested catalog route does not exist.");
 
       await enforceRateLimit(request, env, match.id);
-      const cached = await readCache(request);
-      if (cached) return withHeader(cached, "X-SmartMovie-Cache", "HIT");
+      const cached = await readCache(request, workerVersion);
+      if (cached) return withWorkerVersion(withHeader(cached, "X-SmartMovie-Cache", "HIT"), workerVersion);
 
       const response = await match.handle(url, env, requestId);
       if (response.ok) {
         const cacheable = withHeader(response, "Cache-Control", `public, max-age=${match.ttl}`);
-        context.waitUntil(writeCache(request, cacheable.clone()));
-        return withHeader(cacheable, "X-SmartMovie-Cache", "MISS");
+        context.waitUntil(writeCache(request, cacheable.clone(), workerVersion));
+        return withWorkerVersion(withHeader(cacheable, "X-SmartMovie-Cache", "MISS"), workerVersion);
       }
-      return response;
+      return withWorkerVersion(response, workerVersion);
     } catch (error) {
-      return errorResponse(error, requestId);
+      return withWorkerVersion(errorResponse(error, requestId), workerVersion);
     }
   },
 };
@@ -176,20 +178,30 @@ async function enforceRateLimit(request: Request, env: Env, routeID: string): Pr
   }
 }
 
-async function readCache(request: Request): Promise<Response | undefined> {
+async function readCache(request: Request, workerVersion: string): Promise<Response | undefined> {
   if (typeof caches === "undefined") return undefined;
-  return (await caches.default.match(request)) ?? undefined;
+  return (await caches.default.match(versionedCacheRequest(request, workerVersion))) ?? undefined;
 }
 
-async function writeCache(request: Request, response: Response): Promise<void> {
+async function writeCache(request: Request, response: Response, workerVersion: string): Promise<void> {
   if (typeof caches === "undefined") return;
-  await caches.default.put(request, response);
+  await caches.default.put(versionedCacheRequest(request, workerVersion), response);
+}
+
+function versionedCacheRequest(request: Request, workerVersion: string): Request {
+  const url = new URL(request.url);
+  url.searchParams.set("__smartmovie_worker_version", workerVersion);
+  return new Request(url, { method: "GET" });
 }
 
 function withHeader(response: Response, name: string, value: string): Response {
   const copy = new Response(response.body, response);
   copy.headers.set(name, value);
   return copy;
+}
+
+function withWorkerVersion(response: Response, workerVersion: string): Response {
+  return withHeader(response, "X-SmartMovie-Worker-Version", workerVersion);
 }
 
 function json(value: unknown, status = 200): Response {

@@ -3,10 +3,10 @@ name: Catalog Worker
 on:
   push:
     branches: [main, develop]
-    paths: [backend/worker/**, .github/workflows/worker.yml]
+    paths: [backend/worker/**, release/train.json, scripts/verify-release.sh, .github/workflows/worker.yml]
   pull_request:
     branches: [main, develop]
-    paths: [backend/worker/**, .github/workflows/worker.yml]
+    paths: [backend/worker/**, release/train.json, scripts/verify-release.sh, .github/workflows/worker.yml]
   workflow_dispatch:
     inputs:
       deploy_production:
@@ -24,7 +24,7 @@ defaults:
 
 jobs:
   test:
-    name: TypeScript and 19 contract tests
+    name: TypeScript and 28 contract tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -37,6 +37,9 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm test
+      - name: Verify release train and contract checksum
+        working-directory: ${{ github.workspace }}
+        run: ./scripts/verify-release.sh
 
   staging:
     name: Deploy and smoke staging
@@ -44,6 +47,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    concurrency:
+      group: smartmovie-catalog-staging
+      cancel-in-progress: false
     environment: staging
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -51,6 +57,9 @@ jobs:
       TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
       BASE_URL: https://staging-catalog.smartmovie.app
       CLIENT_ID: 00000000-0000-4000-8000-000000000001
+      MEDIA_TYPE: movie
+      TITLE_ID: "550"
+      SEARCH_QUERY: Dune
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
@@ -63,18 +72,14 @@ jobs:
         run: |
           : "${TMDB_BEARER_TOKEN:?Missing staging TMDB_BEARER_TOKEN}"
           printf '%s' "$TMDB_BEARER_TOKEN" | npx wrangler secret put TMDB_BEARER_TOKEN --env staging
-      - run: npm run deploy:staging
-      - name: Smoke all contracts and locales
-        run: |
-          set -euo pipefail
-          curl --fail --retry 8 --retry-all-errors -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/configuration"
-          for locale in en-US vi-VN ja-JP ko-KR zh-CN zh-TW; do
-            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/home?media_type=movie&language=$locale"
-            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/genres/movie?language=$locale"
-            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/discover/movie?page=1&language=$locale&sort_by=popularity.desc&vote_average_gte=0.0"
-            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/search?query=Dune&scope=all&page=1&language=$locale"
-            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/titles/movie/550?language=$locale"
-          done
+      - name: Deploy staging Worker
+        id: deploy
+        run: npm run deploy:staging
+      - name: Smoke schemas, locales, pagination and normalized errors
+        run: npm run smoke
+      - name: Roll back staging after a failed smoke test
+        if: failure() && steps.deploy.outcome == 'success'
+        run: npx wrangler rollback --env staging --message "Automated rollback after staging smoke failure for $GITHUB_SHA" --yes
 
   production:
     name: Approved production deploy
@@ -82,6 +87,9 @@ jobs:
     needs: staging
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    concurrency:
+      group: smartmovie-catalog-production
+      cancel-in-progress: false
     environment: production
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -89,6 +97,9 @@ jobs:
       TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
       BASE_URL: https://catalog.smartmovie.app
       CLIENT_ID: 00000000-0000-4000-8000-000000000002
+      MEDIA_TYPE: tv
+      TITLE_ID: "1399"
+      SEARCH_QUERY: Shogun
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
@@ -97,19 +108,53 @@ jobs:
           cache: npm
           cache-dependency-path: backend/worker/package-lock.json
       - run: npm ci
+      - name: Require Android main to pin this contract
+        working-directory: ${{ github.workspace }}
+        env:
+          ANDROID_CONTRACT_MANIFEST: https://raw.githubusercontent.com/LamPPKK/Android.Smart.Movie/main/catalog-contract/manifest.json
+          ANDROID_RELEASE_MANIFEST: https://raw.githubusercontent.com/LamPPKK/Android.Smart.Movie/main/release/train.json
+        run: |
+          set -euo pipefail
+          local_checksum="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("backend/worker/contract/manifest.json", "utf8")).openapi_sha256)')"
+          local_fixtures_checksum="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("backend/worker/contract/manifest.json", "utf8")).fixtures_sha256)')"
+          local_contract_version="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("backend/worker/contract/manifest.json", "utf8")).contract_version)')"
+          local_version="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("release/train.json", "utf8")).train_version)')"
+          remote_manifest="$(curl --fail --retry 3 --retry-all-errors "$ANDROID_CONTRACT_MANIFEST")"
+          remote_release="$(curl --fail --retry 3 --retry-all-errors "$ANDROID_RELEASE_MANIFEST")"
+          remote_checksum="$(node -e 'console.log(JSON.parse(process.argv[1]).openapi_sha256)' "$remote_manifest")"
+          remote_fixtures_checksum="$(node -e 'console.log(JSON.parse(process.argv[1]).fixtures_sha256)' "$remote_manifest")"
+          remote_contract_version="$(node -e 'console.log(JSON.parse(process.argv[1]).contract_version)' "$remote_manifest")"
+          remote_upstream_commit="$(node -e 'console.log(JSON.parse(process.argv[1]).upstream_commit ?? "")' "$remote_manifest")"
+          remote_version="$(node -e 'console.log(JSON.parse(process.argv[1]).train_version)' "$remote_release")"
+          if [[ "$local_checksum" != "$remote_checksum" ]]; then
+            echo "Android main pins $remote_checksum but production requires $local_checksum." >&2
+            exit 1
+          fi
+          if [[ "$local_fixtures_checksum" != "$remote_fixtures_checksum" ]]; then
+            echo "Android main pins fixtures $remote_fixtures_checksum but production requires $local_fixtures_checksum." >&2
+            exit 1
+          fi
+          if [[ "$local_contract_version" != "$remote_contract_version" ]]; then
+            echo "Android main pins contract $remote_contract_version but production requires $local_contract_version." >&2
+            exit 1
+          fi
+          if [[ ! "$remote_upstream_commit" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Android main contract provenance is missing its canonical upstream commit." >&2
+            exit 1
+          fi
+          if [[ "$local_version" != "$remote_version" ]]; then
+            echo "Android main pins release $remote_version but production requires $local_version." >&2
+            exit 1
+          fi
       - name: Set required TMDb secret
         run: |
           : "${TMDB_BEARER_TOKEN:?Missing production TMDB_BEARER_TOKEN}"
           printf '%s' "$TMDB_BEARER_TOKEN" | npx wrangler secret put TMDB_BEARER_TOKEN --env production
-      - run: npm run deploy:production
-      - name: Production smoke test
-        run: |
-          set -euo pipefail
-          curl --fail --retry 8 --retry-all-errors -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/configuration"
-          for locale in en-US vi-VN ja-JP ko-KR zh-CN zh-TW; do
-            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/home?media_type=tv&language=$locale"
-            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/genres/tv?language=$locale"
-            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/discover/tv?page=1&language=$locale&sort_by=popularity.desc&vote_average_gte=0.0"
-            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/search?query=Shogun&scope=tv&page=1&language=$locale"
-            curl --fail -H "X-SmartMovie-Client: $CLIENT_ID" "$BASE_URL/v1/titles/tv/1399?language=$locale"
-          done
+      - name: Deploy production Worker
+        id: deploy
+        run: npm run deploy:production
+      - name: Production contract smoke test
+        run: npm run smoke
+      - name: Roll back production after a failed smoke test
+        if: failure() && steps.deploy.outcome == 'success'
+        run: npx wrangler rollback --env production --message "Automated rollback after production smoke failure for $GITHUB_SHA" --yes

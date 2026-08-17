@@ -1,0 +1,10 @@
+{
+  "id": 99,
+  "media_type": "tv",
+  "title": "Forward Compatible",
+  "original_title": "Forward Compatible",
+  "overview": "Nullable artwork and dates are intentionally omitted.",
+  "vote_average": 7.5,
+  "genre_ids": [],
+  "future_optional_field": { "safe": true }
+}

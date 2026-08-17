@@ -1,0 +1,312 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SmartMovie Catalog API",
+    "version": "1.0.0",
+    "description": "Canonical, credential-free contract consumed by SmartMovie native and desktop/web clients. Changes within /v1 must be backward-compatible and additive."
+  },
+  "servers": [
+    { "url": "https://staging-catalog.smartmovie.app", "description": "Staging" },
+    { "url": "https://catalog.smartmovie.app", "description": "Production" }
+  ],
+  "paths": {
+    "/v1/home": {
+      "get": {
+        "operationId": "home",
+        "parameters": [
+          { "$ref": "#/components/parameters/ClientId" },
+          { "$ref": "#/components/parameters/MediaTypeQuery" },
+          { "$ref": "#/components/parameters/Language" }
+        ],
+        "responses": {
+          "200": { "description": "Home feed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HomeFeed" } } } },
+          "default": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/v1/discover/{mediaType}": {
+      "get": {
+        "operationId": "discover",
+        "parameters": [
+          { "$ref": "#/components/parameters/ClientId" },
+          { "$ref": "#/components/parameters/MediaTypePath" },
+          { "$ref": "#/components/parameters/Language" },
+          { "$ref": "#/components/parameters/Page" },
+          { "name": "genre_ids", "in": "query", "schema": { "type": "string", "pattern": "^[0-9]+(,[0-9]+)*$" } },
+          { "name": "year", "in": "query", "schema": { "type": "integer", "minimum": 1870, "maximum": 2100 } },
+          { "name": "vote_average_gte", "in": "query", "schema": { "type": "number", "minimum": 0, "maximum": 10, "default": 0 } },
+          { "name": "sort_by", "in": "query", "schema": { "$ref": "#/components/schemas/DiscoverSort" } }
+        ],
+        "responses": {
+          "200": { "description": "Discover page", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TitlePage" } } } },
+          "default": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/v1/search": {
+      "get": {
+        "operationId": "search",
+        "parameters": [
+          { "$ref": "#/components/parameters/ClientId" },
+          { "name": "query", "in": "query", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": ".*\\S.*" } },
+          { "name": "scope", "in": "query", "schema": { "$ref": "#/components/schemas/SearchScope" } },
+          { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Language" }
+        ],
+        "responses": {
+          "200": { "description": "Search page containing Movie and TV titles only", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TitlePage" } } } },
+          "default": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/v1/titles/{mediaType}/{id}": {
+      "get": {
+        "operationId": "titleDetail",
+        "parameters": [
+          { "$ref": "#/components/parameters/ClientId" },
+          { "$ref": "#/components/parameters/MediaTypePath" },
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer", "minimum": 1 } },
+          { "$ref": "#/components/parameters/Language" }
+        ],
+        "responses": {
+          "200": { "description": "Normalized title detail", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TitleDetail" } } } },
+          "default": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/v1/genres/{mediaType}": {
+      "get": {
+        "operationId": "genres",
+        "parameters": [
+          { "$ref": "#/components/parameters/ClientId" },
+          { "$ref": "#/components/parameters/MediaTypePath" },
+          { "$ref": "#/components/parameters/Language" }
+        ],
+        "responses": {
+          "200": { "description": "Localized genre list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/GenreEnvelope" } } } },
+          "default": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+    "/v1/configuration": {
+      "get": {
+        "operationId": "imageConfiguration",
+        "parameters": [{ "$ref": "#/components/parameters/ClientId" }],
+        "responses": {
+          "200": { "description": "Safe image CDN configuration", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ImageConfiguration" } } } },
+          "default": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "ClientId": {
+        "name": "X-SmartMovie-Client",
+        "in": "header",
+        "required": false,
+        "description": "Anonymous stable installation identifier used as the fallback rate-limit identity. Native clients send a UUID; the server treats it as an opaque string for v1 compatibility.",
+        "schema": { "type": "string", "minLength": 1 }
+      },
+      "Language": {
+        "name": "language",
+        "in": "query",
+        "schema": { "$ref": "#/components/schemas/Language" }
+      },
+      "Page": {
+        "name": "page",
+        "in": "query",
+        "schema": { "type": "integer", "minimum": 1, "maximum": 500, "default": 1 }
+      },
+      "MediaTypePath": {
+        "name": "mediaType",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/MediaType" }
+      },
+      "MediaTypeQuery": {
+        "name": "media_type",
+        "in": "query",
+        "schema": { "$ref": "#/components/schemas/MediaType" }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "Normalized error response",
+        "headers": {
+          "Retry-After": { "schema": { "type": "integer", "minimum": 0 } }
+        },
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } }
+      }
+    },
+    "schemas": {
+      "MediaType": { "type": "string", "enum": ["movie", "tv"] },
+      "SearchScope": { "type": "string", "enum": ["all", "movie", "tv"], "default": "all" },
+      "DiscoverSort": { "type": "string", "enum": ["popularity.desc", "vote_average.desc", "primary_release_date.desc"], "default": "popularity.desc" },
+      "Language": { "type": "string", "enum": ["en-US", "vi-VN", "ja-JP", "ko-KR", "zh-CN", "zh-TW"], "default": "en-US" },
+      "ErrorCode": {
+        "type": "string",
+        "enum": [
+          "unsupported_method",
+          "not_found",
+          "title_not_found",
+          "rate_limited",
+          "upstream_rate_limited",
+          "internal_error",
+          "missing_secret",
+          "invalid_upstream_response",
+          "upstream_error",
+          "upstream_unavailable",
+          "invalid_genres",
+          "invalid_language",
+          "invalid_query",
+          "invalid_rating",
+          "invalid_scope",
+          "invalid_sort",
+          "unsupported_parameter",
+          "invalid_page",
+          "invalid_id",
+          "invalid_year"
+        ]
+      },
+      "Genre": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" }
+        },
+        "additionalProperties": true
+      },
+      "TitleSummary": {
+        "type": "object",
+        "required": ["id", "media_type", "title", "original_title", "overview", "vote_average", "genre_ids"],
+        "properties": {
+          "id": { "type": "integer", "minimum": 1 },
+          "media_type": { "$ref": "#/components/schemas/MediaType" },
+          "title": { "type": "string" },
+          "original_title": { "type": "string" },
+          "overview": { "type": "string" },
+          "poster_path": { "type": ["string", "null"] },
+          "backdrop_path": { "type": ["string", "null"] },
+          "release_date": { "type": ["string", "null"] },
+          "vote_average": { "type": "number", "minimum": 0, "maximum": 10 },
+          "genre_ids": { "type": "array", "items": { "type": "integer" } }
+        },
+        "additionalProperties": true
+      },
+      "TitlePage": {
+        "type": "object",
+        "required": ["page", "total_pages", "results"],
+        "properties": {
+          "page": { "type": "integer", "minimum": 1, "maximum": 500 },
+          "total_pages": { "type": "integer", "minimum": 0, "maximum": 500 },
+          "results": { "type": "array", "items": { "$ref": "#/components/schemas/TitleSummary" } }
+        },
+        "additionalProperties": true
+      },
+      "HomeSection": {
+        "type": "object",
+        "required": ["id", "title", "items"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/TitleSummary" } }
+        },
+        "additionalProperties": true
+      },
+      "HomeFeed": {
+        "type": "object",
+        "required": ["media_type", "hero", "sections"],
+        "properties": {
+          "media_type": { "$ref": "#/components/schemas/MediaType" },
+          "hero": { "oneOf": [{ "$ref": "#/components/schemas/TitleSummary" }, { "type": "null" }] },
+          "sections": { "type": "array", "items": { "$ref": "#/components/schemas/HomeSection" } }
+        },
+        "additionalProperties": true
+      },
+      "GenreEnvelope": {
+        "type": "object",
+        "required": ["genres"],
+        "properties": {
+          "genres": { "type": "array", "items": { "$ref": "#/components/schemas/Genre" } }
+        },
+        "additionalProperties": true
+      },
+      "CastMember": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" },
+          "character": { "type": ["string", "null"] },
+          "profile_path": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      },
+      "Video": {
+        "type": "object",
+        "required": ["id", "key", "name", "site", "type", "official"],
+        "properties": {
+          "id": { "type": "string" },
+          "key": { "type": "string" },
+          "name": { "type": "string" },
+          "site": { "type": "string" },
+          "type": { "type": "string" },
+          "official": { "type": "boolean" },
+          "language": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      },
+      "TitleDetail": {
+        "allOf": [
+          { "$ref": "#/components/schemas/TitleSummary" },
+          {
+            "type": "object",
+            "required": ["genres", "cast", "videos", "similar"],
+            "properties": {
+              "genres": { "type": "array", "items": { "$ref": "#/components/schemas/Genre" } },
+              "runtime_minutes": { "type": ["integer", "null"], "minimum": 0 },
+              "number_of_seasons": { "type": ["integer", "null"], "minimum": 0 },
+              "status": { "type": ["string", "null"] },
+              "cast": { "type": "array", "items": { "$ref": "#/components/schemas/CastMember" } },
+              "videos": { "type": "array", "items": { "$ref": "#/components/schemas/Video" } },
+              "similar": { "type": "array", "items": { "$ref": "#/components/schemas/TitleSummary" } }
+            },
+            "additionalProperties": true
+          }
+        ]
+      },
+      "ImageConfiguration": {
+        "type": "object",
+        "required": ["secure_base_url", "poster_sizes", "backdrop_sizes", "profile_sizes"],
+        "properties": {
+          "secure_base_url": { "type": "string", "format": "uri" },
+          "poster_sizes": { "type": "array", "items": { "type": "string" } },
+          "backdrop_sizes": { "type": "array", "items": { "type": "string" } },
+          "profile_sizes": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": true
+      },
+      "ErrorBody": {
+        "type": "object",
+        "required": ["code", "message", "request_id"],
+        "properties": {
+          "code": { "$ref": "#/components/schemas/ErrorCode" },
+          "message": { "type": "string", "minLength": 1 },
+          "request_id": { "type": "string", "format": "uuid" },
+          "retry_after": { "type": ["integer", "null"], "minimum": 0 }
+        },
+        "additionalProperties": true
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": { "$ref": "#/components/schemas/ErrorBody" }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}
