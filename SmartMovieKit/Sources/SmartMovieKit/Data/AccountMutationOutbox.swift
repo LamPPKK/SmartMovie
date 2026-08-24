@@ -6,7 +6,12 @@ public enum AccountMutationPayload: Codable, Hashable, Sendable {
     case createList(name: String, description: String, isPublic: Bool, region: String, language: String)
     case updateList(listID: Int, name: String, description: String, isPublic: Bool)
     case deleteList(listID: Int)
-    case mutateListItems(listID: Int, items: [UserListItemMutation], remove: Bool)
+    case mutateListItems(
+        listID: Int,
+        items: [UserListItemMutation],
+        titles: [TitleSummary]?,
+        remove: Bool
+    )
 }
 
 public struct AccountPendingMutation: Codable, Hashable, Identifiable, Sendable {
@@ -286,7 +291,7 @@ public actor AccountMutationCoordinator {
             )
         case .deleteList(let listID):
             try await account.deleteList(id: listID, mutationID: mutation.id)
-        case .mutateListItems(let listID, let items, let remove):
+        case .mutateListItems(let listID, let items, _, let remove):
             try await account.mutateListItems(id: listID, items: items, remove: remove, mutationID: mutation.id)
         }
     }

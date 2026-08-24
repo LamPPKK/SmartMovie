@@ -1,17 +1,20 @@
 import Foundation
 
-public protocol CatalogRepository: Sendable {
+public protocol TitleSearching: Sendable {
+    func search(
+        query: String,
+        scope: SearchScope,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary>
+}
+
+public protocol CatalogRepository: TitleSearching, Sendable {
     func home(mediaType: MediaType, language: String) async throws -> HomeFeed
     func genres(mediaType: MediaType, language: String) async throws -> [Genre]
     func discover(
         mediaType: MediaType,
         filter: DiscoverFilter,
-        page: Int,
-        language: String
-    ) async throws -> PagedResult<TitleSummary>
-    func search(
-        query: String,
-        scope: SearchScope,
         page: Int,
         language: String
     ) async throws -> PagedResult<TitleSummary>

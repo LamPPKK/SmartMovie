@@ -99,6 +99,39 @@ final class AccountMutationOutboxTests: XCTestCase {
         XCTAssertEqual(retained.first?.id, mutationID)
     }
 
+    func testListItemSnapshotPersistsAndOlderPayloadWithoutSnapshotStillDecodes() async throws {
+        let title = TitleSummary(
+            id: 1399,
+            mediaType: .tv,
+            title: "Game of Thrones",
+            originalTitle: "Game of Thrones",
+            overview: ""
+        )
+        let payload = AccountMutationPayload.mutateListItems(
+            listID: 7,
+            items: [UserListItemMutation(mediaType: .tv, mediaId: title.id)],
+            titles: [title],
+            remove: false
+        )
+        let encoded = try JSONEncoder().encode(payload)
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        let caseKey = try XCTUnwrap(object.keys.first)
+        var casePayload = try XCTUnwrap(object[caseKey] as? [String: Any])
+        casePayload.removeValue(forKey: "titles")
+        object[caseKey] = casePayload
+        let legacyData = try JSONSerialization.data(withJSONObject: object)
+
+        let legacy = try JSONDecoder().decode(AccountMutationPayload.self, from: legacyData)
+
+        guard case .mutateListItems(let listID, let items, let titles, let remove) = legacy else {
+            return XCTFail("Expected a list item mutation")
+        }
+        XCTAssertEqual(listID, 7)
+        XCTAssertEqual(items.first?.mediaId, 1399)
+        XCTAssertNil(titles)
+        XCTAssertFalse(remove)
+    }
+
     private func temporaryFileURL() -> URL {
         FileManager.default.temporaryDirectory
             .appendingPathComponent("SmartMovieAccountOutboxTests-\(UUID().uuidString)", isDirectory: true)

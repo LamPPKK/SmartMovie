@@ -477,19 +477,3 @@ public struct AuthSession: Codable, Sendable {
     public let expiresAt: Date
     public let profile: AccountProfile
 }
-
-public struct UserList: Codable, Hashable, Identifiable, Sendable {
-    public let id: Int
-    public let name: String
-    public let description: String
-    public let `public`: Bool
-    public let results: [TitleSummary]
-
-    public init(id: Int, name: String, description: String, isPublic: Bool, results: [TitleSummary]) {
-        self.id = id
-        self.name = name
-        self.description = description
-        self.public = isPublic
-        self.results = results
-    }
-}

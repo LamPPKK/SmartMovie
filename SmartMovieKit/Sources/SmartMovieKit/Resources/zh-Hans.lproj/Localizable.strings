@@ -95,3 +95,14 @@
 "No account recommendations yet." = "暂无推荐。";
 "Load more" = "加载更多";
 "Media type" = "媒体类型";
+"Custom list" = "自定义列表";
+"List details" = "列表详情";
+"Waiting for this list to sync before editing." = "正在等待列表同步后再编辑。";
+"Public list" = "公开列表";
+"Save changes" = "保存更改";
+"Titles in this list" = "列表中的内容";
+"This list has no titles yet." = "此列表中还没有内容。";
+"Remove" = "移除";
+"Add movies and TV series" = "添加电影和电视剧";
+"Search titles" = "搜索内容";
+"Add" = "添加";

@@ -95,3 +95,14 @@
 "No account recommendations yet." = "暫無推薦。";
 "Load more" = "載入更多";
 "Media type" = "媒體類型";
+"Custom list" = "自訂清單";
+"List details" = "清單詳情";
+"Waiting for this list to sync before editing." = "正在等待清單同步後再編輯。";
+"Public list" = "公開清單";
+"Save changes" = "儲存變更";
+"Titles in this list" = "清單中的內容";
+"This list has no titles yet." = "此清單中還沒有內容。";
+"Remove" = "移除";
+"Add movies and TV series" = "加入電影與電視影集";
+"Search titles" = "搜尋內容";
+"Add" = "加入";

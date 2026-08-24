@@ -21,6 +21,8 @@
     "name": "Mixed favorites",
     "description": "Movie and TV",
     "public": false,
+    "page": 1,
+    "total_pages": 2,
     "results": [
       { "entity_kind": "movie", "id": 10, "media_type": "movie", "title": "Example Movie", "original_title": "Example Movie", "overview": "", "poster_path": null, "backdrop_path": null, "release_date": null, "vote_average": 8.2, "genre_ids": [] },
       { "entity_kind": "tv", "id": 11, "media_type": "tv", "title": "Example Series", "original_title": "Example Series", "overview": "", "poster_path": null, "backdrop_path": null, "release_date": null, "vote_average": 8.5, "genre_ids": [] }

@@ -9,6 +9,7 @@ public struct ProfileView: View {
     @State private var pinConfirmation = ""
     @State private var showLogoutChoice = false
     @State private var lists: [UserList] = []
+    @State private var listsAccountID: Int?
     @State private var accountMessage: String?
     @State private var newListName = ""
     @State private var newListDescription = ""
@@ -20,9 +21,13 @@ public struct ProfileView: View {
             VStack(alignment: .leading, spacing: 28) {
                 accountCard
                 preferences
-                if case .signedIn = container.accountSession.state {
-                    AccountRecommendationsView()
-                    accountLibrary
+                if let accountID = signedInAccountID {
+                    AccountRecommendationsView().id(accountID)
+                    if listsAccountID == accountID {
+                        accountLibrary
+                    } else {
+                        ProgressView()
+                    }
                 }
                 NavigationLink { AboutView() } label: {
                     Label(String(localized: "About, privacy & attribution", bundle: .module), systemImage: "info.circle")
@@ -46,6 +51,16 @@ public struct ProfileView: View {
                 Task { await logout(removeAccountData: true) }
             }
             Button(String(localized: "Cancel", bundle: .module), role: .cancel) {}
+        }
+        .task(id: signedInAccountID) {
+            listsAccountID = nil
+            lists = []
+            newListName = ""
+            newListDescription = ""
+            accountMessage = nil
+            guard signedInAccountID != nil else { return }
+            await container.syncAccountLibrary(language: LocaleResolver.tmdbLanguage(for: Locale.current))
+            await loadLists(reportErrors: false)
         }
     }
 
@@ -212,10 +227,17 @@ public struct ProfileView: View {
                 ForEach(lists) { list in
                     HStack {
                         Image(systemName: "list.bullet.rectangle")
-                        VStack(alignment: .leading) {
-                            Text(list.name).font(.headline)
-                            if !list.description.isEmpty { Text(list.description).font(.caption).foregroundStyle(CinemaTheme.muted) }
+                        NavigationLink {
+                            AccountListDetailView(list: list)
+                        } label: {
+                            VStack(alignment: .leading) {
+                                Text(list.name).font(.headline)
+                                if !list.description.isEmpty {
+                                    Text(list.description).font(.caption).foregroundStyle(CinemaTheme.muted)
+                                }
+                            }
                         }
+                        .buttonStyle(.plain)
                         Spacer()
                         Button(role: .destructive) {
                             Task { await deleteList(list) }
@@ -230,10 +252,11 @@ public struct ProfileView: View {
                 Task { await loadLists(reportErrors: true) }
             }
         }
-        .task {
-            await container.syncAccountLibrary(language: LocaleResolver.tmdbLanguage(for: Locale.current))
-            if lists.isEmpty { await loadLists(reportErrors: false) }
-        }
+    }
+
+    private var signedInAccountID: Int? {
+        guard case .signedIn(let profile) = container.accountSession.state else { return nil }
+        return profile.id
     }
 
     private var regionBinding: Binding<String> {
@@ -257,10 +280,12 @@ public struct ProfileView: View {
         if removeAccountData { await container.removeAccountMutationData() }
         await container.accountSession.logout()
         lists = []
+        listsAccountID = nil
     }
 
     @MainActor
     private func createList() async {
+        guard let accountID = signedInAccountID else { return }
         let name = newListName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { return }
         do {
@@ -271,6 +296,7 @@ public struct ProfileView: View {
                 region: container.regionSettings.override ?? Locale.current.region?.identifier ?? "US",
                 language: Locale.current.language.languageCode?.identifier ?? "en"
             )
+            guard signedInAccountID == accountID else { return }
             if let localID = mutation.localListID {
                 lists.append(UserList(
                     id: localID,
@@ -283,75 +309,53 @@ public struct ProfileView: View {
             newListName = ""
             newListDescription = ""
             _ = await container.flushAccountOutbox()
+            guard signedInAccountID == accountID else { return }
             await loadLists(reportErrors: false)
         } catch {
-            accountMessage = error.localizedDescription
+            if signedInAccountID == accountID { accountMessage = error.localizedDescription }
         }
     }
 
     @MainActor
     private func deleteList(_ list: UserList) async {
+        guard let accountID = signedInAccountID else { return }
         do {
             if list.id < 0 {
                 try await container.cancelPendingList(localID: list.id)
             } else {
                 _ = try await container.queueDeleteList(id: list.id)
             }
+            guard signedInAccountID == accountID else { return }
             lists.removeAll { $0.id == list.id }
             if list.id >= 0 { _ = await container.flushAccountOutbox() }
         } catch {
-            accountMessage = error.localizedDescription
+            if signedInAccountID == accountID { accountMessage = error.localizedDescription }
         }
     }
 
     @MainActor
     private func loadLists(reportErrors: Bool) async {
+        guard let accountID = signedInAccountID else {
+            lists = []
+            return
+        }
+        var remote = lists
         do {
-            lists = try await container.account.lists(page: 1).results
+            remote = try await loadAllUserLists { page in
+                try await container.account.lists(page: page)
+            }
+            try Task.checkCancellation()
+        } catch is CancellationError {
+            return
         } catch {
+            guard signedInAccountID == accountID else { return }
             if reportErrors { accountMessage = error.localizedDescription }
         }
-        lists = applyPendingListMutations(await container.pendingAccountMutations(), to: lists)
-    }
-
-    private func applyPendingListMutations(
-        _ mutations: [AccountPendingMutation],
-        to remote: [UserList]
-    ) -> [UserList] {
-        var merged = remote
-        for mutation in mutations {
-            switch mutation.payload {
-            case .createList(let name, let description, let isPublic, _, _):
-                guard let localID = mutation.localListID,
-                      !merged.contains(where: { $0.id == localID }) else { continue }
-                merged.append(UserList(id: localID, name: name, description: description, isPublic: isPublic, results: []))
-            case .updateList(let listID, let name, let description, let isPublic):
-                guard let index = merged.firstIndex(where: { $0.id == listID }) else { continue }
-                merged[index] = UserList(
-                    id: listID,
-                    name: name,
-                    description: description,
-                    isPublic: isPublic,
-                    results: merged[index].results
-                )
-            case .deleteList(let listID):
-                merged.removeAll { $0.id == listID }
-            case .mutateListItems(let listID, let items, let remove):
-                guard remove, let index = merged.firstIndex(where: { $0.id == listID }) else { continue }
-                let keys = Set(items.map { "\($0.mediaType.rawValue):\($0.mediaId)" })
-                let retained = merged[index].results.filter { !keys.contains($0.libraryKey) }
-                merged[index] = UserList(
-                    id: merged[index].id,
-                    name: merged[index].name,
-                    description: merged[index].description,
-                    isPublic: merged[index].public,
-                    results: retained
-                )
-            case .titleRating, .episodeRating:
-                continue
-            }
-        }
-        return merged
+        guard signedInAccountID == accountID else { return }
+        let pending = await container.pendingAccountMutations()
+        guard signedInAccountID == accountID, !Task.isCancelled else { return }
+        lists = applyPendingLists(remote, pending: pending)
+        listsAccountID = accountID
     }
 
     private static let regions = ["US", "GB", "CA", "AU", "FR", "DE", "JP", "KR", "VN", "TW", "HK", "SG", "IN", "BR", "MX"]

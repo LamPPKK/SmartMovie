@@ -95,3 +95,14 @@
 "No account recommendations yet." = "おすすめはまだありません。";
 "Load more" = "さらに読み込む";
 "Media type" = "メディア種類";
+"Custom list" = "カスタムリスト";
+"List details" = "リストの詳細";
+"Waiting for this list to sync before editing." = "編集する前にリストの同期を待っています。";
+"Public list" = "公開リスト";
+"Save changes" = "変更を保存";
+"Titles in this list" = "リスト内の作品";
+"This list has no titles yet." = "このリストにはまだ作品がありません。";
+"Remove" = "削除";
+"Add movies and TV series" = "映画とTVシリーズを追加";
+"Search titles" = "作品を検索";
+"Add" = "追加";

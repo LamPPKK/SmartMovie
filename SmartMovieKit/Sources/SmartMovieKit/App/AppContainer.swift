@@ -188,10 +188,15 @@ public final class AppContainer {
         return try await accountMutations.enqueue(.deleteList(listID: id), accountID: accountID).id
     }
 
-    public func queueListItems(id: Int, items: [UserListItemMutation], remove: Bool) async throws -> UUID {
+    public func queueListItems(
+        id: Int,
+        items: [UserListItemMutation],
+        titles: [TitleSummary] = [],
+        remove: Bool
+    ) async throws -> UUID {
         let accountID = try requireSignedInAccountID()
         return try await accountMutations.enqueue(
-            .mutateListItems(listID: id, items: items, remove: remove),
+            .mutateListItems(listID: id, items: items, titles: titles, remove: remove),
             accountID: accountID
         ).id
     }

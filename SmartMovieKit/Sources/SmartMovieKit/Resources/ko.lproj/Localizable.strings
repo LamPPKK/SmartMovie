@@ -95,3 +95,14 @@
 "No account recommendations yet." = "아직 추천이 없습니다.";
 "Load more" = "더 보기";
 "Media type" = "미디어 유형";
+"Custom list" = "사용자 목록";
+"List details" = "목록 세부 정보";
+"Waiting for this list to sync before editing." = "편집하기 전에 목록 동기화를 기다리는 중입니다.";
+"Public list" = "공개 목록";
+"Save changes" = "변경 사항 저장";
+"Titles in this list" = "목록의 콘텐츠";
+"This list has no titles yet." = "이 목록에는 아직 콘텐츠가 없습니다.";
+"Remove" = "제거";
+"Add movies and TV series" = "영화 및 TV 시리즈 추가";
+"Search titles" = "콘텐츠 검색";
+"Add" = "추가";

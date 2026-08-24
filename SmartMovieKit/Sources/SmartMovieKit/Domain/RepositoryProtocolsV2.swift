@@ -35,7 +35,11 @@ public protocol AccountRecommendationsLoading: Sendable {
     ) async throws -> PagedResult<TitleSummary>
 }
 
-public protocol AccountRepository: AccountRecommendationsLoading, Sendable {
+public protocol AccountListLoading: Sendable {
+    func list(id: Int, page: Int, language: String) async throws -> UserList
+}
+
+public protocol AccountRepository: AccountRecommendationsLoading, AccountListLoading, Sendable {
     func createAuthAttempt(returnURI: URL, mode: String) async throws -> AuthAttempt
     func authAttempt(id: UUID, deviceCode: String?) async throws -> String
     func completeAuth(id: UUID, deviceCode: String?) async throws -> AuthSession

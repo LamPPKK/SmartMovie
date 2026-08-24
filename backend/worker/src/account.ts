@@ -2,7 +2,7 @@ import type { MediaType, TmdbPage, TmdbTitle } from "./contracts";
 import { decryptSecret, encryptSecret, randomToken, secureEqual, sha256 } from "./crypto";
 import type { V2Route, WorkerEnvV2 } from "./v2";
 import { tmdb } from "./v2";
-import { titlePageV2 } from "./transform-v2";
+import { titlePageV2, titleSummaryV2 } from "./transform-v2";
 import { RequestProblem, language, page, rejectUnknown, titleID } from "./validation";
 
 export interface WorkerAccountEnv extends WorkerEnvV2 {
@@ -553,7 +553,7 @@ async function accountLists(request: Request, url: URL, env: WorkerAccountEnv, r
       { method: "GET" },
       requestId,
     );
-    return privateJSON(request, env, value);
+    return privateJSON(request, env, normalizeUserListPage(value));
   }
   rejectUnknown(url, new Set());
   const body = await jsonBody<Record<string, unknown>>(request);
@@ -582,16 +582,17 @@ async function accountList(
       { method: "GET" },
       requestId,
     );
-    return privateJSON(request, env, value);
+    return privateJSON(request, env, normalizeUserList(value, true));
   }
   rejectUnknown(url, new Set());
   const body = request.method === "DELETE" ? {} : await jsonBody<Record<string, unknown>>(request);
-  return idempotentMutation(request, env, session, typeof body.mutation_id === "string" ? body.mutation_id : undefined, `list:${request.method.toLowerCase()}:${listID}`, async (mutation) => {
+  const method = request.method === "DELETE" ? "DELETE" : "PUT";
+  return idempotentMutation(request, env, session, typeof body.mutation_id === "string" ? body.mutation_id : undefined, `list:${method.toLowerCase()}:${listID}`, async (mutation) => {
     const value = await tmdbV4User<Record<string, unknown>>(
       env,
       session.accessToken,
       `/list/${listID}`,
-      request.method === "DELETE"
+      method === "DELETE"
         ? { method: "DELETE" }
         : { method: "PUT", body: JSON.stringify(listMetadata(body, false)) },
       requestId,
@@ -926,6 +927,47 @@ function listItems(value: unknown[] | undefined, allowComment: boolean): Array<R
     }
     return result;
   });
+}
+
+function normalizeUserListPage(value: Record<string, unknown>) {
+  const results = Array.isArray(value.results) ? value.results : [];
+  return {
+    page: normalizedPage(value.page, 1),
+    total_pages: normalizedPage(value.total_pages, 0),
+    results: results
+      .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object")
+      .map((item) => normalizeUserList(item, false)),
+  };
+}
+
+function normalizeUserList(value: Record<string, unknown>, includePagination: boolean) {
+  const rawResults = Array.isArray(value.results) ? value.results : [];
+  const results = rawResults
+    .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === "object")
+    .map((item) => {
+      const mediaType = item.media_type === "movie" || item.media_type === "tv" ? item.media_type : undefined;
+      return titleSummaryV2(item as unknown as TmdbTitle, mediaType);
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
+  const normalized = {
+    id: Number(value.id),
+    name: typeof value.name === "string" ? value.name : "",
+    description: typeof value.description === "string" ? value.description : "",
+    public: value.public === true,
+    results,
+  };
+  return includePagination
+    ? {
+        ...normalized,
+        page: normalizedPage(value.page, 1),
+        total_pages: normalizedPage(value.total_pages, 0),
+      }
+    : normalized;
+}
+
+function normalizedPage(value: unknown, fallback: number): number {
+  const candidate = typeof value === "number" && Number.isFinite(value) ? Math.trunc(value) : fallback;
+  return Math.min(500, Math.max(fallback === 0 ? 0 : 1, candidate));
 }
 
 function normalizeProfile(value: Record<string, unknown>) {

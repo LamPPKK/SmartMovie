@@ -135,6 +135,139 @@ describe("v2 session broker security", () => {
     expect(upstream).toHaveBeenCalledTimes(1);
   });
 
+  it("normalizes a paginated mixed list into canonical Movie and TV summaries", async () => {
+    const bearer = "opaque-list-session";
+    const database = new SessionDatabase({
+      token_hash: await sha256(bearer),
+      account_object_id: "v4-account",
+      account_id: 42,
+      access_token_encrypted: await encryptSecret("tmdb-access", secret),
+      v3_session_encrypted: await encryptSecret("tmdb-v3", secret),
+      csrf_hash: await sha256("csrf"),
+      created_at: now() - 10,
+      last_seen_at: now() - 10,
+      expires_at: now() + 300,
+      revoked_at: null,
+    });
+    const upstream = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      expect(url.pathname).toBe("/4/list/7");
+      expect(url.searchParams.get("language")).toBe("vi-VN");
+      expect(url.searchParams.get("page")).toBe("2");
+      expect(init?.method).toBe("GET");
+      return Response.json({
+        id: 7,
+        name: "Mixed",
+        description: "Movie and TV",
+        public: false,
+        page: 2,
+        total_pages: 3,
+        results: [
+          { id: 10, media_type: "movie", title: "Movie", original_title: "Movie", overview: "", genre_ids: [] },
+          { id: 11, media_type: "tv", name: "Series", original_name: "Series", overview: "", genre_ids: [] },
+          { id: 12, media_type: "person", name: "Ignored" },
+        ],
+      });
+    });
+    vi.stubGlobal("fetch", upstream);
+
+    const response = await worker.fetch(new Request(
+      "https://catalog.example/v2/account/lists/7?language=vi-VN&page=2",
+      { headers: { Authorization: `Bearer ${bearer}`, "X-SmartMovie-Client": "test" } },
+    ), accountEnv(database), context);
+    const value = await response.json() as {
+      page: number;
+      total_pages: number;
+      results: Array<{ entity_kind: string; media_type: string; title: string }>;
+    };
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(value).toMatchObject({ page: 2, total_pages: 3 });
+    expect(value.results.map((item) => [item.entity_kind, item.media_type, item.title])).toEqual([
+      ["movie", "movie", "Movie"],
+      ["tv", "tv", "Series"],
+    ]);
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["PUT", "PATCH"])("maps %s list metadata updates to TMDb v4 PUT", async (method) => {
+    const bearer = `opaque-list-update-${method.toLowerCase()}`;
+    const database = new SessionDatabase({
+      token_hash: await sha256(bearer),
+      account_object_id: "v4-account",
+      account_id: 42,
+      access_token_encrypted: await encryptSecret("tmdb-access", secret),
+      v3_session_encrypted: await encryptSecret("tmdb-v3", secret),
+      csrf_hash: await sha256("csrf"),
+      created_at: now() - 10,
+      last_seen_at: now() - 10,
+      expires_at: now() + 300,
+      revoked_at: null,
+    });
+    const upstream = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      expect(url.pathname).toBe("/4/list/7");
+      expect(init?.method).toBe("PUT");
+      expect(JSON.parse(String(init?.body))).toEqual({ name: "Weekend", description: "Ready", public: true });
+      return Response.json({ success: true, status_code: 1, status_message: "Success." });
+    });
+    vi.stubGlobal("fetch", upstream);
+    const mutationID = method === "PUT"
+      ? "22222222-2222-4222-8222-222222222222"
+      : "33333333-3333-4333-8333-333333333333";
+
+    const response = await worker.fetch(new Request("https://catalog.example/v2/account/lists/7", {
+      method,
+      headers: {
+        Authorization: `Bearer ${bearer}`,
+        "Content-Type": "application/json",
+        "X-SmartMovie-Client": "test",
+      },
+      body: JSON.stringify({ name: "Weekend", description: "Ready", public: true, mutation_id: mutationID }),
+    }), accountEnv(database), context);
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ mutation_id: mutationID, list_id: 7, success: true });
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
+  it("replays a PATCH list update as the same mutation after a client upgrades to PUT", async () => {
+    const bearer = "opaque-list-upgrade";
+    const database = new SessionDatabase({
+      token_hash: await sha256(bearer),
+      account_object_id: "v4-account",
+      account_id: 42,
+      access_token_encrypted: await encryptSecret("tmdb-access", secret),
+      v3_session_encrypted: await encryptSecret("tmdb-v3", secret),
+      csrf_hash: await sha256("csrf"),
+      created_at: now() - 10,
+      last_seen_at: now() - 10,
+      expires_at: now() + 300,
+      revoked_at: null,
+    });
+    const upstream = vi.fn(async () => Response.json({ success: true, status_code: 1, status_message: "Success." }));
+    vi.stubGlobal("fetch", upstream);
+    const mutationID = "44444444-4444-4444-8444-444444444444";
+    const makeRequest = (method: string) => new Request("https://catalog.example/v2/account/lists/7", {
+      method,
+      headers: {
+        Authorization: `Bearer ${bearer}`,
+        "Content-Type": "application/json",
+        "X-SmartMovie-Client": "test",
+      },
+      body: JSON.stringify({ name: "Weekend", description: "Ready", public: true, mutation_id: mutationID }),
+    });
+
+    const legacy = await worker.fetch(makeRequest("PATCH"), accountEnv(database), context);
+    const upgraded = await worker.fetch(makeRequest("PUT"), accountEnv(database), context);
+
+    expect(legacy.status).toBe(200);
+    expect(upgraded.status).toBe(200);
+    expect(await upgraded.json()).toEqual(await legacy.json());
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
   it("replays a completed account mutation without calling TMDb twice", async () => {
     const bearer = "opaque-retry-session";
     const database = new SessionDatabase({

@@ -242,7 +242,7 @@ public actor RemoteAccountRepository: AccountRepository {
         mutationID: UUID
     ) async throws -> MutationResult {
         try await client.send(
-            "PATCH",
+            "PUT",
             path: "v2/account/lists/\(id)",
             body: ListMetadata(
                 name: name,

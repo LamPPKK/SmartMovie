@@ -14,16 +14,17 @@ SmartMovie keeps unit and contract tests deterministic and independent of TMDb, 
 | Domain and configuration | 5 | Detail fixture, six locale mappings, Movie/TV fallbacks, Worker acronym decoding, image URL normalization |
 | `/v1` catalog conformance | 3 | Canonical success/error fixtures, additive fields, and omitted nullable fields across native Swift models |
 | `/v2` contract conformance | 3 | Entity discriminators, account/auth/mutation fixtures, unknown fields, and missing nullable values |
-| Account mutation outbox | 3 | Persistence, account isolation, stable idempotency keys, exact acknowledgement, and restart-safe retry |
+| Account mutation outbox | 4 | Persistence, account isolation, stable idempotency keys, exact acknowledgement, backward-compatible item snapshots, and restart-safe retry |
 | Account recommendations | 2 | Movie/TV switching, pagination, `libraryKey` deduplication, and local adult-PIN filtering |
+| Custom mixed lists | 7 | Paginated Movie/TV merging, `libraryKey` deduplication, cached/in-flight adult filtering, catalog search filtering, optimistic state, and pending add/remove overlay after reload |
 | Watch remote | 2 | Remote presentation intent, dismissal, Library revision, and title/context state |
-| Cloudflare Worker | 58 | `/v1` + `/v2` schema/fixture validation, External ID and Credit Detail normalization, account-recommendation v4 mapping, private `no-store`, cache/rate limits, D1 migrations, encryption, callback/CSRF/CORS controls, sessions, and idempotent mutation replay |
+| Cloudflare Worker | 62 | `/v1` + `/v2` schema/fixture validation, External ID and Credit Detail normalization, account-recommendation v4 mapping, normalized/paginated mixed lists, PUT/PATCH update compatibility, private `no-store`, cache/rate limits, D1 migrations, encryption, callback/CSRF/CORS controls, sessions, and idempotent mutation replay |
 
-Current verified baseline: 36 Swift tests plus 58 Worker tests. Historical evidence and the local toolchain boundary are recorded in [Baseline](BASELINE.md).
+Current verified baseline: 44 Swift tests plus 62 Worker tests. Historical evidence and the local toolchain boundary are recorded in [Baseline](BASELINE.md).
 
 ## Latest local verification
 
-The 25 August 2026 implementation run passed all 36 SmartMovieKit tests and all 58 Worker tests plus Worker type-checking. The focused Account Recommendations gate also passed Android native app/model tests, debug APK assembly, and KMP desktop tests/compile; it verifies the canonical fixture, v4 Worker mapping, Movie/TV switching, pagination/deduplication, and local adult filtering. The most recent full Apple platform run passed strict SwiftLint, unsigned iOS, Catalyst, tvOS, native macOS, and watchOS source builds, plus iOS launch smoke. visionOS remains subject to the host limitation below.
+The 25 August 2026 implementation run passed all 44 SmartMovieKit tests and all 62 Worker tests plus Worker type-checking. Focused Account Recommendations and Custom Mixed Lists gates also passed Android native app/model tests and KMP desktop tests/compile; they verify canonical fixtures, v4 Worker mapping, Movie/TV switching, all-page list loading, restart-safe pending item snapshots, pagination/deduplication, stale-response rejection, and cached/in-flight adult filtering. The most recent full Apple platform run passed strict SwiftLint, unsigned iOS, Catalyst, tvOS, native macOS, and watchOS source builds, plus iOS launch smoke. visionOS remains subject to the host limitation below.
 
 The native `SmartMovieNativeMac` executable also remained alive for a five-second smoke window, so the earlier exit-code 132 launch crash was not reproduced. Signed-device CloudKit validation is still required before release. visionOS source compile/link validation passed, but a full asset build remains unverified on this host because the required visionOS runtime/toolchain support is unavailable.
 
