@@ -46,6 +46,13 @@
 "Release year" = "上映年份";
 "Reset" = "重置";
 "Search" = "搜索";
+"Catalog" = "目录";
+"External ID" = "外部 ID";
+"Search mode" = "搜索模式";
+"Source" = "来源";
+"Find matches" = "查找匹配项";
+"Search by external ID" = "按外部 ID 搜索";
+"Enter an ID from another database and choose its source." = "输入其他数据库中的 ID，并选择其来源。";
 "Search failed" = "搜索失败";
 "Search movies and TV series by title." = "按标题搜索电影和剧集。";
 "Search scope" = "搜索范围";

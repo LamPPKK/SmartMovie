@@ -31,6 +31,17 @@ extension RemoteCatalogRepository: CatalogV2Repository {
         return try await client.get("v2/search", queryItems: queryItems)
     }
 
+    public func findExternalID(
+        _ externalID: String,
+        source: ExternalIDSource,
+        language: String
+    ) async throws -> ExternalIDFindResult {
+        try await client.get("v2/find/\(externalID)", queryItems: [
+            URLQueryItem(name: "source", value: source.rawValue),
+            URLQueryItem(name: "language", value: language)
+        ])
+    }
+
     public func deepDetail(
         mediaType: MediaType,
         id: Int,

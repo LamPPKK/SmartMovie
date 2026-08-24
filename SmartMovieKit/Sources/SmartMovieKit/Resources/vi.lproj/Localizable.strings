@@ -46,6 +46,13 @@
 "Release year" = "Năm phát hành";
 "Reset" = "Đặt lại";
 "Search" = "Tìm kiếm";
+"Catalog" = "Danh mục";
+"External ID" = "ID bên ngoài";
+"Search mode" = "Chế độ tìm kiếm";
+"Source" = "Nguồn";
+"Find matches" = "Tìm kết quả";
+"Search by external ID" = "Tìm bằng ID bên ngoài";
+"Enter an ID from another database and choose its source." = "Nhập ID từ cơ sở dữ liệu khác và chọn nguồn tương ứng.";
 "Search failed" = "Tìm kiếm thất bại";
 "Search movies and TV series by title." = "Tìm phim và phim bộ theo tên.";
 "Search scope" = "Phạm vi tìm kiếm";

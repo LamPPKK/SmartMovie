@@ -27,7 +27,7 @@ The two native mobile apps keep platform-specific UI and storage while sharing t
 ## What you can do
 
 - **Explore a deep TMDb catalog** through curated Home feeds, advanced Discover filters, day/week trending, pagination, retry, and cancellation.
-- **Search across entity types** with discriminated Movie, TV, Person, Collection, Company, and Keyword results.
+- **Search across entity types** with discriminated Movie, TV, Person, Collection, Company, and Keyword results, or resolve an IMDb, TheTVDB, Wikidata, Facebook, Instagram, or X/Twitter ID.
 - **Open deep details** for titles, people, collections, organizations, keywords, TV seasons, and episodes, including credits, media, reviews, recommendations, related titles, external IDs, and release/content ratings.
 - **See where to watch** by device or chosen region for stream/rent/buy offers, with TMDb links and required JustWatch attribution.
 - **Keep adult content private by default** with local age confirmation, a six-digit device PIN, and five-attempt lockout; companion and public surfaces never receive it.
@@ -200,7 +200,7 @@ cd ../..
 ./scripts/verify-release.sh
 ```
 
-The current verified local baseline contains 31 Swift tests and 52 Worker tests. Coverage includes canonical `/v1` and `/v2` fixture decoding, unknown and missing nullable fields, success/error schema validation, D1 migrations, encryption/callback/CSRF controls, durable idempotency, retries, cancellation, pagination, and data behavior without live personal credentials.
+The current verified local baseline contains 33 Swift tests and 54 Worker tests. Coverage includes canonical `/v1` and `/v2` fixture decoding, External ID source/path mapping, unknown and missing nullable fields, success/error schema validation, D1 migrations, encryption/callback/CSRF controls, durable idempotency, retries, cancellation, pagination, and data behavior without live personal credentials.
 
 CI independently builds and analyzes iOS, iPad/Catalyst, tvOS, native macOS, watchOS, and visionOS, then installs and launches the iOS app in Simulator. Read [Testing](docs/TESTING.md) for destination-specific commands and the manual device matrix.
 

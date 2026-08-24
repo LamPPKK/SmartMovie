@@ -10,6 +10,7 @@ public protocol CatalogV2Repository: Sendable {
         includeAdult: Bool
     ) async throws -> PagedResult<CatalogEntity>
     func searchEntities(_ request: EntitySearchRequest) async throws -> PagedResult<CatalogEntity>
+    func findExternalID(_ externalID: String, source: ExternalIDSource, language: String) async throws -> ExternalIDFindResult
     func deepDetail(
         mediaType: MediaType,
         id: Int,

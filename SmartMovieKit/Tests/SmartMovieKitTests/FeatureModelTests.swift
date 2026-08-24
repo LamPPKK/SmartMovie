@@ -82,6 +82,22 @@ final class FeatureModelTests: XCTestCase {
         XCTAssertFalse(model.canLoadMore)
     }
 
+    func testSearchFindsEntitiesByExternalIDWithoutDebouncing() async throws {
+        let catalog = ExternalIDCatalogStub()
+        let model = SearchViewModel(catalog: catalog)
+        model.setMode(.externalID)
+        model.externalIDSource = .wikidata
+        model.query = " Q83495 "
+
+        model.findExternalID(language: "vi-VN")
+        try await waitUntil { !model.isLoading && !model.entities.isEmpty }
+
+        XCTAssertEqual(model.entities.map(\.kind), [.movie, .person])
+        let requests = await catalog.externalIDRequests()
+        XCTAssertEqual(requests, ["Q83495|wikidata_id|vi-VN"])
+        XCTAssertFalse(model.canLoadMore)
+    }
+
     func testTrailerPrefersOfficialYouTubeTrailerInRequestedLanguage() async {
         let catalog = CatalogStub()
         let library = LibraryStub()
@@ -186,6 +202,77 @@ private actor CatalogStub: CatalogRepository {
     func imageConfiguration() async throws -> ImageConfiguration {
         ImageConfiguration(secureBaseURL: "https://image.tmdb.org/t/p/", posterSizes: ["w500"], backdropSizes: ["w1280"], profileSizes: ["w185"])
     }
+
+}
+
+private actor ExternalIDCatalogStub: CatalogRepository, CatalogV2Repository {
+    private var requests: [String] = []
+
+    func home(mediaType: MediaType, language: String) async throws -> HomeFeed { throw APIError.notFound }
+    func genres(mediaType: MediaType, language: String) async throws -> [Genre] { throw APIError.notFound }
+    func discover(
+        mediaType: MediaType,
+        filter: DiscoverFilter,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary> { throw APIError.notFound }
+    func search(
+        query: String,
+        scope: SearchScope,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary> { throw APIError.notFound }
+    func detail(mediaType: MediaType, id: Int, language: String) async throws -> TitleDetail { throw APIError.notFound }
+    func imageConfiguration() async throws -> ImageConfiguration { throw APIError.notFound }
+    func capabilities() async throws -> CapabilitiesV2 { throw APIError.notFound }
+    func trending(
+        kind: String,
+        window: String,
+        page: Int,
+        language: String,
+        includeAdult: Bool
+    ) async throws -> PagedResult<CatalogEntity> { throw APIError.notFound }
+    func searchEntities(_ request: EntitySearchRequest) async throws -> PagedResult<CatalogEntity> { throw APIError.notFound }
+
+    func findExternalID(
+        _ externalID: String,
+        source: ExternalIDSource,
+        language: String
+    ) async throws -> ExternalIDFindResult {
+        requests.append("\(externalID)|\(source.rawValue)|\(language)")
+        return ExternalIDFindResult(
+            source: source,
+            externalID: externalID,
+            results: [
+                .title(sampleTitle(id: 603, title: "The Matrix")),
+                .person(PersonSummary(
+                    id: 6384,
+                    name: "Keanu Reeves",
+                    profilePath: nil,
+                    knownForDepartment: "Acting",
+                    popularity: 1,
+                    knownFor: []
+                ))
+            ]
+        )
+    }
+
+    func externalIDRequests() -> [String] { requests }
+    func deepDetail(
+        mediaType: MediaType,
+        id: Int,
+        language: String,
+        region: String?,
+        includeAdult: Bool
+    ) async throws -> TitleDetailV2 { throw APIError.notFound }
+    func person(id: Int, language: String) async throws -> PersonDetail { throw APIError.notFound }
+    func collection(id: Int, language: String) async throws -> CollectionDetail { throw APIError.notFound }
+    func organization(kind: EntityKind, id: Int, language: String, page: Int) async throws -> OrganizationDetail {
+        throw APIError.notFound
+    }
+    func keyword(id: Int, language: String, page: Int) async throws -> KeywordDetail { throw APIError.notFound }
+    func season(seriesID: Int, number: Int, language: String) async throws -> SeasonDetail { throw APIError.notFound }
+    func episode(seriesID: Int, season: Int, number: Int, language: String) async throws -> EpisodeDetail { throw APIError.notFound }
 }
 
 private func sampleTitle(id: Int, title: String, mediaType: MediaType = .movie) -> TitleSummary {

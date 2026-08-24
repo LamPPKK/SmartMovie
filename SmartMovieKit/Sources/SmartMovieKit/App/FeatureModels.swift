@@ -119,8 +119,10 @@ public enum CatalogLayout: String, CaseIterable, Identifiable {
 @Observable
 public final class SearchViewModel {
     public var query = ""
+    public private(set) var mode: CatalogSearchMode = .catalog
     public var scope: SearchScope = .all
     public var entityScope: SearchScopeV2 = .all
+    public var externalIDSource: ExternalIDSource = .imdb
     public private(set) var entities: [CatalogEntity] = []
     public var items: [TitleSummary] {
         entities.compactMap { entity in
@@ -131,6 +133,7 @@ public final class SearchViewModel {
     public private(set) var isLoading = false
     public private(set) var errorMessage: String?
     public private(set) var canLoadMore = false
+    public private(set) var hasSubmittedExternalID = false
     private let catalog: any CatalogRepository
     private var page = 0
     private var searchTask: Task<Void, Never>?
@@ -139,8 +142,31 @@ public final class SearchViewModel {
         self.catalog = catalog
     }
 
+    public func setMode(_ mode: CatalogSearchMode) {
+        guard self.mode != mode else { return }
+        searchTask?.cancel()
+        self.mode = mode
+        query = ""
+        entities = []
+        errorMessage = nil
+        isLoading = false
+        canLoadMore = false
+        hasSubmittedExternalID = false
+        page = 0
+    }
+
+    public func resetExternalIDResults() {
+        guard mode == .externalID else { return }
+        searchTask?.cancel()
+        entities = []
+        errorMessage = nil
+        isLoading = false
+        hasSubmittedExternalID = false
+    }
+
     public func scheduleSearch(language: String, region: String? = nil, includeAdult: Bool = false) {
         searchTask?.cancel()
+        guard mode == .catalog else { return }
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
             entities = []
@@ -200,6 +226,44 @@ public final class SearchViewModel {
         }
     }
 
+    public func findExternalID(language: String) {
+        searchTask?.cancel()
+        let externalID = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard mode == .externalID, !externalID.isEmpty else {
+            entities = []
+            errorMessage = nil
+            isLoading = false
+            return
+        }
+        hasSubmittedExternalID = true
+        let expectedSource = externalIDSource
+        searchTask = Task { [weak self, catalog] in
+            guard let self else { return }
+            isLoading = true
+            errorMessage = nil
+            canLoadMore = false
+            do {
+                guard let catalogV2 = catalog as? any CatalogV2Repository else { throw APIError.notFound }
+                let result = try await catalogV2.findExternalID(
+                    externalID,
+                    source: expectedSource,
+                    language: language
+                )
+                guard !Task.isCancelled,
+                      mode == .externalID,
+                      query.trimmingCharacters(in: .whitespacesAndNewlines) == externalID,
+                      externalIDSource == expectedSource else { return }
+                entities = result.results
+                isLoading = false
+            } catch is CancellationError {
+                return
+            } catch {
+                self.isLoading = false
+                self.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
     public func loadMoreIfNeeded(
         current item: TitleSummary,
         language: String,
@@ -219,7 +283,7 @@ public final class SearchViewModel {
     }
 
     private func loadMoreIfNeeded(currentID: String, language: String, region: String?, includeAdult: Bool) {
-        guard currentID == entities.last?.id, canLoadMore, !isLoading else { return }
+        guard mode == .catalog, currentID == entities.last?.id, canLoadMore, !isLoading else { return }
         let expectedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
         let expectedScope = scope
         let expectedEntityScope = entityScope

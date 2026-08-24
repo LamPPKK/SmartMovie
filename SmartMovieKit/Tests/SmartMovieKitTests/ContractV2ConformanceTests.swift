@@ -18,6 +18,11 @@ final class ContractV2ConformanceTests: XCTestCase {
         let page = try decode(PagedResult<CatalogEntity>.self, fixture: "entities")
         XCTAssertEqual(Set(page.results.map(\.kind)), Set(EntityKind.allCases))
 
+        let find = try decode(ExternalIDFindResult.self, fixture: "find")
+        XCTAssertEqual(find.source, .imdb)
+        XCTAssertEqual(find.externalID, "tt0000010")
+        XCTAssertEqual(find.results.map(\.kind), [.movie, .person])
+
         let detail = try decode(TitleDetailV2.self, fixture: "title-detail")
         XCTAssertEqual(detail.summary.libraryKey, "movie:10")
         XCTAssertEqual(detail.watchProviders.first?.attribution, "JustWatch")

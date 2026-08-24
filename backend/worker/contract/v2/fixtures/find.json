@@ -1,0 +1,28 @@
+{
+  "source": "imdb_id",
+  "external_id": "tt0000010",
+  "results": [
+    {
+      "entity_kind": "movie",
+      "id": 10,
+      "media_type": "movie",
+      "title": "Example Movie",
+      "original_title": "Example Movie",
+      "overview": "",
+      "poster_path": null,
+      "backdrop_path": null,
+      "release_date": null,
+      "vote_average": 8.2,
+      "genre_ids": [18]
+    },
+    {
+      "entity_kind": "person",
+      "id": 12,
+      "name": "Example Person",
+      "profile_path": null,
+      "known_for_department": "Acting",
+      "popularity": 10.0,
+      "known_for": []
+    }
+  ]
+}

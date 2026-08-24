@@ -46,6 +46,13 @@
 "Release year" = "公開年";
 "Reset" = "リセット";
 "Search" = "検索";
+"Catalog" = "カタログ";
+"External ID" = "外部ID";
+"Search mode" = "検索モード";
+"Source" = "ソース";
+"Find matches" = "一致を検索";
+"Search by external ID" = "外部IDで検索";
+"Enter an ID from another database and choose its source." = "別のデータベースのIDを入力し、ソースを選択してください。";
 "Search failed" = "検索できませんでした";
 "Search movies and TV series by title." = "映画やテレビシリーズをタイトルで検索。";
 "Search scope" = "検索範囲";

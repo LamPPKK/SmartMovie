@@ -46,6 +46,13 @@
 "Release year" = "Release year";
 "Reset" = "Reset";
 "Search" = "Search";
+"Catalog" = "Catalog";
+"External ID" = "External ID";
+"Search mode" = "Search mode";
+"Source" = "Source";
+"Find matches" = "Find matches";
+"Search by external ID" = "Search by external ID";
+"Enter an ID from another database and choose its source." = "Enter an ID from another database and choose its source.";
 "Search failed" = "Search failed";
 "Search movies and TV series by title." = "Search movies and TV series by title.";
 "Search scope" = "Search scope";

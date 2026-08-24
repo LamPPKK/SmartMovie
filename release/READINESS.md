@@ -13,7 +13,7 @@
 
 ## Product blockers still recorded in source
 
-The codebase must not be declared product-complete until [TMDb coverage](../docs/TMDB_COVERAGE.md) has no **Blocker** rows. Current gaps include client UI for external-ID find, credit detail, account recommendations, complete mixed-list editing/items, and Worker TMDb-change-feed cache invalidation.
+The codebase must not be declared product-complete until [TMDb coverage](../docs/TMDB_COVERAGE.md) has no **Blocker** rows. Current gaps include credit detail, account recommendations, complete mixed-list editing/items, and Worker TMDb-change-feed cache invalidation.
 
 ## Release-owner actions
 

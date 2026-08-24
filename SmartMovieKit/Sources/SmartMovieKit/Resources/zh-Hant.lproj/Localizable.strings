@@ -46,6 +46,13 @@
 "Release year" = "上映年份";
 "Reset" = "重設";
 "Search" = "搜尋";
+"Catalog" = "目錄";
+"External ID" = "外部 ID";
+"Search mode" = "搜尋模式";
+"Source" = "來源";
+"Find matches" = "尋找符合項目";
+"Search by external ID" = "依外部 ID 搜尋";
+"Enter an ID from another database and choose its source." = "輸入其他資料庫中的 ID，並選擇其來源。";
 "Search failed" = "搜尋失敗";
 "Search movies and TV series by title." = "依標題搜尋電影與影集。";
 "Search scope" = "搜尋範圍";

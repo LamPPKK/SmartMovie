@@ -8,21 +8,21 @@ SmartMovie keeps unit and contract tests deterministic and independent of TMDb, 
 
 | Suite | Current count | Responsibilities |
 | --- | ---: | --- |
-| API client | 6 | Request path/query/header construction, snake-case decoding, bounded 429/5xx retry, non-retriable errors, Discover filters, stable installation ID |
-| Feature models | 6 | Home refresh, Explore pagination/deduplication, Search debounce/cancellation/error state, trailer selection |
+| API client | 7 | Request path/query/header construction, External ID source mapping, snake-case decoding, bounded 429/5xx retry, non-retriable errors, Discover filters, stable installation ID |
+| Feature models | 7 | Home refresh, Explore pagination/deduplication, Search debounce/cancellation/error state, explicit External ID lookup, trailer selection |
 | SwiftData Library | 3 | Independent Favorite/Watchlist state, CloudKit-style duplicate reconciliation, filtering/sorting/offline snapshots |
 | Domain and configuration | 5 | Detail fixture, six locale mappings, Movie/TV fallbacks, Worker acronym decoding, image URL normalization |
 | `/v1` catalog conformance | 3 | Canonical success/error fixtures, additive fields, and omitted nullable fields across native Swift models |
 | `/v2` contract conformance | 3 | Entity discriminators, account/auth/mutation fixtures, unknown fields, and missing nullable values |
 | Account mutation outbox | 3 | Persistence, account isolation, stable idempotency keys, exact acknowledgement, and restart-safe retry |
 | Watch remote | 2 | Remote presentation intent, dismissal, Library revision, and title/context state |
-| Cloudflare Worker | 52 | `/v1` + `/v2` schema/fixture validation, v3/v4 mapping, cache/rate limits, D1 migrations, encryption, callback/CSRF/CORS controls, sessions, and idempotent mutation replay |
+| Cloudflare Worker | 54 | `/v1` + `/v2` schema/fixture validation, External ID normalization, v3/v4 mapping, cache/rate limits, D1 migrations, encryption, callback/CSRF/CORS controls, sessions, and idempotent mutation replay |
 
-Current verified baseline: 31 Swift tests plus 52 Worker tests. Historical evidence and the local toolchain boundary are recorded in [Baseline](BASELINE.md).
+Current verified baseline: 33 Swift tests plus 54 Worker tests. Historical evidence and the local toolchain boundary are recorded in [Baseline](BASELINE.md).
 
 ## Latest local verification
 
-The 25 August 2026 implementation run passed all 31 SmartMovieKit tests, all 52 Worker tests plus Worker type-checking, and strict SwiftLint with zero violations. Unsigned iOS, Catalyst, tvOS, native macOS, and watchOS source builds passed. The iOS Simulator app remained alive for its launch-smoke window.
+The 25 August 2026 implementation run passed all 33 SmartMovieKit tests and all 54 Worker tests plus Worker type-checking. The most recent full platform run passed strict SwiftLint, unsigned iOS, Catalyst, tvOS, native macOS, and watchOS source builds, plus iOS launch smoke. visionOS remains subject to the host limitation below.
 
 The native `SmartMovieNativeMac` executable also remained alive for a five-second smoke window, so the earlier exit-code 132 launch crash was not reproduced. Signed-device CloudKit validation is still required before release. visionOS source compile/link validation passed, but a full asset build remains unverified on this host because the required visionOS runtime/toolchain support is unavailable.
 

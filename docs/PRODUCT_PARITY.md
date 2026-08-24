@@ -8,7 +8,7 @@ This document is the release authority for behavior shared by native Apple, nati
 | --- | --- | --- |
 | PAR-HOME-001 | Home | Switch Movie/TV feeds, preserve Worker ordering, navigate titles, and retry failures. |
 | PAR-EXPLORE-001 | Explore | Support catalog filters, region/adult partitioning, cancellation, pagination, retry, and `libraryKey` deduplication. |
-| PAR-SEARCH-002 | Entity search | Decode and navigate Movie, TV, Person, Collection, Company, and Keyword discriminators; debounce, cancel stale requests, paginate, deduplicate, and retry. |
+| PAR-SEARCH-002 | Entity search | Decode and navigate Movie, TV, Person, Collection, Company, and Keyword discriminators; debounce, cancel stale requests, paginate, deduplicate, and retry. An explicit External ID mode supports every allowlisted source without per-keystroke requests. |
 | PAR-DETAIL-002 | Deep title detail | Show normalized metadata, credits, media, reviews, related titles, release/content rating data, collection, seasons, and region-aware providers. |
 | PAR-ENTITY-001 | Entity details | Navigate Person, Collection, Company, Network, Keyword, Season, and Episode without coercing them into title models. |
 | PAR-PROVIDER-001 | Availability | Use the selected/device region, distinguish stream/rent/buy, open only the TMDb URL, and display JustWatch attribution. |

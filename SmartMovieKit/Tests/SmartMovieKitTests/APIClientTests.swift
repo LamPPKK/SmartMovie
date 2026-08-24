@@ -109,6 +109,31 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(query["language"], "ko-KR")
     }
 
+    func testV2FindExternalIDEncodesSourceAndDecodesDiscriminatedEntities() async throws {
+        URLProtocolStub.enqueue(status: 200, body: #"""
+        {
+          "source":"imdb_id",
+          "external_id":"tt0133093",
+          "results":[{
+            "entity_kind":"movie","id":603,"media_type":"movie","title":"The Matrix",
+            "original_title":"The Matrix","overview":"","poster_path":null,"backdrop_path":null,
+            "release_date":"1999-03-30","vote_average":8.2,"genre_ids":[28,878]
+          }]
+        }
+        """#)
+        let repository = RemoteCatalogRepository(client: makeClient())
+
+        let response = try await repository.findExternalID("tt0133093", source: .imdb, language: "vi-VN")
+
+        XCTAssertEqual(response.externalID, "tt0133093")
+        XCTAssertEqual(response.results.map(\.kind), [.movie])
+        let request = try XCTUnwrap(URLProtocolStub.requests.first)
+        let components = try XCTUnwrap(URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false))
+        XCTAssertEqual(components.path, "/api/v2/find/tt0133093")
+        XCTAssertEqual(components.queryItems?.first(where: { $0.name == "source" })?.value, "imdb_id")
+        XCTAssertEqual(components.queryItems?.first(where: { $0.name == "language" })?.value, "vi-VN")
+    }
+
     func testInstallationClientIDIsStableAndRepairsInvalidStoredValue() async throws {
         let suite = "SmartMovieKitTests.\(UUID().uuidString)"
         let setupDefaults = try XCTUnwrap(UserDefaults(suiteName: suite))

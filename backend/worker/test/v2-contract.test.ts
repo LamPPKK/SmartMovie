@@ -8,6 +8,7 @@ import csrfFixture from "../contract/v2/fixtures/csrf.json";
 import entitiesFixture from "../contract/v2/fixtures/entities.json";
 import episodeFixture from "../contract/v2/fixtures/episode.json";
 import errorFixture from "../contract/v2/fixtures/error.json";
+import findFixture from "../contract/v2/fixtures/find.json";
 import mutationFixture from "../contract/v2/fixtures/mutation.json";
 import personFixture from "../contract/v2/fixtures/person.json";
 import seasonFixture from "../contract/v2/fixtures/season.json";
@@ -25,6 +26,7 @@ type SchemaName =
   | "EntityPage"
   | "EpisodeDetail"
   | "ErrorEnvelope"
+  | "FindResult"
   | "MutationResult"
   | "PersonDetail"
   | "SeasonDetail"
@@ -50,6 +52,7 @@ describe("canonical v2 fixtures", () => {
   it.each([
     ["Capabilities", capabilitiesFixture],
     ["EntityPage", entitiesFixture],
+    ["FindResult", findFixture],
     ["TitleDetail", titleFixture],
     ["PersonDetail", personFixture],
     ["CollectionDetail", collectionFixture],
@@ -90,6 +93,28 @@ describe("v2 Worker contract", () => {
     expect(response.status).toBe(200);
     expectContract("EntityPage", value);
     expect(value.results.map((item) => item.entity_kind)).toEqual(["person", "movie", "collection"]);
+  });
+
+  it("finds mixed entities by an external ID and forwards the selected source", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      expect(url.pathname).toMatch(/\/find\/tt0000010$/);
+      expect(url.searchParams.get("external_source")).toBe("imdb_id");
+      expect(url.searchParams.get("language")).toBe("vi-VN");
+      return Response.json({
+        movie_results: [{ id: 10, title: "Example Movie", original_title: "Example Movie", overview: "", genre_ids: [18] }],
+        person_results: [{ id: 12, name: "Example Person", known_for_department: "Acting", known_for: [] }],
+      });
+    }));
+
+    const response = await worker.fetch(request("/v2/find/tt0000010?source=imdb_id&language=vi-VN"), env(), context);
+    const value = await response.json() as { source: string; external_id: string; results: Array<{ entity_kind: string }> };
+
+    expect(response.status).toBe(200);
+    expectContract("FindResult", value);
+    expect(value.source).toBe("imdb_id");
+    expect(value.external_id).toBe("tt0000010");
+    expect(value.results.map((item) => item.entity_kind)).toEqual(["movie", "person"]);
   });
 
   it("returns a deep title that conforms to the v2 schema", async () => {

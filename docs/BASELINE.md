@@ -39,8 +39,8 @@ The current source was verified after the `/v2` catalog/account broker and durab
 | Check | Result |
 | --- | --- |
 | SwiftLint | Strict mode passed with zero violations |
-| SmartMovieKit | 31 tests passed, including `/v1` + `/v2` fixtures and account-outbox persistence/idempotency |
-| Catalog Worker | Type-check and 52 tests passed, including v3/v4 mapping, D1 migrations, encryption, callback/CSRF/CORS controls, session lifecycle, and mutation replay |
+| SmartMovieKit | 33 tests passed, including `/v1` + `/v2` fixtures, External ID behavior, and account-outbox persistence/idempotency |
+| Catalog Worker | Type-check and 54 tests passed, including External ID schema/mapping, v3/v4 mapping, D1 migrations, encryption, callback/CSRF/CORS controls, session lifecycle, and mutation replay |
 | iOS, Catalyst, tvOS, macOS, watchOS | Unsigned source builds passed for every listed destination |
 | iOS launch smoke | The simulator app launched and remained alive for the smoke window |
 | Native macOS launch smoke | `SmartMovieNativeMac` remained alive for five seconds; the earlier exit-code 132 crash was not reproduced |

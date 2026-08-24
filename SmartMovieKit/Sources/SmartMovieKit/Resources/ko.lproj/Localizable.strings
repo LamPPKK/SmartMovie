@@ -46,6 +46,13 @@
 "Release year" = "공개 연도";
 "Reset" = "초기화";
 "Search" = "검색";
+"Catalog" = "카탈로그";
+"External ID" = "외부 ID";
+"Search mode" = "검색 모드";
+"Source" = "출처";
+"Find matches" = "일치 항목 찾기";
+"Search by external ID" = "외부 ID로 검색";
+"Enter an ID from another database and choose its source." = "다른 데이터베이스의 ID를 입력하고 출처를 선택하세요.";
 "Search failed" = "검색 실패";
 "Search movies and TV series by title." = "제목으로 영화와 TV 시리즈를 검색하세요.";
 "Search scope" = "검색 범위";
