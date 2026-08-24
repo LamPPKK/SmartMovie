@@ -107,8 +107,11 @@ public struct DetailView: View {
             LazyVStack(alignment: .leading, spacing: 30) {
                 hero(detail, model: model)
                 overview(detail)
-                if let deep = model.deepDetail { deepSections(deep) }
-                if !detail.cast.isEmpty { castShelf(detail.cast) }
+                if let deep = model.deepDetail {
+                    deepSections(deep)
+                } else if !detail.cast.isEmpty {
+                    castShelf(detail.cast)
+                }
                 if !detail.similar.isEmpty { similarShelf(detail.similar) }
                 credits
             }

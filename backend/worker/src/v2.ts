@@ -6,6 +6,7 @@ import type {
   TimeWindow,
   TmdbCollection,
   TmdbCompany,
+  TmdbCreditDetail,
   TmdbEpisode,
   TmdbFindResponse,
   TmdbKeyword,
@@ -16,6 +17,7 @@ import type {
 import {
   collectionDetail,
   companyDetail,
+  creditDetail as normalizeCreditDetail,
   entityPage,
   episodeDetail,
   episodeSummary,
@@ -425,8 +427,13 @@ async function creditDetail(
 ): Promise<Response> {
   rejectUnknown(url, new Set(["language"]));
   if (!/^[A-Za-z0-9_-]{1,160}$/.test(creditID)) throw new RequestProblem(400, "invalid_credit_id", "Credit ID is invalid.");
-  const raw = await tmdb<Record<string, unknown>>(env, `/credit/${creditID}`, new URLSearchParams({ language: language(url) }), requestId);
-  return json({ credit_id: creditID, ...raw });
+  const raw = await tmdb<TmdbCreditDetail>(
+    env,
+    `/credit/${creditID}`,
+    new URLSearchParams({ language: language(url) }),
+    requestId,
+  );
+  return json(normalizeCreditDetail(creditID, raw));
 }
 
 async function configuration(

@@ -21,7 +21,7 @@ The canonical transport is OpenAPI 3.1 at `backend/worker/contract/v2/openapi.js
 | Companies and networks | `/v2/entities/{company|network}/{id}` | UI | Search/detail navigation shows organization metadata and related titles. |
 | Keywords | `/v2/entities/keyword/{id}` | UI | Keyword detail shows related titles. |
 | TV seasons and episodes | `/v2/tv/{seriesId}/seasons/{seasonNumber}` and episode child route | UI | Season/episode metadata, credits, guest stars, images, videos, and air dates are represented. |
-| Credit detail | `/v2/credits/{creditId}` | **Blocker** | Worker/OpenAPI implemented. Clients link people but do not yet expose a credit-detail screen. |
+| Credit detail | `/v2/credits/{creditId}` | UI | Cast, crew, season, episode, and guest-star credits open a localized detail screen on Apple, native Android, and KMP. The normalized response preserves the raw TMDb payload while exposing stable person/title links and role metadata. |
 | Watch providers | title aggregate and related-resource route | UI | Region-aware stream/rent/buy offers open only the TMDb URL and show JustWatch attribution. |
 | Changes | no public route | **Blocker** | Configuration exposes `change_keys`, but the Worker does not yet poll TMDb change feeds to invalidate catalog cache entries. No debug UI is planned. |
 | Certifications, release dates, content ratings, alternative titles, translations, external IDs | normalized title detail | Backend-normalized UI data | These upstream groups are folded into stable title models instead of mirrored as raw TMDb endpoints. |

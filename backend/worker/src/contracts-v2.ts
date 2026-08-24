@@ -82,6 +82,18 @@ export interface TmdbCredit {
   episode_count?: number;
 }
 
+export interface TmdbCreditDetail {
+  id?: string;
+  credit_type?: string;
+  department?: string;
+  job?: string;
+  character?: string;
+  media_type?: string;
+  media?: TmdbTitle;
+  person?: TmdbPerson;
+  [key: string]: unknown;
+}
+
 export interface TmdbImage {
   file_path: string;
   aspect_ratio?: number;

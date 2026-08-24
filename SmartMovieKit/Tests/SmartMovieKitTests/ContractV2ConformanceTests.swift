@@ -32,6 +32,9 @@ final class ContractV2ConformanceTests: XCTestCase {
         XCTAssertEqual(try decode(CollectionDetail.self, fixture: "collection").id, 13)
         XCTAssertEqual(try decode(SeasonDetail.self, fixture: "season").episodes.first?.episodeKey, "11:1:1")
         XCTAssertEqual(try decode(EpisodeDetail.self, fixture: "episode").episodeNumber, 1)
+        let credit = try decode(CreditDetail.self, fixture: "credit-detail")
+        XCTAssertEqual(credit.personSummary?.id, 6384)
+        XCTAssertEqual(credit.titleSummary?.libraryKey, "movie:603")
     }
 
     func testAccountAuthMutationAndErrorFixturesDecode() throws {

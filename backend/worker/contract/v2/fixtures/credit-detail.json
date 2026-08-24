@@ -1,0 +1,30 @@
+{
+  "credit_id": "52fe425bc3a36847f80181c1",
+  "credit_type": "cast",
+  "department": "Acting",
+  "job": "Actor",
+  "character": "Neo",
+  "person_summary": {
+    "entity_kind": "person",
+    "id": 6384,
+    "name": "Keanu Reeves",
+    "profile_path": "/example-profile.jpg",
+    "known_for_department": "Acting",
+    "popularity": 42.5,
+    "known_for": []
+  },
+  "title_summary": {
+    "entity_kind": "movie",
+    "id": 603,
+    "media_type": "movie",
+    "title": "The Matrix",
+    "original_title": "The Matrix",
+    "overview": "A hacker discovers the truth about his world.",
+    "poster_path": "/example-poster.jpg",
+    "backdrop_path": null,
+    "release_date": "1999-03-30",
+    "vote_average": 8.2,
+    "genre_ids": [28, 878]
+  },
+  "future_field": "ignored by clients"
+}

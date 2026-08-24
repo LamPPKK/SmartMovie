@@ -273,6 +273,7 @@ private actor ExternalIDCatalogStub: CatalogRepository, CatalogV2Repository {
     func keyword(id: Int, language: String, page: Int) async throws -> KeywordDetail { throw APIError.notFound }
     func season(seriesID: Int, number: Int, language: String) async throws -> SeasonDetail { throw APIError.notFound }
     func episode(seriesID: Int, season: Int, number: Int, language: String) async throws -> EpisodeDetail { throw APIError.notFound }
+    func credit(id: String, language: String) async throws -> CreditDetail { throw APIError.notFound }
 }
 
 private func sampleTitle(id: Int, title: String, mediaType: MediaType = .movie) -> TitleSummary {

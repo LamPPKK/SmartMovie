@@ -81,3 +81,12 @@
 "Watchlist" = "待看片單";
 "Year" = "年份";
 "Your watchlist is empty" = "待看片單是空的";
+"Credit details" = "演職員詳情";
+"Credit unavailable" = "無法載入演職員詳情";
+"Person" = "人物";
+"Role" = "角色";
+"Character" = "飾演";
+"Job" = "職務";
+"Department" = "部門";
+"Crew" = "幕後人員";
+"Guest stars" = "客串演員";

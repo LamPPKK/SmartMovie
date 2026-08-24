@@ -4,6 +4,7 @@ import accountFixture from "../contract/v2/fixtures/account.json";
 import attemptFixture from "../contract/v2/fixtures/auth-attempt.json";
 import capabilitiesFixture from "../contract/v2/fixtures/capabilities.json";
 import collectionFixture from "../contract/v2/fixtures/collection.json";
+import creditFixture from "../contract/v2/fixtures/credit-detail.json";
 import csrfFixture from "../contract/v2/fixtures/csrf.json";
 import entitiesFixture from "../contract/v2/fixtures/entities.json";
 import episodeFixture from "../contract/v2/fixtures/episode.json";
@@ -22,6 +23,7 @@ type SchemaName =
   | "AuthAttempt"
   | "Capabilities"
   | "CollectionDetail"
+  | "CreditDetail"
   | "CSRFToken"
   | "EntityPage"
   | "EpisodeDetail"
@@ -56,6 +58,7 @@ describe("canonical v2 fixtures", () => {
     ["TitleDetail", titleFixture],
     ["PersonDetail", personFixture],
     ["CollectionDetail", collectionFixture],
+    ["CreditDetail", creditFixture],
     ["CSRFToken", csrfFixture],
     ["SeasonDetail", seasonFixture],
     ["EpisodeDetail", episodeFixture],
@@ -115,6 +118,50 @@ describe("v2 Worker contract", () => {
     expect(value.source).toBe("imdb_id");
     expect(value.external_id).toBe("tt0000010");
     expect(value.results.map((item) => item.entity_kind)).toEqual(["movie", "person"]);
+  });
+
+  it("adds stable person and title summaries to TMDb credit details", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      expect(url.pathname).toMatch(/\/credit\/52fe425bc3a36847f80181c1$/);
+      expect(url.searchParams.get("language")).toBe("ja-JP");
+      return Response.json({
+        id: "52fe425bc3a36847f80181c1",
+        credit_type: "cast",
+        department: "Acting",
+        job: "Actor",
+        character: "Neo",
+        media_type: "movie",
+        person: { id: 6384, name: "Keanu Reeves", profile_path: "/profile.jpg", known_for_department: "Acting" },
+        media: {
+          id: 603,
+          title: "The Matrix",
+          original_title: "The Matrix",
+          overview: "Story",
+          poster_path: "/poster.jpg",
+          release_date: "1999-03-30",
+          vote_average: 8.2,
+          genre_ids: [28, 878],
+        },
+      });
+    }));
+
+    const response = await worker.fetch(
+      request("/v2/credits/52fe425bc3a36847f80181c1?language=ja-JP"),
+      env(),
+      context,
+    );
+    const value = await response.json() as {
+      credit_id: string;
+      person_summary: { entity_kind: string; id: number };
+      title_summary: { entity_kind: string; id: number };
+    };
+
+    expect(response.status).toBe(200);
+    expectContract("CreditDetail", value);
+    expect(value.credit_id).toBe("52fe425bc3a36847f80181c1");
+    expect(value.person_summary).toMatchObject({ entity_kind: "person", id: 6384 });
+    expect(value.title_summary).toMatchObject({ entity_kind: "movie", id: 603 });
   });
 
   it("returns a deep title that conforms to the v2 schema", async () => {

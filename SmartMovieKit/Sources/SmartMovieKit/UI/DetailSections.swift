@@ -102,6 +102,11 @@ extension DetailView {
             .padding(.horizontal, 24)
         }
 
+        CreditShelf(title: String(localized: "Cast", bundle: .module), credits: detail.cast)
+            .padding(.horizontal, 24)
+        CreditShelf(title: String(localized: "Crew", bundle: .module), credits: detail.crew)
+            .padding(.horizontal, 24)
+
         if !detail.seasons.isEmpty {
             VStack(alignment: .leading, spacing: 14) {
                 SectionTitle(String(localized: "Seasons & episodes", bundle: .module))

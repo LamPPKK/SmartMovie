@@ -160,6 +160,9 @@ private struct CatalogNavigationRoot<Content: View>: View {
                 .navigationDestination(for: EpisodeRoute.self) { route in
                     EpisodeDetailView(route: route)
                 }
+                .navigationDestination(for: CreditRoute.self) { route in
+                    CreditDetailView(route: route)
+                }
         }
     }
 }

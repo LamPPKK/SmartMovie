@@ -4,6 +4,7 @@ import type {
   TmdbCollection,
   TmdbCompany,
   TmdbCredit,
+  TmdbCreditDetail,
   TmdbEpisode,
   TmdbImage,
   TmdbKeyword,
@@ -225,6 +226,22 @@ export function credit(value: TmdbCredit) {
     poster_path: value.poster_path ?? null,
     order: value.order ?? null,
     episode_count: value.episode_count ?? null,
+  };
+}
+
+export function creditDetail(creditID: string, value: TmdbCreditDetail) {
+  const mediaType = value.media_type === "movie" || value.media_type === "tv" ? value.media_type : undefined;
+  const person = value.person && Number.isInteger(value.person.id) ? personSummary(value.person) : null;
+  const title = value.media && mediaType ? titleSummaryV2(value.media, mediaType) : null;
+  return {
+    ...value,
+    credit_id: creditID,
+    credit_type: typeof value.credit_type === "string" ? value.credit_type : null,
+    department: typeof value.department === "string" ? value.department : null,
+    job: typeof value.job === "string" ? value.job : null,
+    character: typeof value.character === "string" ? value.character : null,
+    person_summary: person,
+    title_summary: title,
   };
 }
 

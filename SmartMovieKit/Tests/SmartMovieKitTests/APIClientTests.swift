@@ -134,6 +134,31 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(components.queryItems?.first(where: { $0.name == "language" })?.value, "vi-VN")
     }
 
+    func testV2CreditDetailDecodesStablePersonAndTitleLinks() async throws {
+        URLProtocolStub.enqueue(status: 200, body: #"""
+        {
+          "credit_id":"52fe425bc3a36847f80181c1","credit_type":"cast","department":"Acting",
+          "job":"Actor","character":"Neo",
+          "person_summary":{"entity_kind":"person","id":6384,"name":"Keanu Reeves","profile_path":null,
+            "known_for_department":"Acting","popularity":1,"known_for":[]},
+          "title_summary":{"entity_kind":"movie","id":603,"media_type":"movie","title":"The Matrix",
+            "original_title":"The Matrix","overview":"","poster_path":null,"backdrop_path":null,
+            "release_date":"1999-03-30","vote_average":8.2,"genre_ids":[28,878]}
+        }
+        """#)
+        let repository = RemoteCatalogRepository(client: makeClient())
+
+        let response = try await repository.credit(id: "52fe425bc3a36847f80181c1", language: "ko-KR")
+
+        XCTAssertEqual(response.character, "Neo")
+        XCTAssertEqual(response.personSummary?.name, "Keanu Reeves")
+        XCTAssertEqual(response.titleSummary?.libraryKey, "movie:603")
+        let request = try XCTUnwrap(URLProtocolStub.requests.first)
+        let components = try XCTUnwrap(URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false))
+        XCTAssertEqual(components.path, "/api/v2/credits/52fe425bc3a36847f80181c1")
+        XCTAssertEqual(components.queryItems?.first(where: { $0.name == "language" })?.value, "ko-KR")
+    }
+
     func testInstallationClientIDIsStableAndRepairsInvalidStoredValue() async throws {
         let suite = "SmartMovieKitTests.\(UUID().uuidString)"
         let setupDefaults = try XCTUnwrap(UserDefaults(suiteName: suite))

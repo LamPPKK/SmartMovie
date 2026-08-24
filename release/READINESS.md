@@ -3,7 +3,7 @@
 ## Automated source gates
 
 - Canonical `/v1` and `/v2` OpenAPI/fixtures validate public success and normalized error responses.
-- Apple and Android manifests pin product `3.0.0`, contract `2.0.0`, and OpenAPI SHA-256 `59dfe6d595f1328cf2a7900a2bf74adbbb208e9648056cff475a3114a3293610`.
+- Apple and Android manifests pin product `3.0.0`, contract `2.0.0`, and OpenAPI SHA-256 `0e7c73a2be679ab5e3f2c8c5117424fa79c77e888a9b49c5e95d9d47ccb36d6f`.
 - Native Android and KMP consume the same versioned snapshot; production promotion verifies Android `main` before deploy.
 - Worker tests cover v3/v4 mapping, cache partitions, rate limiting, D1 migrations, encryption, callback/CSRF/CORS controls, session expiry/revoke, durable mutation idempotency, and rollback paths.
 - Swift, native Android, and KMP test canonical discriminator/nullable/unknown-field fixtures and local-first storage/outbox behavior.
@@ -13,7 +13,7 @@
 
 ## Product blockers still recorded in source
 
-The codebase must not be declared product-complete until [TMDb coverage](../docs/TMDB_COVERAGE.md) has no **Blocker** rows. Current gaps include credit detail, account recommendations, complete mixed-list editing/items, and Worker TMDb-change-feed cache invalidation.
+The codebase must not be declared product-complete until [TMDb coverage](../docs/TMDB_COVERAGE.md) has no **Blocker** rows. Current gaps include account recommendations, complete mixed-list editing/items, and Worker TMDb-change-feed cache invalidation.
 
 ## Release-owner actions
 

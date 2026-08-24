@@ -96,8 +96,8 @@ public struct EntityDetailView: View {
                     detailSection(String(localized: "Biography", bundle: .module), text: value.biography)
                 }
                 titleShelf(String(localized: "Known for", bundle: .module), titles: value.knownFor)
-                titleShelf(String(localized: "Acting credits", bundle: .module), titles: titles(from: value.credits.cast))
-                titleShelf(String(localized: "Crew credits", bundle: .module), titles: titles(from: value.credits.crew))
+                CreditShelf(title: String(localized: "Acting credits", bundle: .module), credits: value.credits.cast)
+                CreditShelf(title: String(localized: "Crew credits", bundle: .module), credits: value.credits.crew)
             }
             .padding(24)
         }
@@ -180,21 +180,6 @@ public struct EntityDetailView: View {
         }
     }
 
-    private func titles(from credits: [Credit]) -> [TitleSummary] {
-        var seen = Set<String>()
-        return credits.compactMap { credit in
-            guard let id = credit.id, let mediaType = credit.mediaType, let title = credit.title else { return nil }
-            let summary = TitleSummary(
-                id: id,
-                mediaType: mediaType,
-                title: title,
-                originalTitle: title,
-                overview: "",
-                posterPath: credit.posterPath
-            )
-            return seen.insert(summary.libraryKey).inserted ? summary : nil
-        }
-    }
 }
 
 public struct SeasonDetailView: View {
@@ -220,6 +205,8 @@ public struct SeasonDetailView: View {
                     LazyVStack(alignment: .leading, spacing: 18) {
                         Text(detail.name).font(.system(.largeTitle, design: .serif, weight: .black))
                         if !detail.overview.isEmpty { Text(detail.overview).foregroundStyle(CinemaTheme.muted) }
+                        CreditShelf(title: String(localized: "Cast", bundle: .module), credits: detail.credits.cast)
+                        CreditShelf(title: String(localized: "Crew", bundle: .module), credits: detail.credits.crew)
                         ForEach(detail.episodes) { episode in
                             NavigationLink(value: EpisodeRoute(
                                 seriesID: route.seriesID,
@@ -288,6 +275,8 @@ public struct EpisodeDetailView: View {
                         if let date = detail.airDate { Text(date).foregroundStyle(CinemaTheme.muted) }
                         Text(detail.overview.isEmpty ? String(localized: "No overview is available.", bundle: .module) : detail.overview)
                             .lineSpacing(4)
+                        CreditShelf(title: String(localized: "Guest stars", bundle: .module), credits: detail.guestStars)
+                        CreditShelf(title: String(localized: "Crew", bundle: .module), credits: detail.crew)
                         if case .signedIn = container.accountSession.state {
                             Menu {
                                 ForEach(1...10, id: \.self) { value in

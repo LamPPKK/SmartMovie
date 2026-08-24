@@ -11,6 +11,7 @@ This document is the release authority for behavior shared by native Apple, nati
 | PAR-SEARCH-002 | Entity search | Decode and navigate Movie, TV, Person, Collection, Company, and Keyword discriminators; debounce, cancel stale requests, paginate, deduplicate, and retry. An explicit External ID mode supports every allowlisted source without per-keystroke requests. |
 | PAR-DETAIL-002 | Deep title detail | Show normalized metadata, credits, media, reviews, related titles, release/content rating data, collection, seasons, and region-aware providers. |
 | PAR-ENTITY-001 | Entity details | Navigate Person, Collection, Company, Network, Keyword, Season, and Episode without coercing them into title models. |
+| PAR-CREDIT-001 | Credit detail | Open cast/crew/guest-star credits from title, person, season, and episode surfaces; show role metadata; and retain navigable person/title links. |
 | PAR-PROVIDER-001 | Availability | Use the selected/device region, distinguish stream/rent/buy, open only the TMDb URL, and display JustWatch attribution. |
 | PAR-ADULT-001 | Adult content | Default off; require age confirmation and a local six-digit PIN; lock five minutes after five failures; exclude from companion/public surfaces. |
 | PAR-AUTH-001 | TMDb authorization | Use TMDb browser approval, opaque SmartMovie sessions, allowlisted callbacks, and no password collection. TV uses QR/polling; Web uses an `HttpOnly` cookie. |

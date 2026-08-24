@@ -90,4 +90,11 @@ extension RemoteCatalogRepository: CatalogV2Repository {
             queryItems: [URLQueryItem(name: "language", value: language)]
         )
     }
+
+    public func credit(id: String, language: String) async throws -> CreditDetail {
+        try await client.get(
+            "v2/credits/\(id)",
+            queryItems: [URLQueryItem(name: "language", value: language)]
+        )
+    }
 }

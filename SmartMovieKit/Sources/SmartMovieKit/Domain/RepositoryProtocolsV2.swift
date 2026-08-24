@@ -24,6 +24,7 @@ public protocol CatalogV2Repository: Sendable {
     func keyword(id: Int, language: String, page: Int) async throws -> KeywordDetail
     func season(seriesID: Int, number: Int, language: String) async throws -> SeasonDetail
     func episode(seriesID: Int, season: Int, number: Int, language: String) async throws -> EpisodeDetail
+    func credit(id: String, language: String) async throws -> CreditDetail
 }
 
 public protocol AccountRepository: Sendable {

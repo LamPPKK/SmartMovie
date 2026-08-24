@@ -81,3 +81,12 @@
 "Watchlist" = "想看";
 "Year" = "年份";
 "Your watchlist is empty" = "想看片单为空";
+"Credit details" = "演职员详情";
+"Credit unavailable" = "无法加载演职员详情";
+"Person" = "人物";
+"Role" = "角色";
+"Character" = "饰演";
+"Job" = "职务";
+"Department" = "部门";
+"Crew" = "幕后人员";
+"Guest stars" = "客串演员";

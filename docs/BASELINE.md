@@ -34,13 +34,13 @@ The Swift checks used the complete toolchain through `DEVELOPER_DIR=/Application
 
 ## Latest 3.0 implementation verification — 25 August 2026
 
-The current source was verified after the `/v2` catalog/account broker and durable account outboxes were added:
+The current source was verified after the `/v2` catalog/account broker, durable account outboxes, External ID lookup, and cross-platform Credit Detail navigation were added:
 
 | Check | Result |
 | --- | --- |
 | SwiftLint | Strict mode passed with zero violations |
-| SmartMovieKit | 33 tests passed, including `/v1` + `/v2` fixtures, External ID behavior, and account-outbox persistence/idempotency |
-| Catalog Worker | Type-check and 54 tests passed, including External ID schema/mapping, v3/v4 mapping, D1 migrations, encryption, callback/CSRF/CORS controls, session lifecycle, and mutation replay |
+| SmartMovieKit | 34 tests passed, including `/v1` + `/v2` fixtures, External ID and Credit Detail behavior, and account-outbox persistence/idempotency |
+| Catalog Worker | Type-check and 56 tests passed, including External ID/Credit Detail schema and mapping, v3/v4 mapping, D1 migrations, encryption, callback/CSRF/CORS controls, session lifecycle, and mutation replay |
 | iOS, Catalyst, tvOS, macOS, watchOS | Unsigned source builds passed for every listed destination |
 | iOS launch smoke | The simulator app launched and remained alive for the smoke window |
 | Native macOS launch smoke | `SmartMovieNativeMac` remained alive for five seconds; the earlier exit-code 132 crash was not reproduced |
