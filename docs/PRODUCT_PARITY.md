@@ -1,34 +1,40 @@
-# SmartMovie product parity contract
+# SmartMovie 3.0 product parity contract
 
-This document is the release authority for behavior shared by the native Apple and Android applications. Platform UI should follow native conventions; parity means equivalent inputs, state transitions, content, privacy, and failure behavior rather than pixel-identical layouts.
+This document is the release authority for behavior shared by native Apple, native Android, TV, watch companions, and Compose Multiplatform desktop/web. Platform UI follows native conventions; parity means equivalent content, state transitions, privacy, localization, offline behavior, and error handling rather than pixel-identical layout.
 
 ## Required shared behavior
 
 | ID | Capability | Required behavior |
 | --- | --- | --- |
-| PAR-HOME-001 | Home | Switch between Movie and TV feeds; show the same Worker-provided hero and ordered sections; retry a failed load. |
-| PAR-EXPLORE-001 | Explore | Support media type, genre, year, minimum rating, sort, grid/list presentation, pagination, cancellation, and `libraryKey` deduplication. |
-| PAR-SEARCH-001 | Search | Support All/Movie/TV scopes, 350 ms debounce, cancellation of stale requests, pagination, deduplication, empty state, and retry. |
-| PAR-DETAIL-001 | Detail | Show normalized title metadata, story, genres, runtime or seasons, cast, similar titles, and a language-aware YouTube trailer. |
-| PAR-LIBRARY-001 | Library | Favorite and Watchlist are independent, persist offline, support Movie/TV filtering and common sort choices, and never remove the other collection when toggled. |
-| PAR-NETWORK-001 | Network | Send an anonymous stable installation ID, retry 429 and transient 5xx responses at most twice, honor `Retry-After`, preserve cancellation, and map the common error envelope. |
-| PAR-LOCALE-001 | Localization | Ship English, Vietnamese, Japanese, Korean, Simplified Chinese, and Traditional Chinese; map them to the six Worker locale tags. |
-| PAR-PRIVACY-001 | Privacy | Keep the TMDb credential in Worker secrets only; do not add accounts, ads, analytics, IAP, search logging, or cross-platform user-data sync. |
-| PAR-REMOTE-001 | Watch remote | Mirror only the active phone detail; reject stale title commands; support open, trailer, Favorite, and Watchlist actions. |
+| PAR-HOME-001 | Home | Switch Movie/TV feeds, preserve Worker ordering, navigate titles, and retry failures. |
+| PAR-EXPLORE-001 | Explore | Support catalog filters, region/adult partitioning, cancellation, pagination, retry, and `libraryKey` deduplication. |
+| PAR-SEARCH-002 | Entity search | Decode and navigate Movie, TV, Person, Collection, Company, and Keyword discriminators; debounce, cancel stale requests, paginate, deduplicate, and retry. |
+| PAR-DETAIL-002 | Deep title detail | Show normalized metadata, credits, media, reviews, related titles, release/content rating data, collection, seasons, and region-aware providers. |
+| PAR-ENTITY-001 | Entity details | Navigate Person, Collection, Company, Network, Keyword, Season, and Episode without coercing them into title models. |
+| PAR-PROVIDER-001 | Availability | Use the selected/device region, distinguish stream/rent/buy, open only the TMDb URL, and display JustWatch attribution. |
+| PAR-ADULT-001 | Adult content | Default off; require age confirmation and a local six-digit PIN; lock five minutes after five failures; exclude from companion/public surfaces. |
+| PAR-AUTH-001 | TMDb authorization | Use TMDb browser approval, opaque SmartMovie sessions, allowlisted callbacks, and no password collection. TV uses QR/polling; Web uses an `HttpOnly` cookie. |
+| PAR-LIBRARY-002 | Account library | Merge local and TMDb Favorites/Watchlist on first login; local pending mutations win; durable outbox retry is idempotent; logout offers keep-local or remove-account-data. |
+| PAR-RATING-001 | Ratings | Rate/remove Movie, TV, and Episode values from 0.5 through 10; update optimistically; persist and retry the same mutation ID. |
+| PAR-LISTS-001 | Custom lists | Support mixed Movie/TV list CRUD and item changes through the durable account outbox. |
+| PAR-NETWORK-002 | Network | Send stable anonymous client identity, honor the normalized error envelope, retry 429/transient 5xx at most twice, honor `Retry-After`, and preserve cancellation. |
+| PAR-LOCALE-001 | Localization | Ship English, Vietnamese, Japanese, Korean, Simplified Chinese, and Traditional Chinese; map exactly to the six Worker locales. |
+| PAR-PRIVACY-002 | Privacy | Keep TMDb credentials and encrypted upstream tokens in the Worker; never log token/session/PIN/sensitive query values; ship no analytics or advertising. |
+| PAR-COMPANION-002 | Watch/Wear | Mirror safe active-title/episode context and phone actions only; no independent login or adult content. |
 
 ## Intentional platform differences
 
-- Apple uses SwiftUI, SwiftData, private CloudKit, WatchConnectivity, and dedicated tvOS, visionOS, Catalyst, and native macOS shells.
-- Android uses Jetpack Compose, Room, Google Auto Backup, the Wear Data Layer, Android TV, ChromeOS, foldable, and Android XR Home Space experiences.
-- CloudKit sync is an Apple-ecosystem capability. Android library persistence and backup do not imply real-time cross-platform synchronization.
-- Compose Multiplatform desktop and web clients must remain compatible with the catalog contract but do not block App Store or Play Store releases.
+- Apple uses SwiftUI, SwiftData/private CloudKit, WatchConnectivity, and dedicated tvOS, visionOS, Catalyst, and native macOS shells.
+- Android uses Jetpack Compose, Room/backup, the Wear Data Layer, Android TV, ChromeOS, foldable, and Android XR Home Space experiences.
+- KMP uses Java Preferences or browser `localStorage`; Web uses secure cookie-based auth rather than exposing the opaque native token to JavaScript.
+- Watch/Wear are companions, not complete catalogs, and never authorize independently.
+- CloudKit is Apple-ecosystem sync. It does not replace TMDb as the post-login account source of truth.
 
-## Change and completion policy
+## Release blockers and exceptions
 
-1. Update this matrix before implementing a new shared behavior.
-2. Update the canonical catalog contract first when the wire format changes.
-3. Link the Apple and Android pull requests to the same release milestone and parity IDs.
-4. A shared feature is complete only after both native implementations, localized states, conformance tests, and release checks pass.
-5. A temporary platform-only hotfix must be recorded as a parity exception and reconciled in the next release train.
+- Apple, Android, TV, watch companion, desktop JVM, JavaScript, and Wasm are release blockers for every 3.0 milestone.
+- A capability is complete only when its behavior, errors, localization, accessibility input model, fixtures, and tests exist on every required client.
+- Hotfixes may temporarily diverge at patch level only when recorded in `release/train.json`; the next release train must reconcile them.
+- `/v1` remains available for 2.0 clients for at least 12 months after the 3.0 production release. `/v2` is additive-only.
 
-There are no open parity exceptions for the 2.0.0 release train.
+The current release manifest has no recorded parity exceptions. This does **not** mean product parity is complete: unresolved coverage blockers are tracked in [TMDb coverage](TMDB_COVERAGE.md).

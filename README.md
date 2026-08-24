@@ -1,37 +1,39 @@
-# SmartMovie 2.0 — Apple apps and catalog backend
+# SmartMovie 3.0 — Apple apps and TMDb catalog backend
 
 [![Swift](https://github.com/LamPPKK/SmartMovie/actions/workflows/swift.yml/badge.svg?branch=main)](https://github.com/LamPPKK/SmartMovie/actions/workflows/swift.yml)
 [![Xcode build and analyze](https://github.com/LamPPKK/SmartMovie/actions/workflows/xcode-build-analyze.yml/badge.svg?branch=main)](https://github.com/LamPPKK/SmartMovie/actions/workflows/xcode-build-analyze.yml)
 [![iOS smoke test](https://github.com/LamPPKK/SmartMovie/actions/workflows/ios.yml/badge.svg?branch=main)](https://github.com/LamPPKK/SmartMovie/actions/workflows/ios.yml)
 [![Catalog Worker](https://github.com/LamPPKK/SmartMovie/actions/workflows/worker.yml/badge.svg?branch=main)](https://github.com/LamPPKK/SmartMovie/actions/workflows/worker.yml)
 
-SmartMovie is a cinematic movie and TV catalog for the Apple ecosystem. Browse what is trending, explore by genre, search the catalog, watch trailers, and keep independent Favorite and Watchlist collections that remain available offline.
+SmartMovie is a cinematic TMDb catalog for the Apple ecosystem. It covers movies, television, people, collections, companies, networks, keywords, seasons, and episodes; adds region-aware availability and trailers; and can optionally synchronize library, ratings, recommendations, and mixed lists through a browser-approved TMDb account.
 
 This repository contains the native SwiftUI apps for iPhone, iPad, Mac Catalyst, Apple TV, Apple Vision Pro, Apple Watch, and native macOS. It also owns the Cloudflare Worker and the canonical OpenAPI contract consumed by every SmartMovie client.
 
 > [!NOTE]
-> SmartMovie is a catalog and trailer app. It does not stream movies or TV episodes, require a SmartMovie account, display advertising, or offer in-app purchases.
+> SmartMovie is a catalog and trailer app. It does not stream movies or episodes, create a separate SmartMovie identity, collect a TMDb password, display advertising, or offer in-app purchases.
 
 > [!IMPORTANT]
-> SmartMovie 2.0 is under active development. Source-level quality gates are in place; production domains, signing, the CloudKit production schema, final store artwork, and App Store metadata still require release-owner configuration.
+> SmartMovie 3.0 is under active development. Source-level quality gates are in place; production D1/session secrets and callback domains, signing, the CloudKit production schema, final store artwork, privacy/support URLs, and App Store metadata still require release-owner configuration.
 
-## Two repositories, one SmartMovie 2.0
+## Two repositories, one SmartMovie 3.0
 
 | Repository | Owns | Mobile release role |
 | --- | --- | --- |
 | **[SmartMovie](https://github.com/LamPPKK/SmartMovie)** (this repository) | SwiftUI Apple apps, `SmartMovieKit`, Cloudflare Worker, OpenAPI 3.1 contract, canonical fixtures | App Store source of truth and backend owner |
 | **[Android.Smart.Movie](https://github.com/LamPPKK/Android.Smart.Movie)** | Native Android and Wear OS apps, Compose Multiplatform desktop/web app, versioned contract snapshot | Google Play source of truth |
 
-The two native mobile apps keep platform-specific UI and storage while sharing the same `/v1` catalog behavior, six locales, semantic release train, error rules, and deterministic decoder fixtures. There is intentionally no cross-platform account or Favorite/Watchlist synchronization in 2.0.
+The two native mobile apps keep platform-specific UI and storage while sharing the additive `/v2` Worker contract, six locales, semantic release train, normalized errors, and deterministic decoder fixtures. `/v1` remains served for SmartMovie 2.0 compatibility. Account identity and content belong to TMDb; SmartMovie only brokers opaque sessions and maintains local-first caches/outboxes.
 
 ## What you can do
 
-- **Discover movies and TV series** from curated Home shelves for trending, popular, top-rated, now playing/on air, and upcoming titles.
-- **Explore the catalog** with media type, genre, release year, rating, and sort controls plus deduplicated infinite pagination.
-- **Search quickly** with debounced, cancellable requests and Movie, TV Series, or All scopes.
-- **Open rich title details** with rating, release information, genres, synopsis, runtime or season count, cast, similar titles, and a language-aware YouTube trailer.
-- **Build a private library** with separate Favorite and Watchlist actions. SwiftData keeps both readable offline; supported Apple apps can use the user's private CloudKit database.
-- **Move between Apple devices naturally** with adaptive tabs or sidebars, keyboard and pointer support, focus-driven TV navigation, multi-window details on Mac/visionOS, and an Apple Watch companion remote.
+- **Explore a deep TMDb catalog** through curated Home feeds, advanced Discover filters, day/week trending, pagination, retry, and cancellation.
+- **Search across entity types** with discriminated Movie, TV, Person, Collection, Company, and Keyword results.
+- **Open deep details** for titles, people, collections, organizations, keywords, TV seasons, and episodes, including credits, media, reviews, recommendations, related titles, external IDs, and release/content ratings.
+- **See where to watch** by device or chosen region for stream/rent/buy offers, with TMDb links and required JustWatch attribution.
+- **Keep adult content private by default** with local age confirmation, a six-digit device PIN, and five-attempt lockout; companion and public surfaces never receive it.
+- **Connect TMDb safely** through browser approval or TV QR without entering a password in SmartMovie. Rate Movie/TV/Episode titles and manage account library/lists with durable offline mutation retry.
+- **Build a local-first library** with independent Favorite and Watchlist actions. SwiftData keeps both readable offline; private CloudKit remains an Apple storage option.
+- **Move between Apple devices naturally** with five adaptive destinations, keyboard/pointer support, focus-driven TV navigation, multi-window Mac/visionOS details, and a safe Apple Watch companion remote.
 - **Use the app in six languages**: English, Vietnamese, Japanese, Korean, Simplified Chinese, and Traditional Chinese.
 - **Rely on accessible defaults** including Dynamic Type, VoiceOver labels, Increase Contrast, Reduce Motion, and platform-native focus behavior.
 
@@ -52,7 +54,7 @@ The two native mobile apps keep platform-specific UI and storage while sharing t
 
 ### iPad — adaptive catalog
 
-The universal app expands shelves and content density on iPad while retaining the same Home, Explore, Search, and Library flow.
+The universal app expands shelves and content density on iPad while retaining the same Home, Explore, Search, Library, and Profile flow.
 
 <p align="center">
   <img src="docs/images/screenshots/ipad-home.png" alt="SmartMovie adaptive Home screen on iPad" width="760">
@@ -71,13 +73,13 @@ The universal app expands shelves and content density on iPad while retaining th
   </tr>
 </table>
 
-Screenshots come from the real SwiftUI targets using deterministic local `/v1` preview data and original abstract artwork. They require neither a TMDb credential nor public network access. Native macOS and visionOS are built as first-class targets; their expanded navigation and multi-window behavior are covered by the platform matrix and Xcode quality gates below.
+Screenshots come from the real SwiftUI targets using deterministic local fixtures and original abstract artwork. They require neither a TMDb credential nor public network access. Adult content and account credentials are excluded. The checked-in gallery currently covers iPhone, iPad, Apple TV, and Apple Watch; final Mac Catalyst, native macOS, and visionOS captures remain release assets and must be added before store publication.
 
 ## Apple app matrix
 
 | App / device | Minimum OS | Experience | Xcode scheme |
 | --- | ---: | --- | --- |
-| iPhone | iOS 17 | Four native tabs, compact cards, sheets, and full-screen title flow | `SmartMovie` |
+| iPhone | iOS 17 | Five native destinations, compact cards, browser-approved account flow, and full-screen entity details | `SmartMovie` |
 | iPad | iPadOS 17 | Adaptive navigation, denser shelves, keyboard, and pointer support | `SmartMovie` |
 | Mac Catalyst | macOS compatible with the iOS 17 target | Shared universal app with expanded navigation | `SmartMovie` |
 | Apple TV | tvOS 17 | 10-foot layout, focus-driven shelves, Siri Remote/D-pad navigation, and trailer handoff | `SmartMovieTV` |
@@ -104,16 +106,17 @@ flowchart LR
     Vision --> Kit
     Mac --> Kit
     Watch <-->|"WatchConnectivity"| Universal
-    Kit -->|"HTTPS /v1"| Worker["Cloudflare Worker"]
-    Worker -->|"server-side Bearer token"| TMDb["TMDb API"]
+    Kit -->|"HTTPS /v2"| Worker["Cloudflare Worker"]
+    Worker -->|"server-side v3/v4 credentials"| TMDb["TMDb API"]
+    Worker --> Sessions["D1 session broker"]
     Kit --> Store["SwiftData library"]
     Store <-->|"private sync"| CloudKit["CloudKit"]
     Kit --> Images["TMDb image CDN"]
 ```
 
-`SmartMovieKit` contains domain models and repository protocols, the async/await API client, SwiftData library storage, observable feature state, localization, and shared SwiftUI components. App targets own lifecycle and platform adapters instead of duplicating product logic.
+`SmartMovieKit` contains discriminated domain models and repository protocols, async/await catalog/account clients, SwiftData storage, durable library/account outboxes, observable feature state, localization, and shared SwiftUI components. App targets own lifecycle and platform adapters instead of duplicating product logic.
 
-The Worker exposes exactly six allowlisted `/v1` route families: Home, Genres, Discover, Search, Title Detail, and Image Configuration. It owns the TMDb Bearer token, validates queries, normalizes errors, caches upstream responses, and rate-limits clients. The canonical OpenAPI 3.1 document and JSON fixtures live in `backend/worker/contract`.
+The Worker serves the legacy six-route `/v1` catalog and the additive `/v2` catalog/account surface. `/v2` adds capabilities, entity search/detail, seasons/episodes, related title resources, regional providers, browser/TV authorization, profile/library state, ratings, recommendations, and custom lists. It owns TMDb credentials, validates queries and callbacks, normalizes errors, partitions public cache entries, rate-limits clients, and stores only encrypted session material plus idempotency metadata in D1. Canonical OpenAPI 3.1 documents and fixtures live in `backend/worker/contract`.
 
 The Android repository vendors that contract with a manifest containing its version, upstream commit, OpenAPI checksum, and fixture checksum. Production Worker promotion is blocked until Android `main` pins the same contract and release train; staging remains available for compatibility testing.
 
@@ -126,7 +129,7 @@ SmartMovie/
 ├── SmartMovie/          # XcodeGen spec, Xcode project, app shells, entitlements, assets
 ├── SmartMovieKit/       # Shared Swift package, data/UI layers, localization, unit tests
 ├── backend/worker/      # TypeScript Cloudflare Worker, OpenAPI contract, fixtures, tests
-├── release/             # Shared SmartMovie 2.0 release-train manifest
+├── release/             # Shared SmartMovie 3.0 release-train manifest
 ├── scripts/             # Read-only environment Doctor and release checks
 ├── docs/                # Architecture, testing, privacy, release operations, screenshots
 └── .github/workflows/   # Swift, Xcode, simulator, contract, and Worker automation
@@ -173,10 +176,12 @@ The apps never contain a TMDb credential. Debug uses `https://staging-catalog.sm
 cd backend/worker
 npm ci
 npx wrangler secret put TMDB_BEARER_TOKEN --env staging
+npx wrangler secret put SESSION_ENCRYPTION_KEY --env staging
+npx wrangler d1 migrations apply <auth-database-name> --env staging --remote
 npm run dev
 ```
 
-Keep the TMDb Read Access Token in Wrangler secrets only. Never commit it to Swift, an `.xcconfig`, an environment file, logs, screenshots, or either client repository.
+The account capability stays disabled unless the environment has its D1 binding, session-encryption secret, callback origin, and return-URI allowlist. Keep all TMDb and session secrets in Wrangler services only. Never commit them to Swift, an `.xcconfig`, an environment file, logs, screenshots, fixtures, or either client repository.
 
 ## Tests and quality gates
 
@@ -195,29 +200,30 @@ cd ../..
 ./scripts/verify-release.sh
 ```
 
-The current automated baseline contains 25 Swift tests and 28 Worker tests. Coverage includes canonical fixture decoding, unknown and missing nullable fields, success/error schema validation, retries, cancellation, pagination, and data-layer behavior without live TMDb, Cloudflare, CloudKit, or private credentials.
+The current verified local baseline contains 31 Swift tests and 52 Worker tests. Coverage includes canonical `/v1` and `/v2` fixture decoding, unknown and missing nullable fields, success/error schema validation, D1 migrations, encryption/callback/CSRF controls, durable idempotency, retries, cancellation, pagination, and data behavior without live personal credentials.
 
 CI independently builds and analyzes iOS, iPad/Catalyst, tvOS, native macOS, watchOS, and visionOS, then installs and launches the iOS app in Simulator. Read [Testing](docs/TESTING.md) for destination-specific commands and the manual device matrix.
 
 ## Privacy and security
 
-- TMDb authentication exists only in protected Cloudflare Worker secrets.
+- TMDb application credentials and encrypted upstream account tokens exist only in protected Worker services.
 - The Worker rejects unknown routes, query fields, media types, languages, sort orders, and out-of-range values.
-- Search text, credentials, raw client identifiers, and personal library data are not logged by design.
-- Favorite and Watchlist records use local SwiftData and, where configured, the user's private CloudKit database.
+- Search text, credentials, session tokens, PINs, raw client identifiers, and personal library data are not logged by design.
+- Optional account approval happens on TMDb. Clients retain only an opaque broker token; Web receives a secure `HttpOnly` cookie.
+- Favorite, Watchlist, rating, and list mutations are local-first and persist in durable outboxes until the Worker acknowledges the same idempotency key.
 - Watch remote messages stay between paired Apple devices.
-- There is no SmartMovie account, analytics SDK, advertising SDK, or in-app purchase flow.
+- There is no separate SmartMovie identity, analytics SDK, advertising SDK, or in-app purchase flow.
 
 Read the [Privacy overview](docs/PRIVACY.md) before configuring production services.
 
 ## Release status
 
-The shared release manifest pins SmartMovie `2.0.0`. Apple build numbers and Android version codes increase independently while both native apps remain on the same semantic release train.
+The shared release manifest pins SmartMovie `3.0.0` and contract `2.0.0`. Apple build numbers and Android version codes increase independently while Apple, Android, TV, watch companion, desktop JVM, JavaScript, and Wasm remain on the same semantic release train.
 
 Before App Store submission, the release owner must rotate any historical TMDb credential, activate both Worker domains, configure signing and the CloudKit production schema, add approved TMDb/platform artwork, publish support and privacy URLs, and complete platform-specific screenshots and metadata.
 
-Follow the [Release runbook](docs/RELEASE_RUNBOOK.md) for staging smoke tests, TestFlight, production promotion, store submission, and rollback. [Release readiness](release/READINESS.md) separates automated gates from credentials, DNS, signing, artwork, and store-owner actions that cannot live in source control.
+Follow the [Release runbook](docs/RELEASE_RUNBOOK.md) for staging smoke tests, protected account tests, TestFlight, production promotion, store submission, and rollback. [TMDb coverage](docs/TMDB_COVERAGE.md) records product blockers; [Release readiness](release/READINESS.md) separates automated gates from credentials, DNS, signing, artwork, and store-owner actions that cannot live in source control.
 
 ## Attribution
 
-This product uses the TMDB API but is not endorsed or certified by TMDB. Movie and television metadata and artwork are supplied by [The Movie Database](https://www.themoviedb.org/).
+This product uses the TMDB API but is not endorsed or certified by TMDB. Movie and television metadata and artwork are supplied by [The Movie Database](https://www.themoviedb.org/). Availability data is supplied by JustWatch through TMDb and is attributed wherever shown.

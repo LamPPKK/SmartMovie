@@ -1,8 +1,8 @@
-# SmartMovie 2.0 verification baseline
+# SmartMovie verification baseline
 
-Baseline captured on 17 August 2026 before contract consolidation and removal of the duplicate Compose iOS client.
+This document separates the historical SmartMovie 2.0 baseline from the latest SmartMovie 3.0 verification evidence. A failure already present in the historical baseline is not attributed to a later architecture change without a fresh reproduction.
 
-## Automated suites
+## Historical 2.0 baseline — 17 August 2026
 
 | Surface | Baseline | Canonical command |
 | --- | --- | --- |
@@ -12,13 +12,13 @@ Baseline captured on 17 August 2026 before contract consolidation and removal of
 | Android native | Unit, lint, golden, phone emulator, TV emulator, mobile AAB, and Wear AAB checks | GitHub Actions `Android CI` and `Android release AAB` |
 | Compose desktop/web | Desktop tests plus desktop, JavaScript, and Wasm compilation | GitHub Actions `Compose Multiplatform CI` |
 
-## Local environment boundary
+### Local environment boundary
 
 Run `./scripts/doctor.sh` before treating a local failure as a product regression. At capture time this machine selected Command Line Tools with a mismatched Swift SDK and exposed JDK 11 only; Swift and Gradle failures from that environment are not accepted as code baselines. CI remains the authoritative clean toolchain until Doctor passes locally.
 
 After consolidation, every suite must additionally run catalog schema/fixture conformance and release-version validation. Baseline failures must be documented separately from regressions introduced by the change under review.
 
-## Post-consolidation verification
+### Post-consolidation 2.0 verification
 
 Local verification on 17 August 2026 produced the following evidence:
 
@@ -32,4 +32,18 @@ Local verification on 17 August 2026 produced the following evidence:
 
 The Swift checks used the complete toolchain through `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`. The machine-wide `xcode-select` value still points to Command Line Tools and the installed Node.js major is not 24, so `./scripts/doctor.sh` correctly remains red until those host settings are fixed. This is an environment exception, not a product-test failure.
 
-The Android verification evidence for the same release train is maintained in the Android repository's `docs/TESTING.md`.
+## Latest 3.0 implementation verification — 25 August 2026
+
+The current source was verified after the `/v2` catalog/account broker and durable account outboxes were added:
+
+| Check | Result |
+| --- | --- |
+| SwiftLint | Strict mode passed with zero violations |
+| SmartMovieKit | 31 tests passed, including `/v1` + `/v2` fixtures and account-outbox persistence/idempotency |
+| Catalog Worker | Type-check and 52 tests passed, including v3/v4 mapping, D1 migrations, encryption, callback/CSRF/CORS controls, session lifecycle, and mutation replay |
+| iOS, Catalyst, tvOS, macOS, watchOS | Unsigned source builds passed for every listed destination |
+| iOS launch smoke | The simulator app launched and remained alive for the smoke window |
+| Native macOS launch smoke | `SmartMovieNativeMac` remained alive for five seconds; the earlier exit-code 132 crash was not reproduced |
+| visionOS | Source compile/link validation passed; full asset build remains unverified because the installed host lacks the required visionOS runtime/toolchain support |
+
+This evidence proves the checked-in source behavior on the local host; it does not replace signed-device, CloudKit production, protected TMDb account, cross-OS KMP, or store-candidate validation. Android native and KMP evidence is maintained in the Android repository's `docs/TESTING.md`.

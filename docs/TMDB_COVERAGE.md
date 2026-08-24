@@ -1,0 +1,55 @@
+# TMDb coverage matrix
+
+This matrix is the release authority for SmartMovie's TMDb surface. It classifies every TMDb API group used or deliberately omitted by the product. A route is not considered complete merely because the Worker can call it: `UI` requires a user-facing flow on Apple, native Android, and KMP; `backend-only` means the contract exists but no product surface exposes it; `excluded` is an intentional product boundary; `blocker` is required by the 3.0 plan but not yet complete on every client.
+
+The canonical transport is OpenAPI 3.1 at `backend/worker/contract/v2/openapi.json`. Legacy `/v1` remains available for 2.0 clients.
+
+## Catalog and discovery
+
+| TMDb group | SmartMovie `/v2` surface | Classification | Evidence / remaining work |
+| --- | --- | --- | --- |
+| Configuration, genres | `/v2/configuration`, `/v2/home`, `/v2/discover/{mediaType}` | UI | Image configuration and genre-driven discovery are consumed by all catalog clients. |
+| Home feeds | `/v2/home` | UI | Movie and TV shelves normalize trending, popular, top-rated, theatrical/on-air, and upcoming feeds. |
+| Discover | `/v2/discover/{mediaType}` | UI | Media type, genre, date, original language, country, certification, runtime, provider, region, sort, and adult flag are allowlisted by the Worker. Client parity for every advanced control remains a release audit item. |
+| Trending | `/v2/trending/{kind}/{window}` | UI | Home consumes trending content; repository APIs also expose day/week and entity-kind selection. |
+| Search | `/v2/search` | UI | Discriminated Movie, TV, Person, Collection, Company, and Keyword results navigate to native entity details. |
+| Find by external ID | `/v2/find/{externalId}` | **Blocker** | Worker/OpenAPI implemented. Apple, native Android, and KMP do not yet expose a repository method or UI entry. |
+| Movie and TV detail | `/v2/titles/{mediaType}/{id}` | UI | Includes tagline, creators, credits, collection, companies/networks, seasons, external IDs, images, videos, reviews, recommendations, similar titles, release information, translations, and providers. |
+| Related title resources | `/v2/titles/{mediaType}/{id}/{resource}` | UI through aggregate detail | Separate routes cover credits, images, videos, reviews, recommendations, similar, translations, release information, external IDs, and watch providers. Clients normally consume the normalized aggregate detail. |
+| People | `/v2/entities/person/{id}` | UI | Biography, profile images, aliases, external IDs, and combined credits are navigable from cast/crew and Search. |
+| Collections | `/v2/entities/collection/{id}` | UI | Collection detail and all member titles are navigable. |
+| Companies and networks | `/v2/entities/{company|network}/{id}` | UI | Search/detail navigation shows organization metadata and related titles. |
+| Keywords | `/v2/entities/keyword/{id}` | UI | Keyword detail shows related titles. |
+| TV seasons and episodes | `/v2/tv/{seriesId}/seasons/{seasonNumber}` and episode child route | UI | Season/episode metadata, credits, guest stars, images, videos, and air dates are represented. |
+| Credit detail | `/v2/credits/{creditId}` | **Blocker** | Worker/OpenAPI implemented. Clients link people but do not yet expose a credit-detail screen. |
+| Watch providers | title aggregate and related-resource route | UI | Region-aware stream/rent/buy offers open only the TMDb URL and show JustWatch attribution. |
+| Changes | no public route | **Blocker** | Configuration exposes `change_keys`, but the Worker does not yet poll TMDb change feeds to invalidate catalog cache entries. No debug UI is planned. |
+| Certifications, release dates, content ratings, alternative titles, translations, external IDs | normalized title detail | Backend-normalized UI data | These upstream groups are folded into stable title models instead of mirrored as raw TMDb endpoints. |
+
+## Account and lists
+
+| TMDb group | SmartMovie `/v2` surface | Classification | Evidence / remaining work |
+| --- | --- | --- | --- |
+| v4 browser authorization and v3 session exchange | `/v2/auth/*` | UI | Clients open TMDb in the system browser; TV uses QR/polling; Web uses secure cookies. SmartMovie never receives a TMDb password. Production still requires D1 bindings, encryption secrets, callback DNS, and allowlists. |
+| Account profile/state | `/v2/account/profile`, `/v2/account/state/*` | UI | Profile is the fifth primary destination; title/episode state hydrates rating and library UI. |
+| Favorites and Watchlist | `/v2/account/{favorites|watchlist}/{mediaType}` | UI | Local-first merge and durable outbox preserve offline mutations. Pending local state wins until acknowledged. |
+| Movie/TV/Episode ratings | `/v2/account/ratings/*` | UI | Apple, native Android, and KMP support 0.5–10 ratings, removal, optimistic state, persistence, and idempotent retry. |
+| Account recommendations | `/v2/account/recommendations/{mediaType}` | **Blocker** | Worker and repository clients exist, but no cross-platform Profile/home surface displays account recommendations yet. |
+| Custom mixed lists | `/v2/account/lists*` | Partial UI / **Blocker** | Create/delete and durable CRUD/item outbox paths exist. Editing metadata and adding/removing titles need complete user-facing parity on all three clients. |
+| Guest sessions | none | Excluded | SmartMovie uses browser-approved account sessions only. |
+| Raw username/password login | none | Excluded | Credentials must only be entered on TMDb-controlled pages. |
+
+## Product boundaries
+
+| TMDb group or behavior | Classification | Reason |
+| --- | --- | --- |
+| Full movie or episode playback | Excluded | SmartMovie is a catalog; it only opens trailers and availability links. |
+| SmartMovie-owned accounts | Excluded | Identity and user content remain at TMDb; the Worker brokers opaque sessions only. |
+| Server-side storage of favorites, watchlist, ratings, or list contents | Excluded | User content lives at TMDb and in local client caches/outboxes. |
+| Analytics, advertising, in-app purchases | Excluded | Outside the product and privacy model. |
+| Adult content on Watch/Wear, notifications, public screenshots, or store metadata | Excluded | Adult content is local opt-in with a six-digit device PIN and is deliberately withheld from public/companion surfaces. |
+| TMDb app credential in a client | Excluded / security violation | The credential belongs only in protected Worker secrets. |
+
+## Completion rule
+
+SmartMovie 3.0 is not product-complete while any row is marked **Blocker**. Every completed row must have Worker schema/fixture coverage plus Swift, native Android, and KMP decoding or behavior tests. Production account capability must remain disabled until the deployed Worker has its D1 binding, session-encryption key, callback origin, and return-URI allowlist.

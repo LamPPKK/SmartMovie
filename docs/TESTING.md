@@ -12,17 +12,19 @@ SmartMovie keeps unit and contract tests deterministic and independent of TMDb, 
 | Feature models | 6 | Home refresh, Explore pagination/deduplication, Search debounce/cancellation/error state, trailer selection |
 | SwiftData Library | 3 | Independent Favorite/Watchlist state, CloudKit-style duplicate reconciliation, filtering/sorting/offline snapshots |
 | Domain and configuration | 5 | Detail fixture, six locale mappings, Movie/TV fallbacks, Worker acronym decoding, image URL normalization |
-| Catalog conformance | 3 | Canonical success/error fixtures, additive fields, and omitted nullable fields across the native Swift models |
+| `/v1` catalog conformance | 3 | Canonical success/error fixtures, additive fields, and omitted nullable fields across native Swift models |
+| `/v2` contract conformance | 3 | Entity discriminators, account/auth/mutation fixtures, unknown fields, and missing nullable values |
+| Account mutation outbox | 3 | Persistence, account isolation, stable idempotency keys, exact acknowledgement, and restart-safe retry |
 | Watch remote | 2 | Remote presentation intent, dismissal, Library revision, and title/context state |
-| Cloudflare Worker | 28 | Route/query validation, schema validation for all six routes and errors, fixture validation, cache behavior, rate limiting, TMDb mapping, fallback language, token isolation |
+| Cloudflare Worker | 52 | `/v1` + `/v2` schema/fixture validation, v3/v4 mapping, cache/rate limits, D1 migrations, encryption, callback/CSRF/CORS controls, sessions, and idempotent mutation replay |
 
-Consolidated baseline: 25 Swift tests plus 28 Worker tests. The pre-consolidation evidence and local toolchain boundary are recorded in [Baseline](BASELINE.md).
+Current verified baseline: 31 Swift tests plus 52 Worker tests. Historical evidence and the local toolchain boundary are recorded in [Baseline](BASELINE.md).
 
 ## Latest local verification
 
-The 17 August 2026 verification run passed all 25 SmartMovieKit tests, strict SwiftLint across 31 files, and an unsigned iOS Simulator build. The app installed on an iPhone 16 Pro with iOS 18.6, launched with a valid process identifier, remained alive for the three-second CI smoke window, and terminated normally. This run therefore did not reproduce a launch crash on iOS Simulator.
+The 25 August 2026 implementation run passed all 31 SmartMovieKit tests, all 52 Worker tests plus Worker type-checking, and strict SwiftLint with zero violations. Unsigned iOS, Catalyst, tvOS, native macOS, and watchOS source builds passed. The iOS Simulator app remained alive for its launch-smoke window.
 
-This result does not clear the separate native macOS signing check. An unsigned `SmartMovieNativeMac` build can compile successfully and then terminate when CloudKit initializes because the process lacks the `com.apple.developer.icloud-services` entitlement. Use a Development-signed build with the configured iCloud container for native macOS launch verification; `CODE_SIGNING_ALLOWED=NO` is suitable for build/analyze only.
+The native `SmartMovieNativeMac` executable also remained alive for a five-second smoke window, so the earlier exit-code 132 launch crash was not reproduced. Signed-device CloudKit validation is still required before release. visionOS source compile/link validation passed, but a full asset build remains unverified on this host because the required visionOS runtime/toolchain support is unavailable.
 
 ## Run unit and contract tests
 
@@ -90,7 +92,7 @@ xcrun llvm-cov report "$SMARTMOVIE_TEST_BINARY" \
   -ignore-filename-regex='Tests|/UI/|resource_bundle_accessor'
 ```
 
-The current core baseline is 74.20% line coverage. This number is diagnostic rather than a release gate: new behavior must be covered at its decision boundaries, while declarative SwiftUI rendering is verified through platform builds and UI/device checks.
+The last recorded 2.0 core baseline was 74.20% line coverage. Recalculate it for the 3.0 release candidate before publishing a new baseline. Coverage is diagnostic rather than a release gate: new behavior must be covered at its decision boundaries, while declarative SwiftUI rendering is verified through platform builds and UI/device checks.
 
 ## Build every Apple target
 
