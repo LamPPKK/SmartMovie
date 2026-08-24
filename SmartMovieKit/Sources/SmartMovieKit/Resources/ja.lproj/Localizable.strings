@@ -90,3 +90,8 @@
 "Department" = "部門";
 "Crew" = "スタッフ";
 "Guest stars" = "ゲスト出演";
+"Account recommendations" = "あなたへのおすすめ";
+"Recommendations unavailable" = "おすすめを読み込めません";
+"No account recommendations yet." = "おすすめはまだありません。";
+"Load more" = "さらに読み込む";
+"Media type" = "メディア種類";

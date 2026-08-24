@@ -13,7 +13,7 @@
 
 ## Product blockers still recorded in source
 
-The codebase must not be declared product-complete until [TMDb coverage](../docs/TMDB_COVERAGE.md) has no **Blocker** rows. Current gaps include account recommendations, complete mixed-list editing/items, and Worker TMDb-change-feed cache invalidation.
+The codebase must not be declared product-complete until [TMDb coverage](../docs/TMDB_COVERAGE.md) has no **Blocker** rows. Current gaps include complete mixed-list editing/items and Worker TMDb-change-feed cache invalidation. Account recommendations now have cross-platform Profile UI and contract/behavior coverage.
 
 ## Release-owner actions
 

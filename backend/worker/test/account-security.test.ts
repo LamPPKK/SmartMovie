@@ -84,6 +84,57 @@ describe("v2 session broker security", () => {
     expect(database.deleted).toBe(true);
   });
 
+  it("maps private v4 account recommendations with locale and pagination", async () => {
+    const bearer = "opaque-recommendations-session";
+    const database = new SessionDatabase({
+      token_hash: await sha256(bearer),
+      account_object_id: "v4-account",
+      account_id: 42,
+      access_token_encrypted: await encryptSecret("tmdb-access", secret),
+      v3_session_encrypted: await encryptSecret("tmdb-v3", secret),
+      csrf_hash: await sha256("csrf"),
+      created_at: now() - 10,
+      last_seen_at: now() - 10,
+      expires_at: now() + 300,
+      revoked_at: null,
+    });
+    const upstream = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      expect(url.pathname).toBe("/4/account/v4-account/tv/recommendations");
+      expect(url.searchParams.get("language")).toBe("vi-VN");
+      expect(url.searchParams.get("page")).toBe("2");
+      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer tmdb-access");
+      return Response.json({
+        page: 2,
+        total_pages: 3,
+        results: [{
+          id: 1399,
+          name: "Game of Thrones",
+          original_name: "Game of Thrones",
+          overview: "Story",
+          first_air_date: "2011-04-17",
+          vote_average: 8.5,
+          genre_ids: [18],
+          adult: false,
+        }],
+      });
+    });
+    vi.stubGlobal("fetch", upstream);
+
+    const response = await worker.fetch(new Request(
+      "https://catalog.example/v2/account/recommendations/tv?language=vi-VN&page=2",
+      { headers: { Authorization: `Bearer ${bearer}`, "X-SmartMovie-Client": "test" } },
+    ), accountEnv(database), context);
+    const value = await response.json() as { page: number; total_pages: number; results: Array<{ media_type: string }> };
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(value).toMatchObject({ page: 2, total_pages: 3 });
+    expect(value.results).toHaveLength(1);
+    expect(value.results[0]?.media_type).toBe("tv");
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
   it("replays a completed account mutation without calling TMDb twice", async () => {
     const bearer = "opaque-retry-session";
     const database = new SessionDatabase({

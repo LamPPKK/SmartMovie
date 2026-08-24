@@ -20,7 +20,10 @@ public struct ProfileView: View {
             VStack(alignment: .leading, spacing: 28) {
                 accountCard
                 preferences
-                if case .signedIn = container.accountSession.state { accountLibrary }
+                if case .signedIn = container.accountSession.state {
+                    AccountRecommendationsView()
+                    accountLibrary
+                }
                 NavigationLink { AboutView() } label: {
                     Label(String(localized: "About, privacy & attribution", bundle: .module), systemImage: "info.circle")
                 }

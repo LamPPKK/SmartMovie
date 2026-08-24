@@ -90,3 +90,8 @@
 "Department" = "부서";
 "Crew" = "제작진";
 "Guest stars" = "게스트 출연";
+"Account recommendations" = "회원님을 위한 추천";
+"Recommendations unavailable" = "추천을 불러올 수 없음";
+"No account recommendations yet." = "아직 추천이 없습니다.";
+"Load more" = "더 보기";
+"Media type" = "미디어 유형";

@@ -27,7 +27,15 @@ public protocol CatalogV2Repository: Sendable {
     func credit(id: String, language: String) async throws -> CreditDetail
 }
 
-public protocol AccountRepository: Sendable {
+public protocol AccountRecommendationsLoading: Sendable {
+    func recommendations(
+        mediaType: MediaType,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary>
+}
+
+public protocol AccountRepository: AccountRecommendationsLoading, Sendable {
     func createAuthAttempt(returnURI: URL, mode: String) async throws -> AuthAttempt
     func authAttempt(id: UUID, deviceCode: String?) async throws -> String
     func completeAuth(id: UUID, deviceCode: String?) async throws -> AuthSession

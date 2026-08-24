@@ -17,6 +17,7 @@ This document is the release authority for behavior shared by native Apple, nati
 | PAR-AUTH-001 | TMDb authorization | Use TMDb browser approval, opaque SmartMovie sessions, allowlisted callbacks, and no password collection. TV uses QR/polling; Web uses an `HttpOnly` cookie. |
 | PAR-LIBRARY-002 | Account library | Merge local and TMDb Favorites/Watchlist on first login; local pending mutations win; durable outbox retry is idempotent; logout offers keep-local or remove-account-data. |
 | PAR-RATING-001 | Ratings | Rate/remove Movie, TV, and Episode values from 0.5 through 10; update optimistically; persist and retry the same mutation ID. |
+| PAR-RECOMMENDATIONS-001 | Account recommendations | After TMDb sign-in, display separate Movie/TV recommendations with retry, pagination, title navigation, `libraryKey` deduplication, and the same local adult-PIN visibility rule as catalog search. |
 | PAR-LISTS-001 | Custom lists | Support mixed Movie/TV list CRUD and item changes through the durable account outbox. |
 | PAR-NETWORK-002 | Network | Send stable anonymous client identity, honor the normalized error envelope, retry 429/transient 5xx at most twice, honor `Retry-After`, and preserve cancellation. |
 | PAR-LOCALE-001 | Localization | Ship English, Vietnamese, Japanese, Korean, Simplified Chinese, and Traditional Chinese; map exactly to the six Worker locales. |

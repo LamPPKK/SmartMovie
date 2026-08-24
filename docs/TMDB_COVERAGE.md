@@ -34,7 +34,7 @@ The canonical transport is OpenAPI 3.1 at `backend/worker/contract/v2/openapi.js
 | Account profile/state | `/v2/account/profile`, `/v2/account/state/*` | UI | Profile is the fifth primary destination; title/episode state hydrates rating and library UI. |
 | Favorites and Watchlist | `/v2/account/{favorites|watchlist}/{mediaType}` | UI | Local-first merge and durable outbox preserve offline mutations. Pending local state wins until acknowledged. |
 | Movie/TV/Episode ratings | `/v2/account/ratings/*` | UI | Apple, native Android, and KMP support 0.5–10 ratings, removal, optimistic state, persistence, and idempotent retry. |
-| Account recommendations | `/v2/account/recommendations/{mediaType}` | **Blocker** | Worker and repository clients exist, but no cross-platform Profile/home surface displays account recommendations yet. |
+| Account recommendations | `/v2/account/recommendations/{mediaType}` | UI | Profile displays separate Movie/TV recommendations on Apple, native Android/TV, and KMP, with retry, pagination, title navigation, `libraryKey` deduplication, and local adult-PIN filtering. The canonical fixture and Worker test cover v4 mapping and private `no-store` delivery. |
 | Custom mixed lists | `/v2/account/lists*` | Partial UI / **Blocker** | Create/delete and durable CRUD/item outbox paths exist. Editing metadata and adding/removing titles need complete user-facing parity on all three clients. |
 | Guest sessions | none | Excluded | SmartMovie uses browser-approved account sessions only. |
 | Raw username/password login | none | Excluded | Credentials must only be entered on TMDb-controlled pages. |

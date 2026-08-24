@@ -1,0 +1,35 @@
+{
+  "page": 1,
+  "total_pages": 2,
+  "results": [
+    {
+      "entity_kind": "movie",
+      "id": 438631,
+      "media_type": "movie",
+      "title": "Dune",
+      "original_title": "Dune",
+      "overview": "A gifted young man travels to the most dangerous planet in the universe.",
+      "poster_path": "/dune-poster.jpg",
+      "backdrop_path": "/dune-backdrop.jpg",
+      "release_date": "2021-09-15",
+      "vote_average": 7.8,
+      "genre_ids": [878, 12],
+      "adult": false
+    },
+    {
+      "entity_kind": "movie",
+      "id": 999001,
+      "media_type": "movie",
+      "title": "Restricted recommendation",
+      "original_title": "Restricted recommendation",
+      "overview": "Fixture used to verify local adult-content filtering.",
+      "poster_path": null,
+      "backdrop_path": null,
+      "release_date": null,
+      "vote_average": 0,
+      "genre_ids": [],
+      "adult": true
+    }
+  ],
+  "future_field": "ignored by clients"
+}

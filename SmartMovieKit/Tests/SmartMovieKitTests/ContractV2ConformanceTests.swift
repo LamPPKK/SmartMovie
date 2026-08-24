@@ -35,6 +35,8 @@ final class ContractV2ConformanceTests: XCTestCase {
         let credit = try decode(CreditDetail.self, fixture: "credit-detail")
         XCTAssertEqual(credit.personSummary?.id, 6384)
         XCTAssertEqual(credit.titleSummary?.libraryKey, "movie:603")
+        let recommendations = try decode(PagedResult<TitleSummary>.self, fixture: "account-recommendations")
+        XCTAssertEqual(recommendations.results.map(\.libraryKey), ["movie:438631", "movie:999001"])
     }
 
     func testAccountAuthMutationAndErrorFixturesDecode() throws {

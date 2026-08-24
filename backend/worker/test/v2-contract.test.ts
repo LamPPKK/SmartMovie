@@ -1,6 +1,7 @@
 import Ajv2020, { type ValidateFunction } from "ajv/dist/2020.js";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import accountFixture from "../contract/v2/fixtures/account.json";
+import accountRecommendationsFixture from "../contract/v2/fixtures/account-recommendations.json";
 import attemptFixture from "../contract/v2/fixtures/auth-attempt.json";
 import capabilitiesFixture from "../contract/v2/fixtures/capabilities.json";
 import collectionFixture from "../contract/v2/fixtures/collection.json";
@@ -33,6 +34,7 @@ type SchemaName =
   | "PersonDetail"
   | "SeasonDetail"
   | "TitleDetail"
+  | "TitlePage"
   | "UserList";
 
 const schemaID = "https://smartmovie.app/contracts/catalog-v2";
@@ -64,6 +66,7 @@ describe("canonical v2 fixtures", () => {
     ["EpisodeDetail", episodeFixture],
     ["AccountProfile", accountFixture.profile],
     ["AccountState", accountFixture.state],
+    ["TitlePage", accountRecommendationsFixture],
     ["UserList", accountFixture.list],
     ["AuthAttempt", attemptFixture],
     ["MutationResult", mutationFixture],

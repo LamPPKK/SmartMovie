@@ -90,3 +90,8 @@
 "Department" = "部门";
 "Crew" = "幕后人员";
 "Guest stars" = "客串演员";
+"Account recommendations" = "为你推荐";
+"Recommendations unavailable" = "无法加载推荐";
+"No account recommendations yet." = "暂无推荐。";
+"Load more" = "加载更多";
+"Media type" = "媒体类型";

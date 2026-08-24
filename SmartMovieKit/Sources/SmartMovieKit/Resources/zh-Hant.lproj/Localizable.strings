@@ -90,3 +90,8 @@
 "Department" = "部門";
 "Crew" = "幕後人員";
 "Guest stars" = "客串演員";
+"Account recommendations" = "為你推薦";
+"Recommendations unavailable" = "無法載入推薦";
+"No account recommendations yet." = "暫無推薦。";
+"Load more" = "載入更多";
+"Media type" = "媒體類型";
