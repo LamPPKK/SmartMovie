@@ -1,15 +1,16 @@
 {
   "schema_version": 1,
-  "train_version": "2.0.0",
-  "contract_version": "1.0.0",
-  "contract_openapi_sha256": "70fba83a8e26c49c5d8c6572f12e6119d7e6b5fa23b34fdd8da4f63071a4e13c",
+  "train_version": "3.0.0",
+  "contract_version": "2.0.0",
+  "contract_openapi_sha256": "59dfe6d595f1328cf2a7900a2bf74adbbb208e9648056cff475a3114a3293610",
+  "legacy_contract_version": "1.0.0",
   "apple": {
-    "marketing_version": "2.0.0",
-    "build_number": 1
+    "marketing_version": "3.0.0",
+    "build_number": 2
   },
   "android": {
-    "version_name": "2.0.0",
-    "version_code": 1
+    "version_name": "3.0.0",
+    "version_code": 2
   },
   "parity_exceptions": []
 }
