@@ -1,7 +1,7 @@
 import Foundation
 
 public struct RemoteCatalogRepository: CatalogRepository {
-    private let client: APIClient
+    let client: APIClient
 
     public init(client: APIClient) {
         self.client = client

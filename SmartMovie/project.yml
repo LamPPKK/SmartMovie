@@ -18,8 +18,8 @@ settings:
   base:
     SWIFT_VERSION: "6.0"
     DEVELOPMENT_LANGUAGE: en
-    MARKETING_VERSION: "2.0.0"
-    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "3.0.0"
+    CURRENT_PROJECT_VERSION: "2"
     ENABLE_USER_SCRIPT_SANDBOXING: true
     CATALOG_BASE_URL: "https://staging-catalog.smartmovie.app/"
   configs:
@@ -33,6 +33,16 @@ packages:
 targetTemplates:
   CatalogApp:
     type: application
+    info:
+      path: Apps/Shared/SmartMovie-Info.plist
+      properties:
+        CFBundleDisplayName: "$(PRODUCT_NAME)"
+        CATALOG_BASE_URL: "$(CATALOG_BASE_URL)"
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: app.smartmovie.auth
+            CFBundleURLSchemes:
+              - smartmovie
     sources:
       - path: Apps/Shared
       - path: SmartMovie/Assets.xcassets
@@ -42,8 +52,6 @@ targetTemplates:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: true
-        INFOPLIST_KEY_CATALOG_BASE_URL: "$(CATALOG_BASE_URL)"
-        INFOPLIST_KEY_CFBundleDisplayName: "$(PRODUCT_NAME)"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_PREVIEWS: true
 

@@ -22,30 +22,30 @@ public struct SearchView: View {
     private func content(_ model: SearchViewModel) -> some View {
         @Bindable var model = model
         return VStack(spacing: 10) {
-            Picker(String(localized: "Search scope", bundle: .module), selection: $model.scope) {
-                ForEach(SearchScope.allCases) { scope in Text(scope.displayName).tag(scope) }
+            Picker(String(localized: "Search scope", bundle: .module), selection: $model.entityScope) {
+                ForEach(SearchScopeV2.allCases) { scope in Text(scope.displayName).tag(scope) }
             }
-            .pickerStyle(.segmented)
-            .frame(maxWidth: 460)
+            .pickerStyle(.menu)
+            .frame(maxWidth: 520, alignment: .leading)
             .padding(.horizontal)
-            .onChange(of: model.scope) { model.scheduleSearch(language: LocaleResolver.tmdbLanguage(for: locale)) }
+            .onChange(of: model.entityScope) { schedule(model) }
 
             if model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 StateMessageView(
                     icon: "magnifyingglass",
                     title: String(localized: "Find your next story", bundle: .module),
-                    message: String(localized: "Search movies and TV series by title.", bundle: .module)
+                    message: String(localized: "Search titles, people, collections, companies, and keywords.", bundle: .module)
                 )
-            } else if model.items.isEmpty, model.isLoading {
+            } else if model.entities.isEmpty, model.isLoading {
                 ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if model.items.isEmpty, let message = model.errorMessage {
+            } else if model.entities.isEmpty, let message = model.errorMessage {
                 StateMessageView(
                     icon: "wifi.exclamationmark",
                     title: String(localized: "Search failed", bundle: .module),
                     message: message,
-                    retry: { model.scheduleSearch(language: LocaleResolver.tmdbLanguage(for: locale)) }
+                    retry: { schedule(model) }
                 )
-            } else if model.items.isEmpty {
+            } else if model.entities.isEmpty {
                 StateMessageView(
                     icon: "film.stack",
                     title: String(localized: "No results", bundle: .module),
@@ -57,12 +57,19 @@ public struct SearchView: View {
                         columns: [GridItem(.adaptive(minimum: horizontalSizeClass == .regular ? 180 : 145), spacing: 18)],
                         spacing: 28
                     ) {
-                        ForEach(model.items) { title in
-                            NavigationLink(value: title) {
-                                PosterCard(title: title, width: horizontalSizeClass == .regular ? 180 : 150)
+                        ForEach(model.entities) { entity in
+                            NavigationLink(value: entity) {
+                                CatalogEntityCard(entity: entity, width: horizontalSizeClass == .regular ? 180 : 150)
                             }
                             .catalogNavigationButtonStyle()
-                            .onAppear { model.loadMoreIfNeeded(current: title, language: LocaleResolver.tmdbLanguage(for: locale)) }
+                            .onAppear {
+                                model.loadMoreIfNeeded(
+                                    current: entity,
+                                    language: LocaleResolver.tmdbLanguage(for: locale),
+                                    region: container.regionSettings.effectiveRegion,
+                                    includeAdult: container.adultContent.includeAdult
+                                )
+                            }
                         }
                     }
                     .padding()
@@ -70,8 +77,16 @@ public struct SearchView: View {
                 }
             }
         }
-        .searchable(text: $model.query, prompt: String(localized: "Movies and TV series", bundle: .module))
-        .onChange(of: model.query) { model.scheduleSearch(language: LocaleResolver.tmdbLanguage(for: locale)) }
+        .searchable(text: $model.query, prompt: String(localized: "Titles, people, and collections", bundle: .module))
+        .onChange(of: model.query) { schedule(model) }
         .catalogSearchInputBehavior()
+    }
+
+    private func schedule(_ model: SearchViewModel) {
+        model.scheduleSearch(
+            language: LocaleResolver.tmdbLanguage(for: locale),
+            region: container.regionSettings.effectiveRegion,
+            includeAdult: container.adultContent.includeAdult
+        )
     }
 }

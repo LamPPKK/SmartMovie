@@ -74,6 +74,22 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             clean build analyze
 
+      - name: Native macOS launch smoke test
+        if: matrix.artifact == 'macos-build-analyze'
+        run: |
+          app="$RUNNER_TEMP/DerivedData-${{ matrix.artifact }}/Build/Products/Debug/SmartMovie for Mac.app"
+          executable="$app/Contents/MacOS/SmartMovie for Mac"
+          test -x "$executable"
+          "$executable" >"$RUNNER_TEMP/native-macos-launch.log" 2>&1 &
+          pid=$!
+          sleep 5
+          if ! kill -0 "$pid" 2>/dev/null; then
+            cat "$RUNNER_TEMP/native-macos-launch.log"
+            wait "$pid"
+          fi
+          kill "$pid"
+          wait "$pid" || test "$?" -eq 143
+
       - name: Upload failed result bundle
         if: failure()
         uses: actions/upload-artifact@v7

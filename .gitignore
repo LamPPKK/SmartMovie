@@ -7,6 +7,10 @@
 # Swift Package Manager
 .build/
 
+# Local Xcode and runtime output
+**/build/
+SmartMovieArtwork/
+
 # Cloudflare Worker
 backend/worker/node_modules/
 backend/worker/.wrangler/

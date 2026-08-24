@@ -1,9 +1,9 @@
 import SwiftUI
 
 public struct DetailView: View {
-    @Environment(AppContainer.self) private var container
-    @Environment(\.locale) private var locale
-    @Environment(\.openURL) private var openURL
+    @Environment(AppContainer.self) var container
+    @Environment(\.locale) var locale
+    @Environment(\.openURL) var openURL
     #if os(macOS) || os(visionOS)
     @Environment(\.openWindow) private var openWindow
     #endif
@@ -12,6 +12,7 @@ public struct DetailView: View {
     @State private var model: DetailViewModel?
     @State private var trailerStatus: String?
     @State private var didAutoplayTrailer = false
+    @State private var accountRating: Double?
     private let summary: TitleSummary
     private let autoplayTrailer: Bool
 
@@ -50,8 +51,13 @@ public struct DetailView: View {
             if model == nil {
                 model = DetailViewModel(summary: summary, catalog: container.catalog, library: container.library)
             }
-            await model?.load(language: LocaleResolver.tmdbLanguage(for: locale))
+            await model?.load(
+                language: LocaleResolver.tmdbLanguage(for: locale),
+                region: container.regionSettings.effectiveRegion,
+                includeAdult: container.adultContent.includeAdult
+            )
             guard let model else { return }
+            if case .signedIn = container.accountSession.state { await loadAccountRating() }
             syncWatchRemote(model)
             if autoplayTrailer, !didAutoplayTrailer {
                 didAutoplayTrailer = true
@@ -82,7 +88,13 @@ public struct DetailView: View {
                 title: String(localized: "Details unavailable", bundle: .module),
                 message: message,
                 retry: {
-                    Task { await model.load(language: LocaleResolver.tmdbLanguage(for: locale)) }
+                    Task {
+                        await model.load(
+                            language: LocaleResolver.tmdbLanguage(for: locale),
+                            region: container.regionSettings.effectiveRegion,
+                            includeAdult: container.adultContent.includeAdult
+                        )
+                    }
                 }
             )
         case .loaded(let detail):
@@ -95,6 +107,7 @@ public struct DetailView: View {
             LazyVStack(alignment: .leading, spacing: 30) {
                 hero(detail, model: model)
                 overview(detail)
+                if let deep = model.deepDetail { deepSections(deep) }
                 if !detail.cast.isEmpty { castShelf(detail.cast) }
                 if !detail.similar.isEmpty { similarShelf(detail.similar) }
                 credits
@@ -149,34 +162,7 @@ public struct DetailView: View {
                     }
                 }
 
-                HStack(spacing: 12) {
-                    ActionPill(
-                        title: String(localized: "Trailer", bundle: .module),
-                        systemImage: "play.fill",
-                        prominent: true
-                    ) {
-                        playTrailer(model)
-                    }
-                    .disabled(model.preferredTrailer(language: LocaleResolver.tmdbLanguage(for: locale)) == nil)
-
-                    ActionPill(
-                        title: String(localized: "Favorite", bundle: .module),
-                        systemImage: model.isFavorite ? "heart.fill" : "heart",
-                        prominent: false
-                    ) {
-                        model.toggle(.favorites)
-                        syncWatchRemote(model)
-                    }
-
-                    ActionPill(
-                        title: String(localized: "Watchlist", bundle: .module),
-                        systemImage: model.isWatchlisted ? "bookmark.fill" : "bookmark",
-                        prominent: false
-                    ) {
-                        model.toggle(.watchlist)
-                        syncWatchRemote(model)
-                    }
-                }
+                heroActions(model)
             }
             .padding(24)
         }
@@ -184,80 +170,61 @@ public struct DetailView: View {
         .animation(reduceMotion ? nil : .snappy(duration: 0.3), value: model.isWatchlisted)
     }
 
-    private func overview(_ detail: TitleDetail) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionTitle(String(localized: "Story", bundle: .module))
-            Text(detail.overview.isEmpty ? String(localized: "No overview is available.", bundle: .module) : detail.overview)
-                .font(.body)
-                .foregroundStyle(CinemaTheme.foreground.opacity(0.84))
-                .lineSpacing(5)
-            if let status = detail.status {
-                LabeledContent(String(localized: "Status", bundle: .module), value: status)
-                    .foregroundStyle(CinemaTheme.muted)
+    private func heroActions(_ model: DetailViewModel) -> some View {
+        HStack(spacing: 12) {
+            ActionPill(
+                title: String(localized: "Trailer", bundle: .module),
+                systemImage: "play.fill",
+                prominent: true
+            ) {
+                playTrailer(model)
             }
+            .disabled(model.preferredTrailer(language: LocaleResolver.tmdbLanguage(for: locale)) == nil)
+
+            libraryAction(model, collection: .favorites)
+            libraryAction(model, collection: .watchlist)
+            if case .signedIn = container.accountSession.state { ratingMenu }
         }
-        .padding(.horizontal, 24)
     }
 
-    private func castShelf(_ cast: [CastMember]) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            SectionTitle(String(localized: "Cast", bundle: .module)).padding(.horizontal, 24)
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: 16) {
-                    ForEach(cast.prefix(20)) { member in
-                        VStack(spacing: 9) {
-                            RemoteArtwork(url: container.imageURL(path: member.profilePath, kind: .profile), kind: .profile)
-                                .frame(width: 104, height: 132)
-                                .clipShape(RoundedRectangle(cornerRadius: 16))
-                            Text(member.name)
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(CinemaTheme.foreground)
-                                .lineLimit(2)
-                            if let character = member.character {
-                                Text(character)
-                                    .font(.caption2)
-                                    .foregroundStyle(CinemaTheme.muted)
-                                    .lineLimit(2)
-                            }
-                        }
-                        .frame(width: 110)
-                    }
+    private func libraryAction(_ model: DetailViewModel, collection: LibraryCollection) -> some View {
+        let selected = collection == .favorites ? model.isFavorite : model.isWatchlisted
+        let title = collection == .favorites
+            ? String(localized: "Favorite", bundle: .module)
+            : String(localized: "Watchlist", bundle: .module)
+        let image = collection == .favorites ? "heart" : "bookmark"
+        return ActionPill(
+            title: title,
+            systemImage: selected ? "\(image).fill" : image,
+            prominent: false
+        ) {
+            model.toggle(collection)
+            syncWatchRemote(model)
+            Task { await container.flushLibraryOutbox() }
+        }
+    }
+
+    private var ratingMenu: some View {
+        Menu {
+            ForEach(1...10, id: \.self) { value in
+                Button("\(value) / 10") { Task { await setAccountRating(Double(value)) } }
+            }
+            if accountRating != nil {
+                Button(String(localized: "Remove rating", bundle: .module), role: .destructive) {
+                    Task { await setAccountRating(nil) }
                 }
-                .padding(.horizontal, 24)
             }
-        }
-    }
-
-    private func similarShelf(_ similar: [TitleSummary]) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            SectionTitle(String(localized: "More like this", bundle: .module)).padding(.horizontal, 24)
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: 16) {
-                    ForEach(similar) { title in
-                        NavigationLink(value: title) { PosterCard(title: title) }
-                            .catalogNavigationButtonStyle()
-                    }
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-            }
-        }
-    }
-
-    private var credits: some View {
-        NavigationLink {
-            AboutView()
         } label: {
-            Label(String(localized: "About & Credits", bundle: .module), systemImage: "info.circle")
-                .foregroundStyle(CinemaTheme.muted)
-                .padding(.horizontal, 24)
+            Label(
+                accountRating.map { String(format: "%.1f", $0) } ?? String(localized: "Rate", bundle: .module),
+                systemImage: accountRating == nil ? "star" : "star.fill"
+            )
+            .font(.subheadline.weight(.bold))
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(CinemaTheme.surface, in: Capsule())
         }
-    }
-
-    private func runtimeText(_ minutes: Int) -> String {
-        let hours = minutes / 60
-        let remaining = minutes % 60
-        return hours > 0 ? "\(hours)h \(remaining)m" : "\(remaining)m"
+        .foregroundStyle(CinemaTheme.foreground)
     }
 
     private func playTrailer(_ model: DetailViewModel) {
@@ -280,6 +247,7 @@ public struct DetailView: View {
 
     private func syncWatchRemote(_ model: DetailViewModel) {
         guard case .loaded(let detail) = model.state else { return }
+        guard !model.containsAdultContent else { return }
         let language = LocaleResolver.tmdbLanguage(for: locale)
         container.watchRemoteSession?.update(
             context: WatchRemoteContext(
@@ -291,54 +259,38 @@ public struct DetailView: View {
             )
         )
     }
-}
 
-private struct ActionPill: View {
-    let title: String
-    let systemImage: String
-    let prominent: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Label(title, systemImage: systemImage)
-                .font(.subheadline.weight(.bold))
-                .lineLimit(1)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 11)
-                .background(prominent ? CinemaTheme.accent : CinemaTheme.surface, in: Capsule())
+    @MainActor
+    private func loadAccountRating() async {
+        if let state = try? await container.account.accountState(mediaType: summary.mediaType, id: summary.id) {
+            accountRating = state.rated.ratingValue
         }
-        .buttonStyle(.plain)
-        .foregroundStyle(CinemaTheme.foreground)
+        if let pending = await container.pendingTitleRating(mediaType: summary.mediaType, mediaID: summary.id) {
+            accountRating = pending.value
+        }
+    }
+
+    @MainActor
+    private func setAccountRating(_ value: Double?) async {
+        do {
+            _ = try await container.queueTitleRating(
+                mediaType: summary.mediaType,
+                mediaID: summary.id,
+                value: value
+            )
+            accountRating = value
+            _ = await container.flushAccountOutbox()
+        } catch {
+            trailerStatus = error.localizedDescription
+        }
     }
 }
 
-public struct AboutView: View {
-    public init() {}
-
-    public var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                Image(systemName: "film.stack.fill")
-                    .font(.system(size: 64))
-                    .foregroundStyle(CinemaTheme.accent)
-                Text("SmartMovie")
-                    .font(.system(.largeTitle, design: .serif, weight: .black))
-                Text(String(localized: "A cinematic place to discover movies and television.", bundle: .module))
-                    .foregroundStyle(CinemaTheme.muted)
-                Divider().overlay(.white.opacity(0.12))
-                Text("TMDB")
-                    .font(.title2.bold())
-                    .foregroundStyle(Color(red: 0.01, green: 0.71, blue: 0.89))
-                Text("This product uses the TMDB API but is not endorsed or certified by TMDB.")
-                    .font(.footnote)
-                    .foregroundStyle(CinemaTheme.muted)
-                Link("The Movie Database", destination: URL(string: "https://www.themoviedb.org")!)
-            }
-            .frame(maxWidth: 680, alignment: .leading)
-            .padding(28)
-        }
-        .navigationTitle(String(localized: "About & Credits", bundle: .module))
-        .cinemaScreen()
+private extension JSONValue {
+    var ratingValue: Double? {
+        guard case .object(let values) = self,
+              let rawValue = values["value"],
+              case .number(let value) = rawValue else { return nil }
+        return value
     }
 }

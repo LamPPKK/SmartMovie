@@ -4,8 +4,10 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 train_file="$repo_root/release/train.json"
-contract_file="$repo_root/backend/worker/contract/openapi.json"
-contract_manifest="$repo_root/backend/worker/contract/manifest.json"
+contract_file="$repo_root/backend/worker/contract/v2/openapi.json"
+contract_manifest="$repo_root/backend/worker/contract/v2/manifest.json"
+legacy_contract_file="$repo_root/backend/worker/contract/openapi.json"
+legacy_contract_manifest="$repo_root/backend/worker/contract/manifest.json"
 
 read_json() {
   node -e 'const fs=require("node:fs"); const value=JSON.parse(fs.readFileSync(process.argv[1], "utf8")); console.log(process.argv[2].split(".").reduce((current, key) => current[key], value));' "$1" "$2"
@@ -51,7 +53,9 @@ manifest_contract_version="$(read_json "$contract_manifest" contract_version)"
 manifest_checksum="$(read_json "$contract_manifest" openapi_sha256)"
 expected_fixtures_checksum="$(read_json "$contract_manifest" fixtures_sha256)"
 actual_checksum="$(sha256_file "$contract_file")"
-actual_fixtures_checksum="$(fixtures_sha256 "$repo_root/backend/worker/contract/fixtures")"
+actual_fixtures_checksum="$(fixtures_sha256 "$repo_root/backend/worker/contract/v2/fixtures")"
+legacy_version="$(read_json "$legacy_contract_file" info.version)"
+legacy_manifest_version="$(read_json "$legacy_contract_manifest" contract_version)"
 
 [[ "$project_version" == "$expected_version" ]] || { printf 'Apple MARKETING_VERSION %s does not match train %s\n' "$project_version" "$expected_version"; exit 1; }
 [[ "$manifest_marketing_version" == "$expected_version" ]] || { printf 'Apple manifest version %s does not match train %s\n' "$manifest_marketing_version" "$expected_version"; exit 1; }
@@ -62,5 +66,6 @@ actual_fixtures_checksum="$(fixtures_sha256 "$repo_root/backend/worker/contract/
 [[ "$actual_checksum" == "$expected_checksum" ]] || { printf 'OpenAPI checksum %s does not match train %s\n' "$actual_checksum" "$expected_checksum"; exit 1; }
 [[ "$manifest_checksum" == "$expected_checksum" ]] || { printf 'Contract manifest checksum %s does not match train %s\n' "$manifest_checksum" "$expected_checksum"; exit 1; }
 [[ "$actual_fixtures_checksum" == "$expected_fixtures_checksum" ]] || { printf 'Fixture checksum %s does not match contract manifest %s\n' "$actual_fixtures_checksum" "$expected_fixtures_checksum"; exit 1; }
+[[ "$legacy_version" == "1.0.0" && "$legacy_manifest_version" == "1.0.0" ]] || { printf '/v1 contract must remain frozen at 1.0.0 while SmartMovie 2.0 is supported.\n'; exit 1; }
 
 printf 'Release train %s and catalog contract %s are consistent.\n' "$expected_version" "$expected_contract_version"

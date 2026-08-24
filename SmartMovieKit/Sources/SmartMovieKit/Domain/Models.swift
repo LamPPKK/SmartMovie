@@ -84,6 +84,7 @@ public struct TitleSummary: Codable, Hashable, Identifiable, Sendable {
     public let releaseDate: String?
     public let voteAverage: Double
     public let genreIDs: [Int]
+    public let isAdult: Bool
 
     private enum CodingKeys: String, CodingKey {
         case id
@@ -95,6 +96,7 @@ public struct TitleSummary: Codable, Hashable, Identifiable, Sendable {
         case backdropPath
         case releaseDate
         case voteAverage
+        case isAdult = "adult"
         // JSONDecoder converts `genre_ids` to `genreIds`, not `genreIDs`.
         case genreIDs = "genreIds"
     }
@@ -109,7 +111,8 @@ public struct TitleSummary: Codable, Hashable, Identifiable, Sendable {
         backdropPath: String? = nil,
         releaseDate: String? = nil,
         voteAverage: Double = 0,
-        genreIDs: [Int] = []
+        genreIDs: [Int] = [],
+        isAdult: Bool = false
     ) {
         self.id = id
         self.mediaType = mediaType
@@ -121,6 +124,22 @@ public struct TitleSummary: Codable, Hashable, Identifiable, Sendable {
         self.releaseDate = releaseDate
         self.voteAverage = voteAverage
         self.genreIDs = genreIDs
+        self.isAdult = isAdult
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(Int.self, forKey: .id)
+        mediaType = try container.decode(MediaType.self, forKey: .mediaType)
+        title = try container.decode(String.self, forKey: .title)
+        originalTitle = try container.decode(String.self, forKey: .originalTitle)
+        overview = try container.decode(String.self, forKey: .overview)
+        posterPath = try container.decodeIfPresent(String.self, forKey: .posterPath)
+        backdropPath = try container.decodeIfPresent(String.self, forKey: .backdropPath)
+        releaseDate = try container.decodeIfPresent(String.self, forKey: .releaseDate)
+        voteAverage = try container.decode(Double.self, forKey: .voteAverage)
+        genreIDs = try container.decode([Int].self, forKey: .genreIDs)
+        isAdult = try container.decodeIfPresent(Bool.self, forKey: .isAdult) ?? false
     }
 
     public var libraryKey: String { "\(mediaType.rawValue):\(id)" }

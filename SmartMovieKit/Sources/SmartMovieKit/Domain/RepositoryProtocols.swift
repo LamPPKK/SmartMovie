@@ -60,3 +60,18 @@ public protocol LibraryRepository: AnyObject {
     ) throws -> [LibrarySnapshot]
     func reconcileDuplicates() throws
 }
+
+@MainActor
+public protocol LibrarySyncRepository: LibraryRepository {
+    func activateAccount(_ accountID: Int) throws
+    func deactivateAccount(removeAccountData: Bool) throws
+    func mergeRemote(
+        _ remote: [TitleSummary],
+        collection: LibraryCollection,
+        mediaType: MediaType,
+        accountID: Int
+    ) throws
+    func pendingMutations(limit: Int) throws -> [LibraryPendingMutation]
+    func confirmMutation(_ id: UUID) throws
+    func failMutation(_ id: UUID, message: String) throws
+}

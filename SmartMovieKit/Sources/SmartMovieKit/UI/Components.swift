@@ -79,6 +79,82 @@ public struct PosterCard: View {
     }
 }
 
+public struct CatalogEntityCard: View {
+    @Environment(AppContainer.self) private var container
+    private let entity: CatalogEntity
+    private let width: CGFloat
+
+    public init(entity: CatalogEntity, width: CGFloat = 150) {
+        self.entity = entity
+        self.width = width
+    }
+
+    public var body: some View {
+        if case .title(let title) = entity {
+            PosterCard(title: title, width: width)
+        } else {
+            VStack(alignment: .leading, spacing: 9) {
+                RemoteArtwork(url: artworkURL, kind: artworkKind)
+                    .frame(width: width, height: width * 1.18)
+                    .clipShape(RoundedRectangle(cornerRadius: CinemaTheme.cornerRadius))
+                    .overlay(alignment: .topLeading) {
+                        Text(kindLabel)
+                            .font(.caption2.weight(.black))
+                            .tracking(1)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 5)
+                            .background(.black.opacity(0.72), in: Capsule())
+                            .padding(8)
+                    }
+                Text(entity.displayName)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(CinemaTheme.foreground)
+                    .lineLimit(2)
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundStyle(CinemaTheme.muted)
+                    .lineLimit(1)
+            }
+            .frame(width: width, alignment: .leading)
+            .contentShape(Rectangle())
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private var artworkURL: URL? {
+        switch entity {
+        case .person(let value): container.imageURL(path: value.profilePath, kind: .profile)
+        case .collection(let value): container.imageURL(path: value.posterPath ?? value.backdropPath, kind: .poster)
+        case .organization(let value): container.imageURL(path: value.logoPath, kind: .profile)
+        case .season(let value): container.imageURL(path: value.posterPath, kind: .poster)
+        case .episode(let value): container.imageURL(path: value.stillPath, kind: .backdrop)
+        case .title, .keyword: nil
+        }
+    }
+
+    private var artworkKind: ImageKind {
+        switch entity {
+        case .person, .organization: .profile
+        case .episode: .backdrop
+        default: .poster
+        }
+    }
+
+    private var kindLabel: String { entity.kind.rawValue.uppercased() }
+
+    private var subtitle: String {
+        switch entity {
+        case .person(let value): value.knownForDepartment ?? String(localized: "Person", bundle: .module)
+        case .collection: String(localized: "Collection", bundle: .module)
+        case .organization(let value): value.originCountry ?? String(localized: "Organization", bundle: .module)
+        case .keyword: String(localized: "Keyword", bundle: .module)
+        case .season(let value): String(format: String(localized: "%d episodes", bundle: .module), value.episodeCount)
+        case .episode(let value): "S\(value.seasonNumber) · E\(value.episodeNumber)"
+        case .title: ""
+        }
+    }
+}
+
 public struct TitleRow: View {
     @Environment(AppContainer.self) private var container
     private let title: TitleSummary

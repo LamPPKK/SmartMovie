@@ -5,6 +5,7 @@ public enum AppTab: String, CaseIterable, Identifiable {
     case explore
     case search
     case library
+    case profile
 
     public var id: String { rawValue }
 
@@ -14,6 +15,7 @@ public enum AppTab: String, CaseIterable, Identifiable {
         case .explore: String(localized: "Explore", bundle: .module)
         case .search: String(localized: "Search", bundle: .module)
         case .library: String(localized: "Library", bundle: .module)
+        case .profile: String(localized: "Profile", bundle: .module)
         }
     }
 
@@ -23,6 +25,7 @@ public enum AppTab: String, CaseIterable, Identifiable {
         case .explore: "safari"
         case .search: "magnifyingglass"
         case .library: "bookmark.square"
+        case .profile: "person.crop.circle"
         }
     }
 }
@@ -48,6 +51,9 @@ public struct SmartMovieRootView: View {
     public var body: some View {
         platformNavigation
             .task { await container.prepare() }
+            .onOpenURL { url in
+                Task { await container.accountSession.handleCallback(url) }
+            }
             .sheet(item: remotePresentation) { presentation in
                 NavigationStack {
                     DetailView(
@@ -123,6 +129,7 @@ public struct SmartMovieRootView: View {
         case .explore: CatalogNavigationRoot { ExploreView() }
         case .search: CatalogNavigationRoot { SearchView() }
         case .library: CatalogNavigationRoot { LibraryView() }
+        case .profile: CatalogNavigationRoot { ProfileView() }
         }
     }
 }
@@ -139,6 +146,19 @@ private struct CatalogNavigationRoot<Content: View>: View {
             content()
                 .navigationDestination(for: TitleSummary.self) { title in
                     DetailView(summary: title)
+                }
+                .navigationDestination(for: CatalogEntity.self) { entity in
+                    if case .title(let title) = entity {
+                        DetailView(summary: title)
+                    } else {
+                        EntityDetailView(entity: entity)
+                    }
+                }
+                .navigationDestination(for: SeasonRoute.self) { route in
+                    SeasonDetailView(route: route)
+                }
+                .navigationDestination(for: EpisodeRoute.self) { route in
+                    EpisodeDetailView(route: route)
                 }
         }
     }

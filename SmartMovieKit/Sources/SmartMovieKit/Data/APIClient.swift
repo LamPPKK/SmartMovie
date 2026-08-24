@@ -51,6 +51,7 @@ public actor APIClient {
     private let session: URLSession
     private let clientIDProvider: any ClientIDProviding
     private let decoder: JSONDecoder
+    private let encoder: JSONEncoder
     private let sleep: @Sendable (Duration) async throws -> Void
 
     public init(
@@ -67,27 +68,84 @@ public actor APIClient {
         self.sleep = sleep
         self.decoder = JSONDecoder()
         self.decoder.keyDecodingStrategy = .convertFromSnakeCase
+        self.decoder.dateDecodingStrategy = .iso8601
+        self.encoder = JSONEncoder()
+        self.encoder.keyEncodingStrategy = .convertToSnakeCase
+        self.encoder.dateEncodingStrategy = .iso8601
     }
 
     public func get<Response: Decodable & Sendable>(
         _ path: String,
-        queryItems: [URLQueryItem] = []
+        queryItems: [URLQueryItem] = [],
+        headers: [String: String] = [:]
     ) async throws -> Response {
+        try await execute(APIRequest(
+            method: "GET",
+            path: path,
+            queryItems: queryItems,
+            body: nil,
+            headers: headers,
+            maximumAttempts: 3
+        ))
+    }
+
+    public func send<Response: Decodable & Sendable, Body: Encodable & Sendable>(
+        _ method: String,
+        path: String,
+        queryItems: [URLQueryItem] = [],
+        body: Body,
+        headers: [String: String] = [:],
+        retrySafe: Bool = false
+    ) async throws -> Response {
+        try await execute(APIRequest(
+            method: method,
+            path: path,
+            queryItems: queryItems,
+            body: try encoder.encode(body),
+            headers: headers,
+            maximumAttempts: retrySafe ? 3 : 1
+        ))
+    }
+
+    public func send<Response: Decodable & Sendable>(
+        _ method: String,
+        path: String,
+        queryItems: [URLQueryItem] = [],
+        headers: [String: String] = [:],
+        retrySafe: Bool = false
+    ) async throws -> Response {
+        try await execute(APIRequest(
+            method: method,
+            path: path,
+            queryItems: queryItems,
+            body: nil,
+            headers: headers,
+            maximumAttempts: retrySafe ? 3 : 1
+        ))
+    }
+
+    private func execute<Response: Decodable & Sendable>(_ specification: APIRequest) async throws -> Response {
         guard var components = URLComponents(
-            url: baseURL.appending(path: path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))),
+            url: baseURL.appending(
+                path: specification.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            ),
             resolvingAgainstBaseURL: false
         ) else {
             throw APIError.invalidURL
         }
-        components.queryItems = queryItems.isEmpty ? nil : queryItems
+        components.queryItems = specification.queryItems.isEmpty ? nil : specification.queryItems
         guard let url = components.url else { throw APIError.invalidURL }
 
         var request = URLRequest(url: url)
+        request.httpMethod = specification.method
+        request.httpBody = specification.body
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if specification.body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         request.setValue(await clientIDProvider.clientID(), forHTTPHeaderField: "X-SmartMovie-Client")
+        for (name, value) in specification.headers { request.setValue(value, forHTTPHeaderField: name) }
 
         var lastError: Error?
-        for attempt in 0 ... 2 {
+        for attempt in 0 ..< specification.maximumAttempts {
             do {
                 let (data, response) = try await session.data(for: request)
                 guard let http = response as? HTTPURLResponse else { throw APIError.invalidResponse }
@@ -106,13 +164,13 @@ public actor APIClient {
                 case 429:
                     let retryAfter = payload?.error.retryAfter
                         ?? http.value(forHTTPHeaderField: "Retry-After").flatMap(Int.init)
-                    if attempt < 2 {
+                    if attempt + 1 < specification.maximumAttempts {
                         try await sleep(.seconds(retryAfter ?? (attempt + 1)))
                         continue
                     }
                     throw APIError.rateLimited(retryAfter: retryAfter)
                 case 500 ... 599:
-                    if attempt < 2 {
+                    if attempt + 1 < specification.maximumAttempts {
                         try await sleep(.milliseconds(300 * (attempt + 1)))
                         continue
                     }
@@ -126,13 +184,22 @@ public actor APIClient {
                 throw error
             } catch {
                 lastError = APIError.transport(error.localizedDescription)
-                if attempt < 2 {
+                if attempt + 1 < specification.maximumAttempts {
                     try await sleep(.milliseconds(300 * (attempt + 1)))
                 }
             }
         }
         throw lastError ?? APIError.invalidResponse
     }
+}
+
+private struct APIRequest {
+    let method: String
+    let path: String
+    let queryItems: [URLQueryItem]
+    let body: Data?
+    let headers: [String: String]
+    let maximumAttempts: Int
 }
 
 struct ErrorEnvelope: Decodable {

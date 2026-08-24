@@ -1,4 +1,5 @@
 import Foundation
+import Security
 import SmartMovieKit
 import SwiftData
 
@@ -21,7 +22,9 @@ final class AppRuntime {
 
         let baseURL = Bundle.main.object(forInfoDictionaryKey: "CATALOG_BASE_URL") as? String
         let serviceURL = URL(string: baseURL ?? "") ?? URL(string: "http://127.0.0.1:8787")!
-        let catalog = RemoteCatalogRepository(client: APIClient(baseURL: serviceURL))
+        let client = APIClient(baseURL: serviceURL)
+        let catalog = RemoteCatalogRepository(client: client)
+        let account = RemoteAccountRepository(client: client)
         let library = SwiftDataLibraryRepository(context: ModelContext(persistentContainer))
         let remoteCoordinator = WatchRemoteCoordinator()
         #if os(iOS) && !targetEnvironment(macCatalyst)
@@ -35,6 +38,7 @@ final class AppRuntime {
         container = AppContainer(
             catalog: catalog,
             library: library,
+            account: account,
             watchRemoteSession: watchRemoteSession,
             watchRemoteCoordinator: remoteCoordinator
         )
@@ -67,11 +71,28 @@ final class AppRuntime {
     }
 
     private static var activeCloudKitContainerIdentifier: String? {
-        #if targetEnvironment(simulator)
-        // Unsigned simulator and CI builds cannot access CloudKit entitlements.
-        nil
+        // Creating a SwiftData CloudKit store without the matching entitlement can
+        // fail asynchronously inside CoreData, after ModelContainer.init returns.
+        // Inspect the signed process first so unsigned simulator/CI/local builds use
+        // the durable local store instead of crashing during app launch.
+        #if os(macOS)
+        guard let task = SecTaskCreateFromSelf(nil),
+              let value = SecTaskCopyValueForEntitlement(
+                  task,
+                  "com.apple.developer.icloud-container-identifiers" as CFString,
+                  nil
+              ),
+              let identifiers = value as? [String],
+              identifiers.contains(cloudKitContainerIdentifier) else {
+            return nil
+        }
+        return cloudKitContainerIdentifier
+        #elseif targetEnvironment(simulator)
+        return nil
         #else
-        cloudKitContainerIdentifier
+        // Device, TV and Vision distribution builds are signed against the
+        // entitlements declared in project.yml. Simulator smoke tests stay local.
+        return cloudKitContainerIdentifier
         #endif
     }
 }
