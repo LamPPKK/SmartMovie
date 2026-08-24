@@ -1,0 +1,15 @@
+{
+  "page": 1,
+  "total_pages": 1,
+  "results": [
+    { "entity_kind": "movie", "id": 10, "media_type": "movie", "title": "Example Movie", "original_title": "Example Movie", "overview": "", "poster_path": null, "backdrop_path": null, "release_date": null, "vote_average": 8.2, "genre_ids": [18] },
+    { "entity_kind": "tv", "id": 11, "media_type": "tv", "title": "Example Series", "original_title": "Example Series", "overview": "", "poster_path": null, "backdrop_path": null, "release_date": "2026-01-01", "vote_average": 8.5, "genre_ids": [] },
+    { "entity_kind": "person", "id": 12, "name": "Example Person", "profile_path": null, "known_for_department": "Acting", "popularity": 10.0, "known_for": [] },
+    { "entity_kind": "collection", "id": 13, "name": "Example Collection", "overview": "", "poster_path": null, "backdrop_path": null },
+    { "entity_kind": "company", "id": 14, "name": "Example Company", "logo_path": null, "origin_country": "US" },
+    { "entity_kind": "network", "id": 15, "name": "Example Network", "logo_path": null, "origin_country": null },
+    { "entity_kind": "keyword", "id": 16, "name": "example" },
+    { "entity_kind": "season", "id": 17, "season_number": 1, "name": "Season 1", "overview": "", "poster_path": null, "air_date": null, "episode_count": 8 },
+    { "entity_kind": "episode", "id": 18, "series_id": 11, "season_number": 1, "episode_number": 1, "name": "Pilot", "overview": "", "still_path": null, "air_date": null, "runtime_minutes": null }
+  ]
+}

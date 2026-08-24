@@ -1,5 +1,7 @@
 import type { MediaType, TmdbPage, TmdbTitle } from "./contracts";
+import { routeAccountV2, type WorkerAccountEnv } from "./account";
 import { detail, pageResponse, summary } from "./transform";
+import { routeV2 } from "./v2";
 import {
   RequestProblem,
   discoverParameters,
@@ -16,7 +18,7 @@ interface RateLimitBinding {
   limit(options: { key: string }): Promise<{ success: boolean }>;
 }
 
-export interface Env {
+export interface Env extends WorkerAccountEnv {
   TMDB_BEARER_TOKEN: string;
   TMDB_BASE_URL?: string;
   CATALOG_RATE_LIMITER?: RateLimitBinding;
@@ -32,23 +34,30 @@ export default {
     const requestId = crypto.randomUUID();
     const workerVersion = env.CF_VERSION_METADATA?.id ?? "development";
     try {
-      if (request.method !== "GET") {
-        throw new RequestProblem(400, "unsupported_method", "Only GET requests are supported.");
-      }
       const url = new URL(request.url);
-      const match = route(url.pathname);
+      const v2Match = routeAccountV2(url.pathname) ?? routeV2(url.pathname);
+      const v1Match = v2Match ? null : route(url.pathname);
+      const match = v2Match ?? v1Match;
       if (!match) throw new RequestProblem(404, "not_found", "The requested catalog route does not exist.");
+      const methods = v2Match?.methods ?? new Set(["GET"]);
+      if (!methods.has(request.method)) {
+        throw new RequestProblem(400, "unsupported_method", "The requested method is not supported for this route.");
+      }
 
       await enforceRateLimit(request, env, match.id);
-      const cached = await readCache(request, workerVersion);
+      const canCache = request.method === "GET" && v2Match?.isPrivate !== true;
+      const cached = canCache ? await readCache(request, workerVersion) : undefined;
       if (cached) return withWorkerVersion(withHeader(cached, "X-SmartMovie-Cache", "HIT"), workerVersion);
 
-      const response = await match.handle(url, env, requestId);
-      if (response.ok) {
+      const response = v2Match
+        ? await v2Match.handle(request, url, env, requestId)
+        : await v1Match!.handle(url, env, requestId);
+      if (response.ok && canCache) {
         const cacheable = withHeader(response, "Cache-Control", `public, max-age=${match.ttl}`);
         context.waitUntil(writeCache(request, cacheable.clone(), workerVersion));
         return withWorkerVersion(withHeader(cacheable, "X-SmartMovie-Cache", "MISS"), workerVersion);
       }
+      if (v2Match?.isPrivate) response.headers.set("Cache-Control", "private, no-store");
       return withWorkerVersion(response, workerVersion);
     } catch (error) {
       return withWorkerVersion(errorResponse(error, requestId), workerVersion);
@@ -211,7 +220,7 @@ function json(value: unknown, status = 200): Response {
 function errorResponse(error: unknown, requestId: string): Response {
   const problem = error instanceof RequestProblem ? error : new RequestProblem(500, "internal_error", "An unexpected catalog error occurred.");
   const retryAfter = problem.status === 429 ? 60 : undefined;
-  const response = json({ error: { code: problem.code, message: problem.message, request_id: requestId, retry_after: retryAfter } }, problem.status);
+  const response = json({ error: { code: problem.code, message: problem.message, request_id: requestId, retry_after: retryAfter ?? null } }, problem.status);
   response.headers.set("Cache-Control", "no-store");
   if (retryAfter) response.headers.set("Retry-After", String(retryAfter));
   return response;

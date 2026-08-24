@@ -1,0 +1,8 @@
+{
+  "attempt_id": "00000000-0000-4000-8000-000000000020",
+  "status": "pending",
+  "authorization_url": "https://www.themoviedb.org/auth/access?request_token=fixture",
+  "device_code": null,
+  "expires_at": "2026-08-25T01:00:00Z",
+  "polling_interval": null
+}

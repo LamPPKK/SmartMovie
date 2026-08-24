@@ -1,0 +1,20 @@
+{
+  "api_version": "v2",
+  "release_train": "3.0.0",
+  "catalog": {
+    "deep_title_detail": true,
+    "people": true,
+    "seasons_and_episodes": true,
+    "collections": true,
+    "watch_providers": true
+  },
+  "account": {
+    "browser_auth": true,
+    "favorites": true,
+    "mixed_lists": true
+  },
+  "supported_languages": ["en-US", "vi-VN", "ja-JP", "ko-KR", "zh-CN", "zh-TW"],
+  "supported_entity_kinds": ["movie", "tv", "person", "collection", "company", "network", "keyword", "season", "episode"],
+  "adult_content": { "supported": true, "default_enabled": false, "local_pin_required": true },
+  "future_server_field": "ignored by clients"
+}

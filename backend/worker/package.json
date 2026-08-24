@@ -1,12 +1,13 @@
 {
   "name": "smartmovie-catalog-worker",
   "private": true,
-  "version": "2.0.0",
+  "version": "3.0.0",
   "type": "module",
   "scripts": {
     "check": "tsc --noEmit",
     "test": "vitest run",
     "smoke": "node scripts/contract-smoke.mjs",
+    "smoke:account": "node scripts/account-smoke.mjs",
     "dev": "wrangler dev --env staging",
     "deploy:staging": "wrangler deploy --env staging",
     "deploy:production": "wrangler deploy --env production"

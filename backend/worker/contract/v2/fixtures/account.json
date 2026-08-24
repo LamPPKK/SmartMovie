@@ -1,0 +1,29 @@
+{
+  "profile": {
+    "id": 42,
+    "username": "fixture_user",
+    "name": "Fixture User",
+    "language": "en",
+    "country": "US",
+    "include_adult": false,
+    "avatar_path": null,
+    "gravatar_hash": null
+  },
+  "state": {
+    "media_type": "movie",
+    "media_id": 10,
+    "favorite": true,
+    "watchlist": false,
+    "rated": { "value": 8.5 }
+  },
+  "list": {
+    "id": 7,
+    "name": "Mixed favorites",
+    "description": "Movie and TV",
+    "public": false,
+    "results": [
+      { "entity_kind": "movie", "id": 10, "media_type": "movie", "title": "Example Movie", "original_title": "Example Movie", "overview": "", "poster_path": null, "backdrop_path": null, "release_date": null, "vote_average": 8.2, "genre_ids": [] },
+      { "entity_kind": "tv", "id": 11, "media_type": "tv", "title": "Example Series", "original_title": "Example Series", "overview": "", "poster_path": null, "backdrop_path": null, "release_date": null, "vote_average": 8.5, "genre_ids": [] }
+    ]
+  }
+}

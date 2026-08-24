@@ -1,0 +1,10 @@
+{
+  "entity_kind": "collection",
+  "id": 13,
+  "name": "Example Collection",
+  "overview": "",
+  "poster_path": null,
+  "backdrop_path": null,
+  "parts": [],
+  "images": { "backdrops": [], "posters": [], "logos": [] }
+}

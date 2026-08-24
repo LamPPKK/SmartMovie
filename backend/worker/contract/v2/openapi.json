@@ -1,0 +1,261 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SmartMovie Catalog and Account API",
+    "version": "2.0.0",
+    "description": "Canonical product-complete TMDb catalog contract. /v2 is additive-only; /v1 remains available for SmartMovie 2.0 clients. TMDb credentials and user tokens never appear in public responses."
+  },
+  "servers": [
+    { "url": "https://staging-catalog.smartmovie.app", "description": "Staging" },
+    { "url": "https://catalog.smartmovie.app", "description": "Production" }
+  ],
+  "paths": {
+    "/v2/capabilities": { "get": { "operationId": "capabilitiesV2", "responses": { "200": { "$ref": "#/components/responses/Capabilities" }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/home": {
+      "get": {
+        "operationId": "homeV2",
+        "parameters": [
+          { "$ref": "#/components/parameters/Language" },
+          { "$ref": "#/components/parameters/Region" },
+          { "$ref": "#/components/parameters/Adult" },
+          { "name": "media_type", "in": "query", "schema": { "$ref": "#/components/schemas/MediaType" } }
+        ],
+        "responses": { "200": { "description": "Home feed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HomeFeed" } } } }, "default": { "$ref": "#/components/responses/Error" } }
+      }
+    },
+    "/v2/discover/{mediaType}": {
+      "get": {
+        "operationId": "discoverV2",
+        "parameters": [
+          { "$ref": "#/components/parameters/MediaType" }, { "$ref": "#/components/parameters/Language" },
+          { "$ref": "#/components/parameters/Region" }, { "$ref": "#/components/parameters/Page" },
+          { "$ref": "#/components/parameters/Adult" },
+          { "name": "sort_by", "in": "query", "schema": { "type": "string" } },
+          { "name": "genres", "in": "query", "schema": { "$ref": "#/components/schemas/NumericCSV" } },
+          { "name": "companies", "in": "query", "schema": { "$ref": "#/components/schemas/NumericCSV" } },
+          { "name": "networks", "in": "query", "schema": { "$ref": "#/components/schemas/NumericCSV" } },
+          { "name": "keywords", "in": "query", "schema": { "$ref": "#/components/schemas/NumericCSV" } },
+          { "name": "release_date_gte", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "release_date_lte", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "air_date_gte", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "air_date_lte", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "original_language", "in": "query", "schema": { "type": "string" } },
+          { "name": "origin_country", "in": "query", "schema": { "$ref": "#/components/schemas/Region" } },
+          { "name": "certification_country", "in": "query", "schema": { "$ref": "#/components/schemas/Region" } },
+          { "name": "certification_gte", "in": "query", "schema": { "type": "string" } },
+          { "name": "certification_lte", "in": "query", "schema": { "type": "string" } },
+          { "name": "runtime_gte", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
+          { "name": "runtime_lte", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
+          { "name": "vote_average_gte", "in": "query", "schema": { "type": "number", "minimum": 0, "maximum": 10 } },
+          { "name": "vote_count_gte", "in": "query", "schema": { "type": "integer", "minimum": 0 } },
+          { "name": "watch_region", "in": "query", "schema": { "$ref": "#/components/schemas/Region" } },
+          { "name": "watch_providers", "in": "query", "schema": { "type": "string", "pattern": "^[0-9]+(\\|[0-9]+)*$" } },
+          { "name": "watch_monetization_types", "in": "query", "schema": { "type": "string" } },
+          { "name": "year", "in": "query", "schema": { "type": "integer", "minimum": 1870, "maximum": 2100 } }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/EntityPage" }, "default": { "$ref": "#/components/responses/Error" } }
+      }
+    },
+    "/v2/trending/{kind}/{window}": {
+      "get": {
+        "operationId": "trendingV2",
+        "parameters": [
+          { "name": "kind", "in": "path", "required": true, "schema": { "type": "string", "enum": ["all", "movie", "tv", "person"] } },
+          { "name": "window", "in": "path", "required": true, "schema": { "type": "string", "enum": ["day", "week"] } },
+          { "$ref": "#/components/parameters/Language" }, { "$ref": "#/components/parameters/Page" }, { "$ref": "#/components/parameters/Adult" }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/EntityPage" }, "default": { "$ref": "#/components/responses/Error" } }
+      }
+    },
+    "/v2/search": {
+      "get": {
+        "operationId": "searchV2",
+        "parameters": [
+          { "name": "query", "in": "query", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 120 } },
+          { "name": "scope", "in": "query", "schema": { "type": "string", "enum": ["all", "movie", "tv", "person", "collection", "company", "keyword"], "default": "all" } },
+          { "$ref": "#/components/parameters/Language" }, { "$ref": "#/components/parameters/Region" },
+          { "$ref": "#/components/parameters/Page" }, { "$ref": "#/components/parameters/Adult" }
+        ],
+        "responses": { "200": { "$ref": "#/components/responses/EntityPage" }, "default": { "$ref": "#/components/responses/Error" } }
+      }
+    },
+    "/v2/find/{externalId}": {
+      "get": {
+        "operationId": "findByExternalIdV2",
+        "parameters": [
+          { "name": "externalId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 160 } },
+          { "name": "source", "in": "query", "schema": { "type": "string", "enum": ["imdb_id", "tvdb_id", "wikidata_id", "facebook_id", "instagram_id", "twitter_id"] } },
+          { "$ref": "#/components/parameters/Language" }
+        ],
+        "responses": { "200": { "description": "External ID matches", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FindResult" } } } }, "default": { "$ref": "#/components/responses/Error" } }
+      }
+    },
+    "/v2/configuration": { "get": { "operationId": "configurationV2", "parameters": [{ "$ref": "#/components/parameters/Language" }], "responses": { "200": { "description": "Image, locale, provider and attribution configuration", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Configuration" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/titles/{mediaType}/{id}": {
+      "get": {
+        "operationId": "titleDetailV2",
+        "parameters": [{ "$ref": "#/components/parameters/MediaType" }, { "$ref": "#/components/parameters/ID" }, { "$ref": "#/components/parameters/Language" }, { "$ref": "#/components/parameters/Region" }, { "$ref": "#/components/parameters/Adult" }],
+        "responses": { "200": { "description": "Deep title detail", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TitleDetail" } } } }, "default": { "$ref": "#/components/responses/Error" } }
+      }
+    },
+    "/v2/titles/{mediaType}/{id}/{resource}": {
+      "get": {
+        "operationId": "titleRelatedV2",
+        "parameters": [
+          { "$ref": "#/components/parameters/MediaType" }, { "$ref": "#/components/parameters/ID" },
+          { "name": "resource", "in": "path", "required": true, "schema": { "type": "string", "enum": ["credits", "images", "videos", "reviews", "recommendations", "similar", "translations", "release-information", "external-ids", "watch-providers"] } },
+          { "$ref": "#/components/parameters/Language" }, { "$ref": "#/components/parameters/Region" }, { "$ref": "#/components/parameters/Page" }
+        ],
+        "responses": { "200": { "description": "Normalized related resource", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FreeformObject" } } } }, "default": { "$ref": "#/components/responses/Error" } }
+      }
+    },
+    "/v2/entities/{kind}/{id}": {
+      "get": {
+        "operationId": "entityDetailV2",
+        "parameters": [
+          { "name": "kind", "in": "path", "required": true, "schema": { "type": "string", "enum": ["movie", "tv", "person", "collection", "company", "network", "keyword"] } },
+          { "$ref": "#/components/parameters/ID" }, { "$ref": "#/components/parameters/Language" }, { "$ref": "#/components/parameters/Page" }, { "$ref": "#/components/parameters/Adult" }
+        ],
+        "responses": { "200": { "description": "Entity detail", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/EntityDetail" } } } }, "default": { "$ref": "#/components/responses/Error" } }
+      }
+    },
+    "/v2/tv/{seriesId}/seasons/{seasonNumber}": { "get": { "operationId": "seasonDetailV2", "parameters": [{ "$ref": "#/components/parameters/SeriesID" }, { "$ref": "#/components/parameters/SeasonNumber" }, { "$ref": "#/components/parameters/Language" }], "responses": { "200": { "description": "Season detail", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SeasonDetail" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/tv/{seriesId}/seasons/{seasonNumber}/episodes/{episodeNumber}": { "get": { "operationId": "episodeDetailV2", "parameters": [{ "$ref": "#/components/parameters/SeriesID" }, { "$ref": "#/components/parameters/SeasonNumber" }, { "$ref": "#/components/parameters/EpisodeNumber" }, { "$ref": "#/components/parameters/Language" }], "responses": { "200": { "description": "Episode detail", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/EpisodeDetail" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/credits/{creditId}": { "get": { "operationId": "creditDetailV2", "parameters": [{ "name": "creditId", "in": "path", "required": true, "schema": { "type": "string" } }, { "$ref": "#/components/parameters/Language" }], "responses": { "200": { "description": "Credit detail", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FreeformObject" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/auth/attempts": { "post": { "operationId": "createAuthAttemptV2", "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthAttemptRequest" } } } }, "responses": { "201": { "description": "Authorization attempt", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthAttempt" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/auth/attempts/{attemptId}": { "get": { "operationId": "pollAuthAttemptV2", "parameters": [{ "$ref": "#/components/parameters/AttemptID" }, { "name": "device_code", "in": "query", "schema": { "type": "string", "pattern": "^[0-9]{6}$" } }], "responses": { "200": { "description": "Authorization status", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthAttemptStatus" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/auth/callback": { "get": { "operationId": "authCallbackV2", "parameters": [{ "name": "attempt_id", "in": "query", "required": true, "schema": { "type": "string", "format": "uuid" } }, { "name": "state", "in": "query", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "TV browser completion page" }, "303": { "description": "Native/web return redirect" }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/auth/complete": { "post": { "operationId": "completeAuthV2", "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["attempt_id"], "properties": { "attempt_id": { "type": "string", "format": "uuid" }, "device_code": { "type": ["string", "null"] } } } } } }, "responses": { "200": { "description": "Opaque SmartMovie session", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthSession" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/auth/csrf": { "get": { "operationId": "rotateCsrfV2", "security": [{ "bearerSession": [] }, { "cookieSession": [] }], "responses": { "200": { "description": "Rotated CSRF token for the active session", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CSRFToken" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/auth/logout": { "post": { "operationId": "logoutV2", "security": [{ "bearerSession": [] }, { "cookieSession": [], "csrf": [] }], "responses": { "200": { "$ref": "#/components/responses/Mutation" }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/account/profile": { "get": { "operationId": "accountProfileV2", "security": [{ "bearerSession": [] }, { "cookieSession": [] }], "parameters": [{ "$ref": "#/components/parameters/Language" }], "responses": { "200": { "description": "TMDb account profile", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AccountProfile" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/account/state/{mediaType}/{id}": { "get": { "operationId": "accountStateV2", "security": [{ "bearerSession": [] }, { "cookieSession": [] }], "parameters": [{ "$ref": "#/components/parameters/MediaType" }, { "$ref": "#/components/parameters/ID" }], "responses": { "200": { "description": "Favorite, watchlist and rating state", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AccountState" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/account/state/episode/{seriesId}/{seasonNumber}/{episodeNumber}": { "get": { "operationId": "episodeAccountStateV2", "security": [{ "bearerSession": [] }, { "cookieSession": [] }], "parameters": [{ "$ref": "#/components/parameters/SeriesID" }, { "$ref": "#/components/parameters/SeasonNumber" }, { "$ref": "#/components/parameters/EpisodeNumber" }], "responses": { "200": { "description": "Episode rating state", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FreeformObject" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/account/favorites/{mediaType}": { "$ref": "#/components/pathItems/LibraryCollection" },
+    "/v2/account/watchlist/{mediaType}": { "$ref": "#/components/pathItems/LibraryCollection" },
+    "/v2/account/ratings/{mediaType}/{id}": { "$ref": "#/components/pathItems/Rating" },
+    "/v2/account/ratings/episode/{seriesId}/{seasonNumber}/{episodeNumber}": { "$ref": "#/components/pathItems/EpisodeRating" },
+    "/v2/account/recommendations/{mediaType}": { "get": { "operationId": "accountRecommendationsV2", "security": [{ "bearerSession": [] }, { "cookieSession": [] }], "parameters": [{ "$ref": "#/components/parameters/MediaType" }, { "$ref": "#/components/parameters/Language" }, { "$ref": "#/components/parameters/Page" }], "responses": { "200": { "description": "Account recommendations", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TitlePage" } } } }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/account/lists": { "get": { "operationId": "accountListsV2", "security": [{ "bearerSession": [] }, { "cookieSession": [] }], "parameters": [{ "$ref": "#/components/parameters/Page" }], "responses": { "200": { "description": "Custom list page", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserListPage" } } } }, "default": { "$ref": "#/components/responses/Error" } } }, "post": { "operationId": "createListV2", "security": [{ "bearerSession": [] }, { "cookieSession": [], "csrf": [] }], "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }], "requestBody": { "$ref": "#/components/requestBodies/ListMetadata" }, "responses": { "201": { "$ref": "#/components/responses/Mutation" }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/account/lists/{id}": { "get": { "operationId": "listDetailV2", "security": [{ "bearerSession": [] }, { "cookieSession": [] }], "parameters": [{ "$ref": "#/components/parameters/ID" }, { "$ref": "#/components/parameters/Language" }, { "$ref": "#/components/parameters/Page" }], "responses": { "200": { "description": "Mixed Movie/TV list", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UserList" } } } }, "default": { "$ref": "#/components/responses/Error" } } }, "patch": { "operationId": "updateListV2", "security": [{ "bearerSession": [] }, { "cookieSession": [], "csrf": [] }], "parameters": [{ "$ref": "#/components/parameters/ID" }, { "$ref": "#/components/parameters/IdempotencyKey" }], "requestBody": { "$ref": "#/components/requestBodies/ListMetadata" }, "responses": { "200": { "$ref": "#/components/responses/Mutation" }, "default": { "$ref": "#/components/responses/Error" } } }, "delete": { "operationId": "deleteListV2", "security": [{ "bearerSession": [] }, { "cookieSession": [], "csrf": [] }], "parameters": [{ "$ref": "#/components/parameters/ID" }, { "$ref": "#/components/parameters/IdempotencyKey" }], "responses": { "200": { "$ref": "#/components/responses/Mutation" }, "default": { "$ref": "#/components/responses/Error" } } } },
+    "/v2/account/lists/{id}/items": { "post": { "$ref": "#/components/operations/ListItemsMutation" }, "patch": { "$ref": "#/components/operations/ListItemsMutation" }, "delete": { "$ref": "#/components/operations/ListItemsMutation" } }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerSession": { "type": "http", "scheme": "bearer", "description": "Opaque SmartMovie session token, never a TMDb token." },
+      "cookieSession": { "type": "apiKey", "in": "cookie", "name": "smartmovie_session" },
+      "csrf": { "type": "apiKey", "in": "header", "name": "X-CSRF-Token" }
+    },
+    "parameters": {
+      "Language": { "name": "language", "in": "query", "schema": { "$ref": "#/components/schemas/Language" } },
+      "Region": { "name": "region", "in": "query", "schema": { "$ref": "#/components/schemas/Region" } },
+      "Page": { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 500, "default": 1 } },
+      "Adult": { "name": "include_adult", "in": "query", "schema": { "type": "boolean", "default": false } },
+      "MediaType": { "name": "mediaType", "in": "path", "required": true, "schema": { "$ref": "#/components/schemas/MediaType" } },
+      "ID": { "name": "id", "in": "path", "required": true, "schema": { "type": "integer", "minimum": 1 } },
+      "SeriesID": { "name": "seriesId", "in": "path", "required": true, "schema": { "type": "integer", "minimum": 1 } },
+      "SeasonNumber": { "name": "seasonNumber", "in": "path", "required": true, "schema": { "type": "integer", "minimum": 0 } },
+      "EpisodeNumber": { "name": "episodeNumber", "in": "path", "required": true, "schema": { "type": "integer", "minimum": 1 } },
+      "AttemptID": { "name": "attemptId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+      "IdempotencyKey": { "name": "Idempotency-Key", "in": "header", "required": false, "description": "Stable UUID used to replay a completed mutation without applying it twice. Required for retry-safe bodyless DELETE requests; mutation_id in a JSON body is equivalent.", "schema": { "type": "string", "format": "uuid" } }
+    },
+    "responses": {
+      "Error": { "description": "Normalized error; account/auth errors are private and no-store", "headers": { "Retry-After": { "schema": { "type": "integer", "minimum": 0 } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorEnvelope" } } } },
+      "EntityPage": { "description": "Discriminated entity page", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/EntityPage" } } } },
+      "Capabilities": { "description": "Production feature switches", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Capabilities" } } } },
+      "Mutation": { "description": "Idempotent state mutation acknowledgement", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/MutationResult" } } } }
+    },
+    "requestBodies": {
+      "ListMetadata": { "required": true, "content": { "application/json": { "schema": { "type": "object", "properties": { "name": { "type": "string", "minLength": 1, "maxLength": 100 }, "description": { "type": "string", "maxLength": 1000 }, "public": { "type": "boolean" }, "iso_3166_1": { "$ref": "#/components/schemas/Region" }, "iso_639_1": { "type": "string" }, "sort_by": { "type": "string" }, "mutation_id": { "type": "string", "format": "uuid" } }, "additionalProperties": false } } } }
+    },
+    "pathItems": {
+      "LibraryCollection": {
+        "get": { "operationId": "libraryCollectionV2", "security": [{ "bearerSession": [] }, { "cookieSession": [] }], "parameters": [{ "$ref": "#/components/parameters/MediaType" }, { "$ref": "#/components/parameters/Language" }, { "$ref": "#/components/parameters/Page" }], "responses": { "200": { "description": "Account library page", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TitlePage" } } } }, "default": { "$ref": "#/components/responses/Error" } } },
+        "put": { "operationId": "setLibraryStateV2", "security": [{ "bearerSession": [] }, { "cookieSession": [], "csrf": [] }], "parameters": [{ "$ref": "#/components/parameters/MediaType" }, { "$ref": "#/components/parameters/IdempotencyKey" }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["media_id", "enabled"], "properties": { "media_id": { "type": "integer", "minimum": 1 }, "enabled": { "type": "boolean" }, "mutation_id": { "type": "string", "format": "uuid" } }, "additionalProperties": false } } } }, "responses": { "200": { "$ref": "#/components/responses/Mutation" }, "default": { "$ref": "#/components/responses/Error" } } }
+      },
+      "Rating": {
+        "get": { "operationId": "ratingStateV2", "security": [{ "bearerSession": [] }, { "cookieSession": [] }], "parameters": [{ "$ref": "#/components/parameters/MediaType" }, { "$ref": "#/components/parameters/ID" }], "responses": { "200": { "description": "Rating state", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FreeformObject" } } } }, "default": { "$ref": "#/components/responses/Error" } } },
+        "put": { "operationId": "setRatingV2", "security": [{ "bearerSession": [] }, { "cookieSession": [], "csrf": [] }], "parameters": [{ "$ref": "#/components/parameters/MediaType" }, { "$ref": "#/components/parameters/ID" }, { "$ref": "#/components/parameters/IdempotencyKey" }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RatingMutation" } } } }, "responses": { "200": { "$ref": "#/components/responses/Mutation" }, "default": { "$ref": "#/components/responses/Error" } } },
+        "delete": { "operationId": "deleteRatingV2", "security": [{ "bearerSession": [] }, { "cookieSession": [], "csrf": [] }], "parameters": [{ "$ref": "#/components/parameters/MediaType" }, { "$ref": "#/components/parameters/ID" }, { "$ref": "#/components/parameters/IdempotencyKey" }], "responses": { "200": { "$ref": "#/components/responses/Mutation" }, "default": { "$ref": "#/components/responses/Error" } } }
+      },
+      "EpisodeRating": {
+        "get": { "operationId": "episodeRatingStateV2", "security": [{ "bearerSession": [] }, { "cookieSession": [] }], "parameters": [{ "$ref": "#/components/parameters/SeriesID" }, { "$ref": "#/components/parameters/SeasonNumber" }, { "$ref": "#/components/parameters/EpisodeNumber" }], "responses": { "200": { "description": "Episode rating state", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/FreeformObject" } } } }, "default": { "$ref": "#/components/responses/Error" } } },
+        "put": { "operationId": "setEpisodeRatingV2", "security": [{ "bearerSession": [] }, { "cookieSession": [], "csrf": [] }], "parameters": [{ "$ref": "#/components/parameters/SeriesID" }, { "$ref": "#/components/parameters/SeasonNumber" }, { "$ref": "#/components/parameters/EpisodeNumber" }, { "$ref": "#/components/parameters/IdempotencyKey" }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/RatingMutation" } } } }, "responses": { "200": { "$ref": "#/components/responses/Mutation" }, "default": { "$ref": "#/components/responses/Error" } } },
+        "delete": { "operationId": "deleteEpisodeRatingV2", "security": [{ "bearerSession": [] }, { "cookieSession": [], "csrf": [] }], "parameters": [{ "$ref": "#/components/parameters/SeriesID" }, { "$ref": "#/components/parameters/SeasonNumber" }, { "$ref": "#/components/parameters/EpisodeNumber" }, { "$ref": "#/components/parameters/IdempotencyKey" }], "responses": { "200": { "$ref": "#/components/responses/Mutation" }, "default": { "$ref": "#/components/responses/Error" } } }
+      }
+    },
+    "operations": {
+      "ListItemsMutation": { "operationId": "mutateListItemsV2", "security": [{ "bearerSession": [] }, { "cookieSession": [], "csrf": [] }], "parameters": [{ "$ref": "#/components/parameters/ID" }, { "$ref": "#/components/parameters/IdempotencyKey" }], "requestBody": { "required": true, "content": { "application/json": { "schema": { "type": "object", "required": ["items"], "properties": { "items": { "type": "array", "minItems": 1, "maxItems": 100, "items": { "$ref": "#/components/schemas/UserListItemMutation" } }, "mutation_id": { "type": "string", "format": "uuid" } }, "additionalProperties": false } } } }, "responses": { "200": { "$ref": "#/components/responses/Mutation" }, "default": { "$ref": "#/components/responses/Error" } } }
+    },
+    "schemas": {
+      "Language": { "type": "string", "enum": ["en-US", "vi-VN", "ja-JP", "ko-KR", "zh-CN", "zh-TW"], "default": "en-US" },
+      "Region": { "type": "string", "pattern": "^[A-Z]{2}$" },
+      "NumericCSV": { "type": "string", "pattern": "^[0-9]+(,[0-9]+)*$" },
+      "MediaType": { "type": "string", "enum": ["movie", "tv"] },
+      "EntityKind": { "type": "string", "enum": ["movie", "tv", "person", "collection", "company", "network", "keyword", "season", "episode"] },
+      "TitleSummary": { "type": "object", "required": ["entity_kind", "id", "media_type", "title", "original_title", "overview", "vote_average", "genre_ids"], "properties": { "entity_kind": { "$ref": "#/components/schemas/MediaType" }, "id": { "type": "integer", "minimum": 1 }, "media_type": { "$ref": "#/components/schemas/MediaType" }, "title": { "type": "string" }, "original_title": { "type": "string" }, "overview": { "type": "string" }, "poster_path": { "type": ["string", "null"] }, "backdrop_path": { "type": ["string", "null"] }, "release_date": { "type": ["string", "null"] }, "vote_average": { "type": "number", "minimum": 0, "maximum": 10 }, "genre_ids": { "type": "array", "items": { "type": "integer" } } }, "additionalProperties": true },
+      "PersonSummary": { "type": "object", "required": ["entity_kind", "id", "name", "known_for", "popularity"], "properties": { "entity_kind": { "const": "person" }, "id": { "type": "integer", "minimum": 1 }, "name": { "type": "string" }, "profile_path": { "type": ["string", "null"] }, "known_for_department": { "type": ["string", "null"] }, "known_for": { "type": "array", "items": { "$ref": "#/components/schemas/TitleSummary" } }, "popularity": { "type": "number" } }, "additionalProperties": true },
+      "CollectionSummary": { "type": "object", "required": ["entity_kind", "id", "name", "overview"], "properties": { "entity_kind": { "const": "collection" }, "id": { "type": "integer", "minimum": 1 }, "name": { "type": "string" }, "overview": { "type": "string" }, "poster_path": { "type": ["string", "null"] }, "backdrop_path": { "type": ["string", "null"] } }, "additionalProperties": true },
+      "OrganizationSummary": { "type": "object", "required": ["entity_kind", "id", "name"], "properties": { "entity_kind": { "type": "string", "enum": ["company", "network"] }, "id": { "type": "integer", "minimum": 1 }, "name": { "type": "string" }, "logo_path": { "type": ["string", "null"] }, "origin_country": { "type": ["string", "null"] } }, "additionalProperties": true },
+      "KeywordSummary": { "type": "object", "required": ["entity_kind", "id", "name"], "properties": { "entity_kind": { "const": "keyword" }, "id": { "type": "integer", "minimum": 1 }, "name": { "type": "string" } }, "additionalProperties": true },
+      "SeasonSummary": { "type": "object", "required": ["entity_kind", "id", "season_number", "name", "overview", "episode_count"], "properties": { "entity_kind": { "const": "season" }, "id": { "type": "integer", "minimum": 1 }, "season_number": { "type": "integer", "minimum": 0 }, "name": { "type": "string" }, "overview": { "type": "string" }, "poster_path": { "type": ["string", "null"] }, "air_date": { "type": ["string", "null"] }, "episode_count": { "type": "integer", "minimum": 0 } }, "additionalProperties": true },
+      "EpisodeSummary": { "type": "object", "required": ["entity_kind", "id", "series_id", "season_number", "episode_number", "name", "overview"], "properties": { "entity_kind": { "const": "episode" }, "id": { "type": "integer", "minimum": 1 }, "series_id": { "type": "integer", "minimum": 0 }, "season_number": { "type": "integer", "minimum": 0 }, "episode_number": { "type": "integer", "minimum": 1 }, "name": { "type": "string" }, "overview": { "type": "string" }, "still_path": { "type": ["string", "null"] }, "air_date": { "type": ["string", "null"] }, "runtime_minutes": { "type": ["integer", "null"] } }, "additionalProperties": true },
+      "EntitySummary": { "oneOf": [{ "$ref": "#/components/schemas/TitleSummary" }, { "$ref": "#/components/schemas/PersonSummary" }, { "$ref": "#/components/schemas/CollectionSummary" }, { "$ref": "#/components/schemas/OrganizationSummary" }, { "$ref": "#/components/schemas/KeywordSummary" }, { "$ref": "#/components/schemas/SeasonSummary" }, { "$ref": "#/components/schemas/EpisodeSummary" }], "discriminator": { "propertyName": "entity_kind" } },
+      "EntityPage": { "type": "object", "required": ["page", "total_pages", "results"], "properties": { "page": { "type": "integer", "minimum": 1, "maximum": 500 }, "total_pages": { "type": "integer", "minimum": 0, "maximum": 500 }, "results": { "type": "array", "items": { "$ref": "#/components/schemas/EntitySummary" } } }, "additionalProperties": true },
+      "TitlePage": { "type": "object", "required": ["page", "total_pages", "results"], "properties": { "page": { "type": "integer", "minimum": 1, "maximum": 500 }, "total_pages": { "type": "integer", "minimum": 0, "maximum": 500 }, "results": { "type": "array", "items": { "$ref": "#/components/schemas/TitleSummary" } } }, "additionalProperties": true },
+      "HomeFeed": {
+        "type": "object",
+        "required": ["media_type", "include_adult", "hero", "sections"],
+        "properties": {
+          "media_type": { "$ref": "#/components/schemas/MediaType" },
+          "region": { "type": ["string", "null"] },
+          "include_adult": { "type": "boolean" },
+          "hero": { "oneOf": [{ "$ref": "#/components/schemas/TitleSummary" }, { "type": "null" }] },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "title", "items"],
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "items": { "type": "array", "items": { "$ref": "#/components/schemas/TitleSummary" } }
+              }
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "FindResult": { "type": "object", "required": ["source", "external_id", "results"], "properties": { "source": { "type": "string" }, "external_id": { "type": "string" }, "results": { "type": "array", "items": { "$ref": "#/components/schemas/EntitySummary" } } }, "additionalProperties": true },
+      "Credit": { "type": "object", "required": ["credit_id", "id", "media_type", "title", "character", "job", "department"], "properties": { "credit_id": { "type": ["string", "null"] }, "id": { "type": ["integer", "null"] }, "media_type": { "oneOf": [{ "$ref": "#/components/schemas/MediaType" }, { "type": "null" }] }, "title": { "type": ["string", "null"] }, "character": { "type": ["string", "null"] }, "job": { "type": ["string", "null"] }, "department": { "type": ["string", "null"] } }, "additionalProperties": true },
+      "ImageAsset": { "type": "object", "required": ["kind", "file_path", "aspect_ratio", "height", "width", "language", "vote_average"], "properties": { "kind": { "type": "string" }, "file_path": { "type": "string" }, "aspect_ratio": { "type": "number" }, "height": { "type": "integer" }, "width": { "type": "integer" }, "language": { "type": ["string", "null"] }, "vote_average": { "type": "number" } }, "additionalProperties": true },
+      "ProviderOffer": { "type": "object", "required": ["provider_id", "provider_name", "logo_path", "display_priority"], "properties": { "provider_id": { "type": "integer", "minimum": 1 }, "provider_name": { "type": "string" }, "logo_path": { "type": ["string", "null"] }, "display_priority": { "type": "integer" } }, "additionalProperties": true },
+      "ProviderRegion": { "type": "object", "required": ["region", "tmdb_url", "attribution", "stream", "rent", "buy", "ads", "free"], "properties": { "region": { "$ref": "#/components/schemas/Region" }, "tmdb_url": { "type": ["string", "null"], "format": "uri" }, "attribution": { "const": "JustWatch" }, "stream": { "type": "array", "items": { "$ref": "#/components/schemas/ProviderOffer" } }, "rent": { "type": "array", "items": { "$ref": "#/components/schemas/ProviderOffer" } }, "buy": { "type": "array", "items": { "$ref": "#/components/schemas/ProviderOffer" } }, "ads": { "type": "array", "items": { "$ref": "#/components/schemas/ProviderOffer" } }, "free": { "type": "array", "items": { "$ref": "#/components/schemas/ProviderOffer" } } }, "additionalProperties": true },
+      "TitleDetail": { "allOf": [{ "$ref": "#/components/schemas/TitleSummary" }, { "type": "object", "required": ["tagline", "adult", "genres", "creators", "cast", "crew", "collection", "companies", "networks", "seasons", "alternative_titles", "external_ids", "images", "videos", "reviews", "recommendations", "similar", "release_information", "translations", "watch_providers"], "properties": { "tagline": { "type": "string" }, "adult": { "type": "boolean" }, "genres": { "type": "array" }, "creators": { "type": "array", "items": { "$ref": "#/components/schemas/Credit" } }, "cast": { "type": "array", "items": { "$ref": "#/components/schemas/Credit" } }, "crew": { "type": "array", "items": { "$ref": "#/components/schemas/Credit" } }, "collection": { "oneOf": [{ "$ref": "#/components/schemas/CollectionSummary" }, { "type": "null" }] }, "companies": { "type": "array", "items": { "$ref": "#/components/schemas/OrganizationSummary" } }, "networks": { "type": "array", "items": { "$ref": "#/components/schemas/OrganizationSummary" } }, "seasons": { "type": "array", "items": { "$ref": "#/components/schemas/SeasonSummary" } }, "alternative_titles": { "type": "array" }, "external_ids": { "type": "object" }, "images": { "type": "object" }, "videos": { "type": "array" }, "reviews": { "type": "object" }, "recommendations": { "$ref": "#/components/schemas/TitlePage" }, "similar": { "type": "array", "items": { "$ref": "#/components/schemas/TitleSummary" } }, "release_information": { "type": "array" }, "translations": { "type": "array" }, "watch_providers": { "type": "array", "items": { "$ref": "#/components/schemas/ProviderRegion" } } }, "additionalProperties": true }] },
+      "PersonDetail": { "allOf": [{ "$ref": "#/components/schemas/PersonSummary" }, { "type": "object", "required": ["biography", "also_known_as", "images", "credits", "external_ids"], "properties": { "biography": { "type": "string" }, "birthday": { "type": ["string", "null"] }, "deathday": { "type": ["string", "null"] }, "also_known_as": { "type": "array", "items": { "type": "string" } }, "images": { "type": "array", "items": { "$ref": "#/components/schemas/ImageAsset" } }, "credits": { "type": "object" }, "external_ids": { "type": "object" } } }] },
+      "CollectionDetail": { "allOf": [{ "$ref": "#/components/schemas/CollectionSummary" }, { "type": "object", "required": ["parts", "images"], "properties": { "parts": { "type": "array", "items": { "$ref": "#/components/schemas/TitleSummary" } }, "images": { "type": "object" } } }] },
+      "OrganizationDetail": { "allOf": [{ "$ref": "#/components/schemas/OrganizationSummary" }, { "type": "object", "required": ["description", "titles"], "properties": { "description": { "type": "string" }, "titles": { "$ref": "#/components/schemas/TitlePage" } } }] },
+      "KeywordDetail": { "allOf": [{ "$ref": "#/components/schemas/KeywordSummary" }, { "type": "object", "required": ["titles"], "properties": { "titles": { "$ref": "#/components/schemas/TitlePage" } } }] },
+      "EntityDetail": { "oneOf": [{ "$ref": "#/components/schemas/TitleDetail" }, { "$ref": "#/components/schemas/PersonDetail" }, { "$ref": "#/components/schemas/CollectionDetail" }, { "$ref": "#/components/schemas/OrganizationDetail" }, { "$ref": "#/components/schemas/KeywordDetail" }], "discriminator": { "propertyName": "entity_kind" } },
+      "SeasonDetail": { "allOf": [{ "$ref": "#/components/schemas/SeasonSummary" }, { "type": "object", "required": ["series_id", "episodes", "credits", "images", "videos", "external_ids"], "properties": { "series_id": { "type": "integer", "minimum": 1 }, "episodes": { "type": "array", "items": { "$ref": "#/components/schemas/EpisodeSummary" } }, "credits": { "type": "object" }, "images": { "type": "array", "items": { "$ref": "#/components/schemas/ImageAsset" } }, "videos": { "type": "array" }, "external_ids": { "type": "object" } } }] },
+      "EpisodeDetail": { "allOf": [{ "$ref": "#/components/schemas/EpisodeSummary" }, { "type": "object", "required": ["crew", "guest_stars", "images", "videos", "external_ids"], "properties": { "crew": { "type": "array", "items": { "$ref": "#/components/schemas/Credit" } }, "guest_stars": { "type": "array", "items": { "$ref": "#/components/schemas/Credit" } }, "images": { "type": "array", "items": { "$ref": "#/components/schemas/ImageAsset" } }, "videos": { "type": "array" }, "external_ids": { "type": "object" } } }] },
+      "Capabilities": { "type": "object", "required": ["api_version", "release_train", "catalog", "account", "supported_languages", "supported_entity_kinds", "adult_content"], "properties": { "api_version": { "const": "v2" }, "release_train": { "type": "string" }, "catalog": { "type": "object", "additionalProperties": { "type": "boolean" } }, "account": { "type": "object", "additionalProperties": { "type": "boolean" } }, "supported_languages": { "type": "array", "items": { "$ref": "#/components/schemas/Language" } }, "supported_entity_kinds": { "type": "array", "items": { "$ref": "#/components/schemas/EntityKind" } }, "adult_content": { "type": "object", "required": ["supported", "default_enabled", "local_pin_required"], "properties": { "supported": { "type": "boolean" }, "default_enabled": { "const": false }, "local_pin_required": { "const": true } } } }, "additionalProperties": true },
+      "Configuration": { "type": "object", "required": ["images", "change_keys", "countries", "languages", "watch_provider_regions", "attribution"], "properties": { "images": { "type": "object" }, "change_keys": { "type": "array", "items": { "type": "string" } }, "countries": { "type": "array" }, "languages": { "type": "array" }, "watch_provider_regions": { "type": "array" }, "attribution": { "type": "object", "required": ["tmdb", "watch_providers"], "properties": { "tmdb": { "type": "string" }, "watch_providers": { "const": "JustWatch" } } } }, "additionalProperties": true },
+      "AuthAttemptRequest": { "type": "object", "required": ["return_uri"], "properties": { "return_uri": { "type": "string", "format": "uri" }, "mode": { "type": "string", "enum": ["browser", "tv", "web"], "default": "browser" } }, "additionalProperties": false },
+      "AuthAttempt": { "type": "object", "required": ["attempt_id", "status", "authorization_url", "device_code", "expires_at", "polling_interval"], "properties": { "attempt_id": { "type": "string", "format": "uuid" }, "status": { "const": "pending" }, "authorization_url": { "type": "string", "format": "uri" }, "device_code": { "type": ["string", "null"] }, "expires_at": { "type": "string", "format": "date-time" }, "polling_interval": { "type": ["integer", "null"] } }, "additionalProperties": true },
+      "AuthAttemptStatus": { "type": "object", "required": ["attempt_id", "status", "expires_at"], "properties": { "attempt_id": { "type": "string", "format": "uuid" }, "status": { "type": "string", "enum": ["pending", "approved", "denied", "completed", "expired"] }, "expires_at": { "type": "string", "format": "date-time" } }, "additionalProperties": true },
+      "AuthSession": { "type": "object", "required": ["session_token", "csrf_token", "expires_at", "profile"], "properties": { "session_token": { "type": ["string", "null"], "description": "Null for web, where the session is delivered only in a Secure HttpOnly cookie." }, "csrf_token": { "type": "string" }, "expires_at": { "type": "string", "format": "date-time" }, "profile": { "$ref": "#/components/schemas/AccountProfile" } }, "additionalProperties": false },
+      "CSRFToken": { "type": "object", "required": ["csrf_token"], "properties": { "csrf_token": { "type": "string", "minLength": 32 } }, "additionalProperties": false },
+      "AccountProfile": { "type": "object", "required": ["id", "username", "name", "language", "country", "include_adult", "avatar_path", "gravatar_hash"], "properties": { "id": { "type": "integer", "minimum": 1 }, "username": { "type": "string" }, "name": { "type": "string" }, "language": { "type": ["string", "null"] }, "country": { "type": ["string", "null"] }, "include_adult": { "type": "boolean" }, "avatar_path": { "type": ["string", "null"] }, "gravatar_hash": { "type": ["string", "null"] } }, "additionalProperties": true },
+      "AccountState": { "type": "object", "required": ["media_type", "media_id", "favorite", "watchlist", "rated"], "properties": { "media_type": { "$ref": "#/components/schemas/MediaType" }, "media_id": { "type": "integer", "minimum": 1 }, "favorite": { "type": "boolean" }, "watchlist": { "type": "boolean" }, "rated": { "oneOf": [{ "type": "boolean", "const": false }, { "type": "object", "required": ["value"], "properties": { "value": { "type": "number", "minimum": 0.5, "maximum": 10 } } }] } }, "additionalProperties": true },
+      "RatingMutation": { "type": "object", "required": ["value"], "properties": { "value": { "type": "number", "minimum": 0.5, "maximum": 10, "multipleOf": 0.5 }, "mutation_id": { "type": "string", "format": "uuid" } }, "additionalProperties": false },
+      "MutationResult": { "type": "object", "required": ["mutation_id"], "properties": { "mutation_id": { "type": "string", "format": "uuid" }, "success": { "type": "boolean" }, "status_code": { "type": "integer" }, "status_message": { "type": "string" } }, "additionalProperties": true },
+      "UserListItemMutation": { "type": "object", "required": ["media_type", "media_id"], "properties": { "media_type": { "$ref": "#/components/schemas/MediaType" }, "media_id": { "type": "integer", "minimum": 1 }, "comment": { "type": "string", "maxLength": 500 } }, "additionalProperties": false },
+      "UserList": { "type": "object", "required": ["id", "name", "description", "public", "results"], "properties": { "id": { "type": "integer", "minimum": 1 }, "name": { "type": "string" }, "description": { "type": "string" }, "public": { "type": "boolean" }, "results": { "type": "array", "items": { "$ref": "#/components/schemas/TitleSummary" } } }, "additionalProperties": true },
+      "UserListPage": { "type": "object", "required": ["page", "total_pages", "results"], "properties": { "page": { "type": "integer", "minimum": 1 }, "total_pages": { "type": "integer", "minimum": 0 }, "results": { "type": "array", "items": { "$ref": "#/components/schemas/UserList" } } }, "additionalProperties": true },
+      "ErrorBody": { "type": "object", "required": ["code", "message", "request_id", "retry_after"], "properties": { "code": { "type": "string", "minLength": 1 }, "message": { "type": "string", "minLength": 1 }, "request_id": { "type": "string", "format": "uuid" }, "retry_after": { "type": ["integer", "null"], "minimum": 0 } }, "additionalProperties": true },
+      "ErrorEnvelope": { "type": "object", "required": ["error"], "properties": { "error": { "$ref": "#/components/schemas/ErrorBody" } }, "additionalProperties": true },
+      "FreeformObject": { "type": "object", "additionalProperties": true }
+    }
+  }
+}

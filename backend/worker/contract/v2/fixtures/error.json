@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "upstream_rate_limited",
+    "message": "The movie catalog is busy. Please retry shortly.",
+    "request_id": "00000000-0000-4000-8000-000000000022",
+    "retry_after": 60
+  }
+}

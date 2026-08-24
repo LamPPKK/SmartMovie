@@ -24,7 +24,7 @@ defaults:
 
 jobs:
   test:
-    name: TypeScript and 28 contract tests
+    name: TypeScript and contract/security tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -55,6 +55,9 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
+      SESSION_ENCRYPTION_KEY: ${{ secrets.SESSION_ENCRYPTION_KEY }}
+      AUTH_D1_DATABASE_ID: ${{ secrets.AUTH_D1_DATABASE_ID }}
+      SMARTMOVIE_ACCOUNT_SESSION_TOKEN: ${{ secrets.SMARTMOVIE_ACCOUNT_SESSION_TOKEN }}
       BASE_URL: https://staging-catalog.smartmovie.app
       CLIENT_ID: 00000000-0000-4000-8000-000000000001
       MEDIA_TYPE: movie
@@ -68,18 +71,32 @@ jobs:
           cache: npm
           cache-dependency-path: backend/worker/package-lock.json
       - run: npm ci
-      - name: Set required TMDb secret
+      - name: Configure protected D1 binding
+        run: |
+          : "${AUTH_D1_DATABASE_ID:?Missing staging AUTH_D1_DATABASE_ID}"
+          if [[ ! "$AUTH_D1_DATABASE_ID" =~ ^[0-9a-f-]{36}$ ]]; then echo "AUTH_D1_DATABASE_ID must be a UUID." >&2; exit 1; fi
+          cp wrangler.toml wrangler.ci.toml
+          printf '\n[[env.staging.d1_databases]]\nbinding = "AUTH_DB"\ndatabase_name = "smartmovie-auth-staging"\ndatabase_id = "%s"\nmigrations_dir = "migrations"\n' "$AUTH_D1_DATABASE_ID" >> wrangler.ci.toml
+      - name: Set required Worker secrets
         run: |
           : "${TMDB_BEARER_TOKEN:?Missing staging TMDB_BEARER_TOKEN}"
+          : "${SESSION_ENCRYPTION_KEY:?Missing staging SESSION_ENCRYPTION_KEY}"
           printf '%s' "$TMDB_BEARER_TOKEN" | npx wrangler secret put TMDB_BEARER_TOKEN --env staging
+          printf '%s' "$SESSION_ENCRYPTION_KEY" | npx wrangler secret put SESSION_ENCRYPTION_KEY --env staging
+      - name: Apply staging D1 migrations
+        run: npx wrangler d1 migrations apply smartmovie-auth-staging --remote --env staging --config wrangler.ci.toml
       - name: Deploy staging Worker
         id: deploy
-        run: npm run deploy:staging
+        run: npx wrangler deploy --env staging --config wrangler.ci.toml
       - name: Smoke schemas, locales, pagination and normalized errors
         run: npm run smoke
+      - name: Protected TMDb account smoke and cleanup
+        run: |
+          : "${SMARTMOVIE_ACCOUNT_SESSION_TOKEN:?Missing dedicated staging account session}"
+          npm run smoke:account
       - name: Roll back staging after a failed smoke test
         if: failure() && steps.deploy.outcome == 'success'
-        run: npx wrangler rollback --env staging --message "Automated rollback after staging smoke failure for $GITHUB_SHA" --yes
+        run: npx wrangler rollback --env staging --config wrangler.ci.toml --message "Automated rollback after staging smoke failure for $GITHUB_SHA" --yes
 
   production:
     name: Approved production deploy
@@ -95,6 +112,8 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
+      SESSION_ENCRYPTION_KEY: ${{ secrets.SESSION_ENCRYPTION_KEY }}
+      AUTH_D1_DATABASE_ID: ${{ secrets.AUTH_D1_DATABASE_ID }}
       BASE_URL: https://catalog.smartmovie.app
       CLIENT_ID: 00000000-0000-4000-8000-000000000002
       MEDIA_TYPE: tv
@@ -108,6 +127,12 @@ jobs:
           cache: npm
           cache-dependency-path: backend/worker/package-lock.json
       - run: npm ci
+      - name: Configure protected D1 binding
+        run: |
+          : "${AUTH_D1_DATABASE_ID:?Missing production AUTH_D1_DATABASE_ID}"
+          if [[ ! "$AUTH_D1_DATABASE_ID" =~ ^[0-9a-f-]{36}$ ]]; then echo "AUTH_D1_DATABASE_ID must be a UUID." >&2; exit 1; fi
+          cp wrangler.toml wrangler.ci.toml
+          printf '\n[[env.production.d1_databases]]\nbinding = "AUTH_DB"\ndatabase_name = "smartmovie-auth-production"\ndatabase_id = "%s"\nmigrations_dir = "migrations"\n' "$AUTH_D1_DATABASE_ID" >> wrangler.ci.toml
       - name: Require Android main to pin this contract
         working-directory: ${{ github.workspace }}
         env:
@@ -115,9 +140,9 @@ jobs:
           ANDROID_RELEASE_MANIFEST: https://raw.githubusercontent.com/LamPPKK/Android.Smart.Movie/main/release/train.json
         run: |
           set -euo pipefail
-          local_checksum="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("backend/worker/contract/manifest.json", "utf8")).openapi_sha256)')"
-          local_fixtures_checksum="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("backend/worker/contract/manifest.json", "utf8")).fixtures_sha256)')"
-          local_contract_version="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("backend/worker/contract/manifest.json", "utf8")).contract_version)')"
+          local_checksum="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("backend/worker/contract/v2/manifest.json", "utf8")).openapi_sha256)')"
+          local_fixtures_checksum="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("backend/worker/contract/v2/manifest.json", "utf8")).fixtures_sha256)')"
+          local_contract_version="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("backend/worker/contract/v2/manifest.json", "utf8")).contract_version)')"
           local_version="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("release/train.json", "utf8")).train_version)')"
           remote_manifest="$(curl --fail --retry 3 --retry-all-errors "$ANDROID_CONTRACT_MANIFEST")"
           remote_release="$(curl --fail --retry 3 --retry-all-errors "$ANDROID_RELEASE_MANIFEST")"
@@ -146,15 +171,19 @@ jobs:
             echo "Android main pins release $remote_version but production requires $local_version." >&2
             exit 1
           fi
-      - name: Set required TMDb secret
+      - name: Set required Worker secrets
         run: |
           : "${TMDB_BEARER_TOKEN:?Missing production TMDB_BEARER_TOKEN}"
+          : "${SESSION_ENCRYPTION_KEY:?Missing production SESSION_ENCRYPTION_KEY}"
           printf '%s' "$TMDB_BEARER_TOKEN" | npx wrangler secret put TMDB_BEARER_TOKEN --env production
+          printf '%s' "$SESSION_ENCRYPTION_KEY" | npx wrangler secret put SESSION_ENCRYPTION_KEY --env production
+      - name: Apply production D1 migrations
+        run: npx wrangler d1 migrations apply smartmovie-auth-production --remote --env production --config wrangler.ci.toml
       - name: Deploy production Worker
         id: deploy
-        run: npm run deploy:production
+        run: npx wrangler deploy --env production --config wrangler.ci.toml
       - name: Production contract smoke test
         run: npm run smoke
       - name: Roll back production after a failed smoke test
         if: failure() && steps.deploy.outcome == 'success'
-        run: npx wrangler rollback --env production --message "Automated rollback after production smoke failure for $GITHUB_SHA" --yes
+        run: npx wrangler rollback --env production --config wrangler.ci.toml --message "Automated rollback after production smoke failure for $GITHUB_SHA" --yes

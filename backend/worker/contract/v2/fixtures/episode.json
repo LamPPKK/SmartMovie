@@ -1,0 +1,20 @@
+{
+  "entity_kind": "episode",
+  "id": 18,
+  "series_id": 11,
+  "season_number": 1,
+  "episode_number": 1,
+  "name": "Pilot",
+  "overview": "",
+  "still_path": null,
+  "air_date": null,
+  "runtime_minutes": null,
+  "vote_average": 0,
+  "production_code": null,
+  "vote_count": 0,
+  "crew": [],
+  "guest_stars": [],
+  "images": [],
+  "videos": [],
+  "external_ids": {}
+}

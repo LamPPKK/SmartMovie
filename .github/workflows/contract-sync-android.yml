@@ -52,10 +52,11 @@ jobs:
             git switch -c "$branch"
           fi
           cd "$GITHUB_WORKSPACE"
-          mkdir -p "$ANDROID_DIR/catalog-contract/v1" "$ANDROID_DIR/release"
-          rsync -a --delete backend/worker/contract/ "$ANDROID_DIR/catalog-contract/v1/"
+          mkdir -p "$ANDROID_DIR/catalog-contract/v1" "$ANDROID_DIR/catalog-contract/v2" "$ANDROID_DIR/release"
+          rsync -a --delete --exclude 'v2/' backend/worker/contract/ "$ANDROID_DIR/catalog-contract/v1/"
+          rsync -a --delete backend/worker/contract/v2/ "$ANDROID_DIR/catalog-contract/v2/"
           cp release/train.json "$ANDROID_DIR/release/train.json"
-          python3 - "$ANDROID_DIR/catalog-contract/manifest.json" backend/worker/contract/manifest.json "$GITHUB_SHA" <<'PY'
+          python3 - "$ANDROID_DIR/catalog-contract/manifest.json" backend/worker/contract/v2/manifest.json "$GITHUB_SHA" <<'PY'
           import json
           import sys
 

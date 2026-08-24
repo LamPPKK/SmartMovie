@@ -1,0 +1,18 @@
+{
+  "entity_kind": "person",
+  "id": 12,
+  "name": "Example Person",
+  "profile_path": null,
+  "known_for_department": "Directing",
+  "popularity": 9.5,
+  "known_for": [],
+  "biography": "",
+  "birthday": null,
+  "deathday": null,
+  "place_of_birth": null,
+  "homepage": null,
+  "also_known_as": [],
+  "images": [],
+  "credits": { "cast": [], "crew": [] },
+  "external_ids": {}
+}

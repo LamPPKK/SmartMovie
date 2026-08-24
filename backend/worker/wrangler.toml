@@ -8,6 +8,12 @@ enabled = false
 [env.staging]
 name = "smartmovie-catalog-staging"
 
+[env.staging.vars]
+AUTH_CALLBACK_ORIGIN = "https://staging-catalog.smartmovie.app"
+AUTH_RETURN_URI_ALLOWLIST = "smartmovie://auth/callback,https://staging.smartmovie.app/auth/callback,http://localhost:8080/auth/callback"
+WEB_ORIGIN_ALLOWLIST = "https://staging.smartmovie.app,http://localhost:8080"
+SESSION_COOKIE_DOMAIN = ".smartmovie.app"
+
 [env.staging.version_metadata]
 binding = "CF_VERSION_METADATA"
 
@@ -25,6 +31,12 @@ period = 60
 
 [env.production]
 name = "smartmovie-catalog-production"
+
+[env.production.vars]
+AUTH_CALLBACK_ORIGIN = "https://catalog.smartmovie.app"
+AUTH_RETURN_URI_ALLOWLIST = "smartmovie://auth/callback,https://smartmovie.app/auth/callback"
+WEB_ORIGIN_ALLOWLIST = "https://smartmovie.app"
+SESSION_COOKIE_DOMAIN = ".smartmovie.app"
 
 [env.production.version_metadata]
 binding = "CF_VERSION_METADATA"

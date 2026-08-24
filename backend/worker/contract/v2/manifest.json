@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "contract_version": "2.0.0",
+  "compatibility": "additive-only-within-v2",
+  "legacy_v1_support": "at-least-12-months-after-3.0.0",
+  "openapi_sha256": "59dfe6d595f1328cf2a7900a2bf74adbbb208e9648056cff475a3114a3293610",
+  "fixtures_sha256": "47ea6a825f36bb0f6f7128a08da4b7bfc2c7c78ece3b359cae51ac31fa15ce60"
+}
