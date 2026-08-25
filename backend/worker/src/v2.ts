@@ -44,6 +44,7 @@ export interface V2Route {
   ttl: number;
   methods: ReadonlySet<string>;
   isPrivate?: boolean;
+  cacheRevisionKey?: string;
   handle(request: Request, url: URL, env: WorkerEnvV2, requestId: string): Promise<Response>;
 }
 
@@ -84,47 +85,65 @@ export function routeV2(pathname: string): V2Route | null {
   if (match) return getRoute("v2-find", 3600, (request, url, env, id) => findExternal(request, url, env, id, decodeURIComponent(match![1])));
 
   match = pathname.match(/^\/v2\/titles\/(movie|tv)\/(\d+)$/);
-  if (match) return getRoute("v2-title", 3600, (request, url, env, id) => title(request, url, env, id, match![1] as MediaType, titleID(match![2])));
+  if (match) {
+    const type = match[1] as MediaType;
+    const id = titleID(match[2]);
+    return getRoute("v2-title", 3600, (request, url, env, requestId) => title(request, url, env, requestId, type, id), `${type}:${id}`);
+  }
 
   match = pathname.match(/^\/v2\/titles\/(movie|tv)\/(\d+)\/([a-z-]+)$/);
   if (match && relatedResources.has(match[3])) {
-    return getRoute("v2-title-related", relatedTTL(match[3]), (request, url, env, id) => titleRelated(
+    const type = match[1] as MediaType;
+    const entityID = titleID(match[2]);
+    const resource = match[3];
+    return getRoute("v2-title-related", relatedTTL(match[3]), (request, url, env, requestId) => titleRelated(
       request,
       url,
       env,
-      id,
-      match![1] as MediaType,
-      titleID(match![2]),
-      match![3],
-    ));
+      requestId,
+      type,
+      entityID,
+      resource,
+    ), `${type}:${entityID}`);
   }
 
   match = pathname.match(/^\/v2\/entities\/(movie|tv|person|collection|company|network|keyword)\/(\d+)$/);
   if (match) {
     const kind = entityKind(match[1]);
-    return getRoute("v2-entity", 3600, (request, url, env, id) => entity(request, url, env, id, kind, titleID(match![2])));
+    const entityID = titleID(match[2]);
+    const revisionKey = kind === "movie" || kind === "tv" || kind === "person" ? `${kind}:${entityID}` : undefined;
+    return getRoute("v2-entity", 3600, (request, url, env, id) => entity(request, url, env, id, kind, entityID), revisionKey);
   }
 
   match = pathname.match(/^\/v2\/tv\/(\d+)\/seasons\/(\d+)$/);
-  if (match) return getRoute("v2-season", 3600, (request, url, env, id) => season(
-    request,
-    url,
-    env,
-    id,
-    titleID(match![1]),
-    nonNegativeInteger(match![2], "season_number"),
-  ));
+  if (match) {
+    const seriesID = titleID(match[1]);
+    const seasonNumber = nonNegativeInteger(match[2], "season_number");
+    return getRoute("v2-season", 3600, (request, url, env, id) => season(
+      request,
+      url,
+      env,
+      id,
+      seriesID,
+      seasonNumber,
+    ), `tv:${seriesID}`);
+  }
 
   match = pathname.match(/^\/v2\/tv\/(\d+)\/seasons\/(\d+)\/episodes\/(\d+)$/);
-  if (match) return getRoute("v2-episode", 3600, (request, url, env, id) => episode(
-    request,
-    url,
-    env,
-    id,
-    titleID(match![1]),
-    nonNegativeInteger(match![2], "season_number"),
-    titleID(match![3]),
-  ));
+  if (match) {
+    const seriesID = titleID(match[1]);
+    const seasonNumber = nonNegativeInteger(match[2], "season_number");
+    const episodeNumber = titleID(match[3]);
+    return getRoute("v2-episode", 3600, (request, url, env, id) => episode(
+      request,
+      url,
+      env,
+      id,
+      seriesID,
+      seasonNumber,
+      episodeNumber,
+    ), `tv:${seriesID}`);
+  }
 
   match = pathname.match(/^\/v2\/credits\/([^/]+)$/);
   if (match) return getRoute("v2-credit", 86400, (request, url, env, id) => creditDetail(request, url, env, id, decodeURIComponent(match![1])));
@@ -549,8 +568,9 @@ function getRoute(
   id: string,
   ttl: number,
   handle: V2Route["handle"],
+  cacheRevisionKey?: string,
 ): V2Route {
-  return { id, ttl, methods: GET, handle };
+  return { id, ttl, methods: GET, cacheRevisionKey, handle };
 }
 
 function mediaTypeQuery(value: string): MediaType {

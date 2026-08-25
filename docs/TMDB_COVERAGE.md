@@ -23,7 +23,7 @@ The canonical transport is OpenAPI 3.1 at `backend/worker/contract/v2/openapi.js
 | TV seasons and episodes | `/v2/tv/{seriesId}/seasons/{seasonNumber}` and episode child route | UI | Season/episode metadata, credits, guest stars, images, videos, and air dates are represented. |
 | Credit detail | `/v2/credits/{creditId}` | UI | Cast, crew, season, episode, and guest-star credits open a localized detail screen on Apple, native Android, and KMP. The normalized response preserves the raw TMDb payload while exposing stable person/title links and role metadata. |
 | Watch providers | title aggregate and related-resource route | UI | Region-aware stream/rent/buy offers open only the TMDb URL and show JustWatch attribution. |
-| Changes | no public route | **Blocker** | Configuration exposes `change_keys`, but the Worker does not yet poll TMDb change feeds to invalidate catalog cache entries. No debug UI is planned. |
+| Changes | no public route | Backend-only | The hourly Worker cron polls paginated Movie/TV/Person change lists with durable D1 cursors. UTC-date entity revisions invalidate title/person/related/season/episode Cache API keys idempotently; TV revisions cover series-level season/episode edits. Each kind recovers independently after upstream failure, stale revision rows expire after 30 days, and no debug UI or public route exists. |
 | Certifications, release dates, content ratings, alternative titles, translations, external IDs | normalized title detail | Backend-normalized UI data | These upstream groups are folded into stable title models instead of mirrored as raw TMDb endpoints. |
 
 ## Account and lists
@@ -52,4 +52,4 @@ The canonical transport is OpenAPI 3.1 at `backend/worker/contract/v2/openapi.js
 
 ## Completion rule
 
-SmartMovie 3.0 is not product-complete while any row is marked **Blocker**. Every completed row must have Worker schema/fixture coverage plus Swift, native Android, and KMP decoding or behavior tests. Production account capability must remain disabled until the deployed Worker has its D1 binding, session-encryption key, callback origin, and return-URI allowlist.
+SmartMovie 3.0 is not product-complete while any row is marked **Blocker**. Every completed UI row must have Worker schema/fixture coverage plus Swift, native Android, and KMP decoding or behavior tests; backend-only rows require deployment configuration and focused Worker behavior tests without inventing a client surface. Production account capability must remain disabled until the deployed Worker has its D1 binding, session-encryption key, callback origin, and return-URI allowlist.

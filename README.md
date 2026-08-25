@@ -109,7 +109,7 @@ flowchart LR
     Watch <-->|"WatchConnectivity"| Universal
     Kit -->|"HTTPS /v2"| Worker["Cloudflare Worker"]
     Worker -->|"server-side v3/v4 credentials"| TMDb["TMDb API"]
-    Worker --> Sessions["D1 session broker"]
+    Worker --> Sessions["D1 sessions + catalog change cursors"]
     Kit --> Store["SwiftData library"]
     Store <-->|"private sync"| CloudKit["CloudKit"]
     Kit --> Images["TMDb image CDN"]
@@ -117,7 +117,7 @@ flowchart LR
 
 `SmartMovieKit` contains discriminated domain models and repository protocols, async/await catalog/account clients, SwiftData storage, durable library/account outboxes, observable feature state, localization, and shared SwiftUI components. App targets own lifecycle and platform adapters instead of duplicating product logic.
 
-The Worker serves the legacy six-route `/v1` catalog and the additive `/v2` catalog/account surface. `/v2` adds capabilities, entity search/detail, seasons/episodes, related title resources, regional providers, browser/TV authorization, profile/library state, ratings, recommendations, and custom lists. It owns TMDb credentials, validates queries and callbacks, normalizes errors, partitions public cache entries, rate-limits clients, and stores only encrypted session material plus idempotency metadata in D1. Canonical OpenAPI 3.1 documents and fixtures live in `backend/worker/contract`.
+The Worker serves the legacy six-route `/v1` catalog and the additive `/v2` catalog/account surface. `/v2` adds capabilities, entity search/detail, seasons/episodes, related title resources, regional providers, browser/TV authorization, profile/library state, ratings, recommendations, and custom lists. It owns TMDb credentials, validates queries and callbacks, normalizes errors, partitions public cache entries, rate-limits clients, and polls TMDb Movie/TV/Person change lists on an hourly cron. D1 stores encrypted session material, mutation-idempotency records, and non-personal catalog change cursors/revisions; changed entity revisions rotate the Cache API key for title, person, related-resource, season, and episode responses without exposing a debug route. Canonical OpenAPI 3.1 documents and fixtures live in `backend/worker/contract`.
 
 The Android repository vendors that contract with a manifest containing its version, upstream commit, OpenAPI checksum, and fixture checksum. Production Worker promotion is blocked until Android `main` pins the same contract and release train; staging remains available for compatibility testing.
 
@@ -195,13 +195,14 @@ swift test --package-path SmartMovieKit --enable-code-coverage
 cd backend/worker
 npm ci
 npm run check
+npm run check:migrations
 npm test
 
 cd ../..
 ./scripts/verify-release.sh
 ```
 
-The current verified local baseline contains 44 Swift tests and 62 Worker tests. Coverage includes canonical `/v1` and `/v2` fixture decoding, External ID and Credit Detail source/path mapping, account recommendations, normalized/paginated custom mixed lists, restart-safe pending item snapshots, local adult filtering and in-flight request invalidation, metadata/item mutations, normalized person/title credit links, unknown and missing nullable fields, success/error schema validation, D1 migrations, encryption/callback/CSRF controls, durable idempotency, retries, cancellation, pagination, and data behavior without live personal credentials.
+The current verified local baseline contains 44 Swift tests and 74 Worker tests. Coverage includes canonical `/v1` and `/v2` fixture decoding, External ID and Credit Detail source/path mapping, account recommendations, normalized/paginated custom mixed lists, restart-safe pending item snapshots, local adult filtering and in-flight request invalidation, metadata/item mutations, normalized person/title credit links, unknown and missing nullable fields, success/error schema validation, repeatable D1 migrations, encryption/callback/CSRF controls, durable idempotency, TMDb Changes pagination/backlog recovery, invalid cursor recovery, verified changing-page-count fallback, D1 parameter-bound chunking, monotonic revision and cache-bypass behavior, retries, cancellation, pagination, and data behavior without live personal credentials.
 
 CI independently builds and analyzes iOS, iPad/Catalyst, tvOS, native macOS, watchOS, and visionOS, then installs and launches the iOS app in Simulator. Read [Testing](docs/TESTING.md) for destination-specific commands and the manual device matrix.
 

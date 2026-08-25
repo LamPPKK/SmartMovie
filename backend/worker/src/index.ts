@@ -1,5 +1,6 @@
 import type { MediaType, TmdbPage, TmdbTitle } from "./contracts";
 import { routeAccountV2, type WorkerAccountEnv } from "./account";
+import { catalogCacheRevision, syncCatalogChanges } from "./changes";
 import { detail, pageResponse, summary } from "./transform";
 import { routeV2 } from "./v2";
 import {
@@ -26,6 +27,7 @@ export interface Env extends WorkerAccountEnv {
 }
 
 type Execution = Pick<ExecutionContext, "waitUntil">;
+interface Schedule { scheduledTime: number }
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8" };
 
@@ -43,10 +45,15 @@ export default {
       if (!methods.has(request.method)) {
         throw new RequestProblem(400, "unsupported_method", "The requested method is not supported for this route.");
       }
+      rejectReservedCacheParameters(url);
 
       await enforceRateLimit(request, env, match.id);
       const canCache = request.method === "GET" && v2Match?.isPrivate !== true;
-      const cached = canCache ? await readCache(request, workerVersion) : undefined;
+      const cacheRevision = canCache && match.cacheRevisionKey
+        ? await catalogCacheRevision(env, match.cacheRevisionKey)
+        : undefined;
+      const cacheAvailable = canCache && cacheRevision !== null;
+      const cached = cacheAvailable ? await readCache(request, workerVersion, cacheRevision) : undefined;
       if (cached) return withWorkerVersion(withHeader(cached, "X-SmartMovie-Cache", "HIT"), workerVersion);
 
       const response = v2Match
@@ -54,8 +61,8 @@ export default {
         : await v1Match!.handle(url, env, requestId);
       if (response.ok && canCache) {
         const cacheable = withHeader(response, "Cache-Control", `public, max-age=${match.ttl}`);
-        context.waitUntil(writeCache(request, cacheable.clone(), workerVersion));
-        return withWorkerVersion(withHeader(cacheable, "X-SmartMovie-Cache", "MISS"), workerVersion);
+        if (cacheAvailable) context.waitUntil(writeCache(request, cacheable.clone(), workerVersion, cacheRevision));
+        return withWorkerVersion(withHeader(cacheable, "X-SmartMovie-Cache", cacheAvailable ? "MISS" : "BYPASS"), workerVersion);
       }
       if (v2Match?.isPrivate) response.headers.set("Cache-Control", "private, no-store");
       return withWorkerVersion(response, workerVersion);
@@ -63,11 +70,15 @@ export default {
       return withWorkerVersion(errorResponse(error, requestId), workerVersion);
     }
   },
+  scheduled(controller: Schedule, env: Env, context: Execution): void {
+    context.waitUntil(syncCatalogChanges(env, controller.scheduledTime));
+  },
 };
 
 interface Route {
   id: string;
   ttl: number;
+  cacheRevisionKey?: string;
   handle(url: URL, env: Env, requestId: string): Promise<Response>;
 }
 
@@ -82,10 +93,13 @@ export function route(pathname: string): Route | null {
   if (match) return { id: "genres", ttl: 86400, handle: (url, env, id) => genres(url, env, id, mediaType(match![1])) };
   match = pathname.match(/^\/v1\/titles\/(movie|tv)\/(\d+)$/);
   if (match) {
+    const type = mediaType(match[1]);
+    const id = titleID(match[2]);
     return {
       id: "detail",
       ttl: 3600,
-      handle: (url, env, id) => title(url, env, id, mediaType(match![1]), titleID(match![2])),
+      cacheRevisionKey: `${type}:${id}`,
+      handle: (url, env, requestId) => title(url, env, requestId, type, id),
     };
   }
   return null;
@@ -187,20 +201,29 @@ async function enforceRateLimit(request: Request, env: Env, routeID: string): Pr
   }
 }
 
-async function readCache(request: Request, workerVersion: string): Promise<Response | undefined> {
+async function readCache(request: Request, workerVersion: string, catalogRevision?: string): Promise<Response | undefined> {
   if (typeof caches === "undefined") return undefined;
-  return (await caches.default.match(versionedCacheRequest(request, workerVersion))) ?? undefined;
+  return (await caches.default.match(versionedCacheRequest(request, workerVersion, catalogRevision))) ?? undefined;
 }
 
-async function writeCache(request: Request, response: Response, workerVersion: string): Promise<void> {
+async function writeCache(request: Request, response: Response, workerVersion: string, catalogRevision?: string): Promise<void> {
   if (typeof caches === "undefined") return;
-  await caches.default.put(versionedCacheRequest(request, workerVersion), response);
+  await caches.default.put(versionedCacheRequest(request, workerVersion, catalogRevision), response);
 }
 
-function versionedCacheRequest(request: Request, workerVersion: string): Request {
+function versionedCacheRequest(request: Request, workerVersion: string, catalogRevision?: string): Request {
   const url = new URL(request.url);
   url.searchParams.set("__smartmovie_worker_version", workerVersion);
+  if (catalogRevision !== undefined) url.searchParams.set("__smartmovie_catalog_revision", catalogRevision);
   return new Request(url, { method: "GET" });
+}
+
+function rejectReservedCacheParameters(url: URL): void {
+  for (const name of url.searchParams.keys()) {
+    if (name.startsWith("__smartmovie_")) {
+      throw new RequestProblem(400, "unsupported_parameter", `Unsupported query parameter: ${name}.`);
+    }
+  }
 }
 
 function withHeader(response: Response, name: string, value: string): Response {

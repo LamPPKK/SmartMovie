@@ -12,9 +12,11 @@ Clients call only the SmartMovie Worker for catalog JSON. The Worker calls TMDb 
 
 - `/v1` keeps the six SmartMovie 2.0 route families alive.
 - `/v2` adds capabilities, deep Movie/TV data, entity search/detail, trending, external-ID lookup, credits, seasons/episodes, providers, and account routes.
-- Public cache keys partition by route inputs including locale, region, and adult flag, plus Worker deployment version metadata.
+- Public cache keys partition by route inputs including locale, region, and adult flag, plus Worker deployment version metadata. Entity-specific title/person/related/season/episode keys also include the current TMDb change revision from D1.
 - Private auth/account responses use `private, no-store` and are never inserted into the catalog cache.
 - `/v2` is additive-only. A discriminator, type, or semantic break requires `/v3`.
+
+An hourly scheduled Worker polls the date-scoped TMDb Movie, TV, and Person change lists. Durable per-kind cursors process a bounded number of 100-item pages per invocation, finish an unfinished date before advancing, and clamp stalled cursors to TMDb's supported 14-day window. A new cursor starts on the current UTC date because all entity caches from before deployment expire within 24 hours; an initial historical backfill could not evict a live older entry. Out-of-range cursor pages retry page one idempotently so a shrinking upstream page count cannot stall a kind. A changed entity receives its change-window UTC date as the revision, so replaying a TMDb page is idempotent and does not churn cache keys repeatedly. TV revisions are shared by the series aggregate, season, and episode routes because TMDb reports season/episode edits at series level. If the D1 binding is missing or a revision read fails, the request bypasses Cache API lookup/write instead of falling back to a potentially stale revision-zero entry. Home, Search, Discover, Trending, collection, organization, keyword, and credit responses retain their bounded route TTLs. There is deliberately no public Changes/debug endpoint.
 
 The exact route inventory lives in `backend/worker/contract/v2/openapi.json`; product classification and missing surfaces live in [TMDb coverage](TMDB_COVERAGE.md).
 
@@ -27,6 +29,8 @@ Cloudflare D1 contains:
 - `auth_attempts`: hashes/state, encrypted request token, allowlisted return URI, mode, status, and expiry;
 - `sessions`: SmartMovie token hash, account identity, encrypted TMDb access/v3 session tokens, CSRF hash, activity/expiry, and revocation;
 - `account_mutations`: account-scoped mutation IDs and normalized acknowledgements for durable idempotency.
+- `catalog_change_cursors`: UTC window and next page for each Movie/TV/Person change list;
+- `catalog_entity_revisions`: non-personal entity key, date revision, and operational update time used only for Cache API rotation.
 
 Native clients store only the opaque SmartMovie token in Keychain/Keystore/OS credential storage. Web uses a `Secure`, `HttpOnly`, `SameSite` cookie and CSRF header. Sessions expire after 90 inactive days. Logout revokes upstream state where possible and removes the D1 session. Tokens, PINs, and sensitive callback/query values must never be logged.
 
@@ -51,7 +55,7 @@ Adult opt-in and its six-digit PIN are local per device. Five failures lock the 
 ## Verification boundaries
 
 - Swift tests use repository fakes, in-memory SwiftData, deterministic clocks, and custom URL loading to verify decoding, state, storage, outboxes, retries, cancellation, and account behavior without live credentials.
-- Worker tests mock TMDb, Cache API, D1, and cryptography to validate `/v1` and `/v2` schemas, upstream mapping, cache partitions, rate limiting, migrations, encryption, callback state, CSRF/CORS, session lifecycle, idempotency, and rollback behavior.
+- Worker tests mock TMDb, Cache API, D1, and cryptography to validate `/v1` and `/v2` schemas, upstream mapping, cache partitions, rate limiting, change-list pagination/cursor recovery, entity revision invalidation, migrations, encryption, callback state, CSRF/CORS, session lifecycle, idempotency, and rollback behavior.
 - Android native and KMP decode the same canonical fixtures and separately test Room/key-value persistence, optimistic state, retry, migration, navigation, and platform UI.
 - Protected staging tests own the only dedicated TMDb test account. They must clean ratings/lists after each run and never use a personal account.
 

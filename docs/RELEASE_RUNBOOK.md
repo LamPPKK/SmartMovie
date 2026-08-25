@@ -7,7 +7,7 @@
 - Editable App IDs for `LamNDT.SmartMovie`, `LamNDT.SmartMovie.watchkitapp`, and `LamNDT.SmartMovie.NativeMac`.
 - Private CloudKit container `iCloud.LamNDT.SmartMovie` assigned to the universal and native Mac catalog App IDs.
 - A newly issued TMDb API Read Access Token. Revoke the historical key that was committed before SmartMovie 2.0.
-- Separate staging/production Cloudflare D1 databases bound as `AUTH_DB`, with all migrations applied.
+- Separate staging/production Cloudflare D1 databases bound as `AUTH_DB`, with all migrations through `0004_catalog_change_cache.sql` applied.
 - Protected `SESSION_ENCRYPTION_KEY`, callback origins, Web/CORS origin allowlists, cookie domain, and return-URI allowlists for each environment.
 - Repository secret `ANDROID_CONTRACT_SYNC_TOKEN`, limited to Contents and Pull requests on `LamPPKK/Android.Smart.Movie`, so canonical contract changes can open snapshot PRs.
 
@@ -32,18 +32,19 @@ swift test
 cd ../backend/worker
 npm ci
 npm run check
+npm run check:migrations
 npm test
 ```
 
 Verification: Swift tests, Worker type-check, and Worker contract tests all complete with zero failures. Search the repository for `api_key=` and confirm no credential is present.
 
-Current verified local baseline: 44 Swift tests and 62 Worker tests. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the suite changed intentionally; zero failures is always required.
+Current verified local baseline: 44 Swift tests and 74 Worker tests. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the suite changed intentionally; zero failures is always required.
 
 When the contract or release train changes on `main`, confirm the `Sync catalog contract to Android` workflow opens a pull request and that Android native plus desktop conformance CI passes before merging it. Production promotion remains blocked until the Android snapshot is on `main`.
 
 ## 2. Deploy Worker staging
 
-The preferred path is the `Catalog Worker` GitHub Actions workflow. Run it manually with production deployment disabled. The workflow installs protected secrets, applies D1 migrations, deploys staging, and schema-validates `/v1` compatibility plus `/v2` capabilities, catalog/entity/account errors in `en-US`, `vi-VN`, `ja-JP`, `ko-KR`, `zh-CN`, and `zh-TW`. The smoke runner retries transient 429/5xx responses and requires every response to come from one Worker version. Client pagination deduplication and cancellation remain deterministic native/KMP test responsibilities.
+The preferred path is the `Catalog Worker` GitHub Actions workflow. Run it manually with production deployment disabled. Its test gate applies every local D1 migration twice to a clean SQLite database before the workflow installs protected secrets, applies remote D1 migrations, deploys staging, and schema-validates `/v1` compatibility plus `/v2` capabilities, catalog/entity/account errors in `en-US`, `vi-VN`, `ja-JP`, `ko-KR`, `zh-CN`, and `zh-TW`. The smoke runner retries transient 429/5xx responses and requires every response to come from one Worker version. Client pagination deduplication and cancellation remain deterministic native/KMP test responsibilities.
 
 The staging environment owns the Cloudflare custom domain `staging-catalog.smartmovie.app`. Confirm its DNS record and TLS certificate are active before running the workflow. The equivalent manual commands are:
 
@@ -58,7 +59,7 @@ npm run deploy:staging
 
 Set the actual staging hostname in `SmartMovie/project.yml` under Debug `CATALOG_BASE_URL`, then run `xcodegen generate` again.
 
-Verification: request `/v1/configuration`, `/v2/capabilities`, `/v2/home?media_type=movie&language=en-US`, deep/entity detail, and a deliberately invalid query. The capability response must keep account flags false unless D1 + encryption + callback configuration are present. Valid routes return schema-valid JSON and invalid input returns the normalized envelope with a request ID. Responses/logs must not contain Bearer/access/session tokens, PINs, callback state, or search text.
+Verification: request `/v1/configuration`, `/v2/capabilities`, `/v2/home?media_type=movie&language=en-US`, deep/entity detail, and a deliberately invalid query. The capability response must keep account flags false unless D1 + encryption + callback configuration are present. Valid routes return schema-valid JSON and invalid input returns the normalized envelope with a request ID. Responses/logs must not contain Bearer/access/session tokens, PINs, callback state, or search text. Confirm the `17 * * * *` scheduled trigger is active, invoke it once from Cloudflare, then query D1 directly for one cursor row per kind (`movie`, `tv`, `person`) in `catalog_change_cursors`; do not add an HTTP debug route.
 
 Run the protected account smoke with the dedicated TMDb test account: browser callback and TV polling, profile/state, Favorite/Watchlist, Movie/TV/Episode rating, list create/update/items/delete, logout/revoke, and cleanup. Never use a personal account or leave test content behind.
 
@@ -101,7 +102,7 @@ npx wrangler d1 migrations apply <production-auth-database> --env production --r
 npm run deploy:production
 ```
 
-Verification: run the staging catalog/account flow against production without a debug credential. Confirm public cache partitions, private `no-store`, 429 `Retry-After`, image/provider loading, offline library/outbox retry, session expiry/revoke, and CloudKit/local migrations. Confirm `/v1` still serves 2.0 fixtures.
+Verification: run the staging catalog/account flow against production without a debug credential. Confirm public cache partitions, private `no-store`, 429 `Retry-After`, image/provider loading, offline library/outbox retry, session expiry/revoke, and CloudKit/local migrations. Confirm `/v1` still serves 2.0 fixtures. After the first production cron, verify all three change cursors advance and changed entity rows carry their processed UTC-window revision; a replayed page from the same window must not rotate that revision again.
 
 Rollback/escalation: roll the Worker back independently if catalog traffic fails. App releases should be phased in App Store Connect; pause the phased release if crash, sync, or localization validation fails.
 

@@ -7,6 +7,7 @@ import { RequestProblem, language, page, rejectUnknown, titleID } from "./valida
 
 export interface WorkerAccountEnv extends WorkerEnvV2 {
   AUTH_DB?: D1Database;
+  CATALOG_CHANGE_PAGES_PER_RUN?: string;
   SESSION_ENCRYPTION_KEY?: string;
   AUTH_CALLBACK_ORIGIN?: string;
   AUTH_RETURN_URI_ALLOWLIST?: string;

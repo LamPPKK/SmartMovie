@@ -40,7 +40,7 @@ The current source was verified after the `/v2` catalog/account broker, durable 
 | --- | --- |
 | SwiftLint | Strict mode passed with zero violations |
 | SmartMovieKit | 44 tests passed, including `/v1` + `/v2` fixtures, External ID/Credit Detail behavior, Account Recommendations pagination/adult filtering, and restart-safe/race-safe custom-list account-outbox behavior |
-| Catalog Worker | Type-check and 62 tests passed, including External ID/Credit Detail schema and mapping, Account Recommendations, normalized paginated mixed-list mapping and PUT/PATCH compatibility, D1 migrations, encryption, callback/CSRF/CORS controls, session lifecycle, and mutation replay |
+| Catalog Worker | Type-check and 74 tests passed, including External ID/Credit Detail schema and mapping, Account Recommendations, normalized paginated mixed-list mapping and PUT/PATCH compatibility, TMDb Changes pagination/14-day backlog recovery, invalid cursor and verified changing-page-count recovery, D1-safe chunking, monotonic entity-cache invalidation, D1-read cache bypass, repeatable D1 migrations, encryption, callback/CSRF/CORS controls, session lifecycle, and mutation replay |
 | iOS, Catalyst, tvOS, macOS, watchOS | Unsigned source builds passed for every listed destination |
 | iOS launch smoke | The simulator app launched and remained alive for the smoke window |
 | Native macOS launch smoke | `SmartMovieNativeMac` remained alive for five seconds; the earlier exit-code 132 crash was not reproduced |

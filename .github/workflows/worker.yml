@@ -36,7 +36,10 @@ jobs:
           cache-dependency-path: backend/worker/package-lock.json
       - run: npm ci
       - run: npm run check
+      - run: npm run check:migrations
       - run: npm test
+      - name: Validate Worker bundle and scheduled-trigger configuration
+        run: npx wrangler deploy --dry-run --env staging --outdir "${{ runner.temp }}/worker-dry-run"
       - name: Verify release train and contract checksum
         working-directory: ${{ github.workspace }}
         run: ./scripts/verify-release.sh
