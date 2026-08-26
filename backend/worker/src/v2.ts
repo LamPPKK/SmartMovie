@@ -461,13 +461,18 @@ async function configuration(
   env: WorkerEnvV2,
   requestId: string,
 ): Promise<Response> {
-  rejectUnknown(url, new Set(["language"]));
+  rejectUnknown(url, new Set(["language", "region"]));
   const locale = language(url);
-  const [configurationValue, countries, languages, regions] = await Promise.all([
+  const region = regionQuery(url);
+  const providerParameters = new URLSearchParams({ language: locale });
+  if (region) providerParameters.set("watch_region", region);
+  const [configurationValue, countries, languages, regions, movieProviders, tvProviders] = await Promise.all([
     tmdb<{ images: Record<string, unknown>; change_keys?: string[] }>(env, "/configuration", new URLSearchParams(), requestId),
     tmdb<unknown[]>(env, "/configuration/countries", new URLSearchParams({ language: locale }), requestId),
     tmdb<unknown[]>(env, "/configuration/languages", new URLSearchParams(), requestId),
     tmdb<{ results?: unknown[] }>(env, "/watch/providers/regions", new URLSearchParams({ language: locale }), requestId),
+    tmdb<{ results?: TmdbWatchProvider[] }>(env, "/watch/providers/movie", providerParameters, requestId),
+    tmdb<{ results?: TmdbWatchProvider[] }>(env, "/watch/providers/tv", providerParameters, requestId),
   ]);
   return json({
     images: configurationValue.images,
@@ -475,11 +480,45 @@ async function configuration(
     countries,
     languages,
     watch_provider_regions: regions.results ?? [],
+    region,
+    watch_providers: {
+      movie: watchProviderOptions(movieProviders.results),
+      tv: watchProviderOptions(tvProviders.results),
+    },
     attribution: {
       tmdb: "This product uses the TMDB API but is not endorsed or certified by TMDB.",
       watch_providers: "JustWatch",
     },
   });
+}
+
+interface TmdbWatchProvider {
+  provider_id?: number;
+  provider_name?: string;
+  logo_path?: string | null;
+  display_priority?: number;
+}
+
+function watchProviderOptions(values: TmdbWatchProvider[] = []): Array<{
+  id: number;
+  name: string;
+  logo_path: string | null;
+  display_priority: number;
+}> {
+  const providers = values.flatMap((value) => {
+    if (!Number.isSafeInteger(value.provider_id) || (value.provider_id ?? 0) < 1) return [];
+    if (typeof value.provider_name !== "string" || value.provider_name.trim() === "") return [];
+    return [{
+      id: value.provider_id!,
+      name: value.provider_name,
+      logo_path: typeof value.logo_path === "string" ? value.logo_path : null,
+      display_priority: Number.isSafeInteger(value.display_priority) && (value.display_priority ?? 0) >= 0
+        ? value.display_priority!
+        : 0,
+    }];
+  });
+  return [...new Map(providers.map((provider) => [provider.id, provider])).values()]
+    .sort((left, right) => left.display_priority - right.display_priority || left.name.localeCompare(right.name));
 }
 
 export async function tmdb<T>(

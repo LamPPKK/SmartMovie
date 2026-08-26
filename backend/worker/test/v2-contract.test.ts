@@ -5,6 +5,7 @@ import accountRecommendationsFixture from "../contract/v2/fixtures/account-recom
 import attemptFixture from "../contract/v2/fixtures/auth-attempt.json";
 import capabilitiesFixture from "../contract/v2/fixtures/capabilities.json";
 import collectionFixture from "../contract/v2/fixtures/collection.json";
+import configurationFixture from "../contract/v2/fixtures/configuration.json";
 import creditFixture from "../contract/v2/fixtures/credit-detail.json";
 import csrfFixture from "../contract/v2/fixtures/csrf.json";
 import entitiesFixture from "../contract/v2/fixtures/entities.json";
@@ -24,6 +25,7 @@ type SchemaName =
   | "AuthAttempt"
   | "Capabilities"
   | "CollectionDetail"
+  | "Configuration"
   | "CreditDetail"
   | "CSRFToken"
   | "EntityPage"
@@ -60,6 +62,7 @@ describe("canonical v2 fixtures", () => {
     ["TitleDetail", titleFixture],
     ["PersonDetail", personFixture],
     ["CollectionDetail", collectionFixture],
+    ["Configuration", configurationFixture],
     ["CreditDetail", creditFixture],
     ["CSRFToken", csrfFixture],
     ["SeasonDetail", seasonFixture],
@@ -209,6 +212,83 @@ describe("v2 Worker contract", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({ error: { code: "missing_watch_region" } });
     expect(upstream).not.toHaveBeenCalled();
+  });
+
+  it("forwards the complete advanced discovery filter set", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      expect(url.pathname).toBe("/3/discover/tv");
+      expect(Object.fromEntries(url.searchParams)).toMatchObject({
+        language: "vi-VN",
+        page: "2",
+        include_adult: "true",
+        include_video: "false",
+        sort_by: "first_air_date.desc",
+        with_genres: "18,10765",
+        "first_air_date.gte": "2024-01-01",
+        "first_air_date.lte": "2026-08-26",
+        "air_date.gte": "2026-01-01",
+        "air_date.lte": "2026-12-31",
+        with_original_language: "ko",
+        with_origin_country: "KR",
+        region: "VN",
+        watch_region: "VN",
+        "with_runtime.gte": "25",
+        "with_runtime.lte": "90",
+        "vote_average.gte": "7.5",
+        "vote_count.gte": "100",
+        with_watch_providers: "8|337",
+        with_watch_monetization_types: "flatrate|buy",
+      });
+      return Response.json({ page: 2, total_pages: 2, results: [] });
+    }));
+    const query = new URLSearchParams({
+      language: "vi-VN", page: "2", include_adult: "true", sort_by: "primary_release_date.desc",
+      genres: "18,10765", release_date_gte: "2024-01-01", release_date_lte: "2026-08-26",
+      air_date_gte: "2026-01-01", air_date_lte: "2026-12-31", original_language: "ko",
+      origin_country: "KR", region: "VN", watch_region: "VN", runtime_gte: "25", runtime_lte: "90",
+      vote_average_gte: "7.5", vote_count_gte: "100", watch_providers: "8|337",
+      watch_monetization_types: "flatrate|buy",
+    });
+    const response = await worker.fetch(request(`/v2/discover/tv?${query}`), env(), context);
+    expect(response.status).toBe(200);
+    expectContract("EntityPage", await response.json());
+  });
+
+  it("returns normalized region-aware provider options in configuration", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname === "/3/configuration") return Response.json({ images: {}, change_keys: ["title"] });
+      if (url.pathname === "/3/configuration/countries") return Response.json(configurationFixture.countries);
+      if (url.pathname === "/3/configuration/languages") return Response.json(configurationFixture.languages);
+      if (url.pathname === "/3/watch/providers/regions") {
+        return Response.json({ results: configurationFixture.watch_provider_regions });
+      }
+      expect(url.searchParams.get("watch_region")).toBe("US");
+      if (url.pathname === "/3/watch/providers/movie") {
+        return Response.json({ results: [
+          { provider_id: 9, provider_name: "Provider B", logo_path: null, display_priority: 2 },
+          { provider_id: 8, provider_name: "Provider A", logo_path: "/a.jpg", display_priority: 1 },
+          { provider_id: 8, provider_name: "Duplicate", display_priority: 99 },
+          { provider_id: -1, provider_name: "Invalid" },
+        ] });
+      }
+      return Response.json({ results: [{ provider_id: 337, provider_name: "Provider TV", display_priority: 0 }] });
+    }));
+
+    const response = await worker.fetch(request("/v2/configuration?language=en-US&region=US"), env(), context);
+    const value = await response.json() as {
+      watch_providers: { movie: unknown[]; tv: unknown[] };
+    };
+    expect(response.status).toBe(200);
+    expectContract("Configuration", value);
+    expect(value.watch_providers.movie).toEqual([
+      { id: 9, name: "Provider B", logo_path: null, display_priority: 2 },
+      { id: 8, name: "Duplicate", logo_path: null, display_priority: 99 },
+    ]);
+    expect(value.watch_providers.tv).toEqual([
+      { id: 337, name: "Provider TV", logo_path: null, display_priority: 0 },
+    ]);
   });
 });
 

@@ -10,7 +10,7 @@ The canonical transport is OpenAPI 3.1 at `backend/worker/contract/v2/openapi.js
 | --- | --- | --- | --- |
 | Configuration, genres | `/v2/configuration`, `/v2/home`, `/v2/discover/{mediaType}` | UI | Image configuration and genre-driven discovery are consumed by all catalog clients. |
 | Home feeds | `/v2/home` | UI | Movie and TV shelves normalize trending, popular, top-rated, theatrical/on-air, and upcoming feeds. |
-| Discover | `/v2/discover/{mediaType}` | UI | Media type, genre, date, original language, country, certification, runtime, provider, region, sort, and adult flag are allowlisted by the Worker. Client parity for every advanced control remains a release audit item. |
+| Discover | `/v2/discover/{mediaType}` | UI | Apple, native Android, and KMP expose the same media type, genre, date range, original language/country, certification, runtime, minimum vote count, regional provider, monetization type, sort, rating, year, and local adult-PIN context. `/v2/configuration` supplies regional provider options and canonical fixtures verify every client decoder. |
 | Trending | `/v2/trending/{kind}/{window}` | UI | Home consumes trending content; repository APIs also expose day/week and entity-kind selection. |
 | Search | `/v2/search` | UI | Discriminated Movie, TV, Person, Collection, Company, and Keyword results navigate to native entity details. |
 | Find by external ID | `/v2/find/{externalId}` | UI | Search offers an explicit External ID mode on Apple, native Android, and KMP with source selection for IMDb, TheTVDB, Wikidata, Facebook, Instagram, and X/Twitter; mixed results keep their entity discriminator and use the normal detail navigation. |

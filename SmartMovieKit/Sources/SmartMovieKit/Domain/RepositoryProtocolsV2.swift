@@ -2,6 +2,7 @@ import Foundation
 
 public protocol CatalogV2Repository: Sendable {
     func capabilities() async throws -> CapabilitiesV2
+    func discoverConfiguration(language: String, region: String?) async throws -> DiscoverConfiguration
     func trending(
         kind: String,
         window: String,

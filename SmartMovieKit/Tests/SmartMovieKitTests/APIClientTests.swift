@@ -86,11 +86,25 @@ final class APIClientTests: XCTestCase {
             genres: [28, 12],
             year: 2026,
             minimumRating: 7.5,
-            sort: .releaseDate
+            sort: .releaseDate,
+            releaseDateFrom: "2024-01-01",
+            releaseDateThrough: "2026-08-26",
+            originalLanguage: "ko",
+            originCountry: "KR",
+            certificationCountry: "US",
+            certificationMinimum: "PG",
+            certificationMaximum: "R",
+            minimumRuntime: 60,
+            maximumRuntime: 180,
+            minimumVoteCount: 100,
+            region: "VN",
+            watchProviderIDs: [337, 8],
+            monetizationTypes: [.subscription, .buy],
+            includeAdult: true
         )
 
         let response = try await repository.discover(
-            mediaType: .tv,
+            mediaType: .movie,
             filter: filter,
             page: 3,
             language: "ko-KR"
@@ -102,11 +116,54 @@ final class APIClientTests: XCTestCase {
         let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
         let queryItems = try XCTUnwrap(components.queryItems)
         let query = Dictionary(uniqueKeysWithValues: queryItems.map { ($0.name, $0.value) })
-        XCTAssertEqual(query["genre_ids"], "12,28")
+        XCTAssertEqual(url.path, "/api/v2/discover/movie")
+        XCTAssertEqual(query["genres"], "12,28")
         XCTAssertEqual(query["year"], "2026")
         XCTAssertEqual(query["vote_average_gte"], "7.5")
         XCTAssertEqual(query["sort_by"], "primary_release_date.desc")
         XCTAssertEqual(query["language"], "ko-KR")
+        XCTAssertEqual(query["release_date_gte"], "2024-01-01")
+        XCTAssertEqual(query["release_date_lte"], "2026-08-26")
+        XCTAssertEqual(query["original_language"], "ko")
+        XCTAssertEqual(query["origin_country"], "KR")
+        XCTAssertEqual(query["certification_country"], "US")
+        XCTAssertEqual(query["certification_gte"], "PG")
+        XCTAssertEqual(query["certification_lte"], "R")
+        XCTAssertEqual(query["runtime_gte"], "60")
+        XCTAssertEqual(query["runtime_lte"], "180")
+        XCTAssertEqual(query["vote_count_gte"], "100")
+        XCTAssertEqual(query["region"], "VN")
+        XCTAssertEqual(query["watch_region"], "VN")
+        XCTAssertEqual(query["watch_providers"], "8|337")
+        XCTAssertEqual(query["watch_monetization_types"], "buy|flatrate")
+        XCTAssertEqual(query["include_adult"], "true")
+    }
+
+    func testV2ConfigurationUsesRegionAndDecodesProviderOptions() async throws {
+        URLProtocolStub.enqueue(status: 200, body: #"""
+        {
+          "countries": [{"iso_3166_1":"VN","english_name":"Vietnam","native_name":"Việt Nam"}],
+          "languages": [{"iso_639_1":"vi","english_name":"Vietnamese","name":"Tiếng Việt"}],
+          "watch_provider_regions": [{"iso_3166_1":"VN","english_name":"Vietnam","native_name":"Việt Nam"}],
+          "region": "VN",
+          "watch_providers": {
+            "movie": [{"id":8,"name":"Netflix","logo_path":null,"display_priority":1}],
+            "tv": []
+          }
+        }
+        """#)
+        let repository = RemoteCatalogRepository(client: makeClient())
+
+        let value = try await repository.discoverConfiguration(language: "vi-VN", region: "VN")
+
+        XCTAssertEqual(value.region, "VN")
+        XCTAssertEqual(value.watchProviders?.movie.map(\.id), [8])
+        let url = try XCTUnwrap(URLProtocolStub.requests.first?.url)
+        XCTAssertEqual(url.path, "/api/v2/configuration")
+        let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
+        let query = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value) })
+        XCTAssertEqual(query["language"], "vi-VN")
+        XCTAssertEqual(query["region"], "VN")
     }
 
     func testV2FindExternalIDEncodesSourceAndDecodesDiscriminatedEntities() async throws {

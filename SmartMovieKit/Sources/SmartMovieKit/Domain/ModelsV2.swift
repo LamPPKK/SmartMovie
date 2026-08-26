@@ -219,6 +219,60 @@ public struct ProviderOffer: Codable, Hashable, Identifiable, Sendable {
     public let displayPriority: Int
 }
 
+public struct WatchProviderOption: Codable, Hashable, Identifiable, Sendable {
+    public let id: Int
+    public let name: String
+    public let logoPath: String?
+    public let displayPriority: Int
+}
+
+public struct ConfigurationCountry: Codable, Hashable, Identifiable, Sendable {
+    public let code: String
+    public let englishName: String
+    public let nativeName: String?
+
+    public var id: String { code }
+    public var displayName: String { nativeName?.isEmpty == false ? nativeName ?? englishName : englishName }
+
+    private enum CodingKeys: String, CodingKey {
+        case code = "iso31661"
+        case englishName
+        case nativeName
+    }
+}
+
+public struct ConfigurationLanguage: Codable, Hashable, Identifiable, Sendable {
+    public let code: String
+    public let englishName: String
+    public let name: String?
+
+    public var id: String { code }
+    public var displayName: String { name?.isEmpty == false ? name ?? englishName : englishName }
+
+    private enum CodingKeys: String, CodingKey {
+        case code = "iso6391"
+        case englishName
+        case name
+    }
+}
+
+public struct WatchProviderOptions: Codable, Hashable, Sendable {
+    public let movie: [WatchProviderOption]
+    public let tv: [WatchProviderOption]
+
+    public func values(for mediaType: MediaType) -> [WatchProviderOption] {
+        mediaType == .movie ? movie : tv
+    }
+}
+
+public struct DiscoverConfiguration: Codable, Hashable, Sendable {
+    public let countries: [ConfigurationCountry]
+    public let languages: [ConfigurationLanguage]
+    public let watchProviderRegions: [ConfigurationCountry]
+    public let region: String?
+    public let watchProviders: WatchProviderOptions?
+}
+
 public struct ProviderRegion: Codable, Hashable, Identifiable, Sendable {
     public var id: String { region }
     public let region: String
@@ -441,39 +495,4 @@ public struct EpisodeDetail: Codable, Sendable {
         case crew, guestStars, images, videos
         case externalIDs = "externalIds"
     }
-}
-
-public struct AccountProfile: Codable, Hashable, Sendable {
-    public let id: Int
-    public let username: String
-    public let name: String
-    public let language: String?
-    public let country: String?
-    public let includeAdult: Bool
-    public let avatarPath: String?
-    public let gravatarHash: String?
-}
-
-public struct AccountState: Codable, Sendable {
-    public let mediaType: MediaType
-    public let mediaId: Int
-    public let favorite: Bool
-    public let watchlist: Bool
-    public let rated: JSONValue
-}
-
-public struct AuthAttempt: Codable, Hashable, Sendable {
-    public let attemptId: UUID
-    public let status: String
-    public let authorizationUrl: URL
-    public let deviceCode: String?
-    public let expiresAt: Date
-    public let pollingInterval: Int?
-}
-
-public struct AuthSession: Codable, Sendable {
-    public let sessionToken: String?
-    public let csrfToken: String
-    public let expiresAt: Date
-    public let profile: AccountProfile
 }

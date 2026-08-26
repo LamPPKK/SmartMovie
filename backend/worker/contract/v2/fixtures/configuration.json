@@ -1,0 +1,32 @@
+{
+  "images": {
+    "secure_base_url": "https://image.tmdb.org/t/p/",
+    "poster_sizes": ["w342", "w500", "original"]
+  },
+  "change_keys": ["title", "overview"],
+  "countries": [
+    { "iso_3166_1": "US", "english_name": "United States", "native_name": "United States" },
+    { "iso_3166_1": "VN", "english_name": "Vietnam", "native_name": "Việt Nam" }
+  ],
+  "languages": [
+    { "iso_639_1": "en", "english_name": "English", "name": "English" },
+    { "iso_639_1": "vi", "english_name": "Vietnamese", "name": "Tiếng Việt" }
+  ],
+  "watch_provider_regions": [
+    { "iso_3166_1": "US", "english_name": "United States", "native_name": "United States" }
+  ],
+  "region": "US",
+  "watch_providers": {
+    "movie": [
+      { "id": 8, "name": "Netflix", "logo_path": "/netflix.jpg", "display_priority": 1 }
+    ],
+    "tv": [
+      { "id": 337, "name": "Disney Plus", "logo_path": "/disney.jpg", "display_priority": 2 }
+    ]
+  },
+  "attribution": {
+    "tmdb": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+    "watch_providers": "JustWatch"
+  },
+  "future_server_field": "ignored by clients"
+}

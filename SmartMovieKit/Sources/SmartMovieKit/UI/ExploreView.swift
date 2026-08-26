@@ -35,10 +35,21 @@ public struct ExploreView: View {
             if let model { FilterSheet(model: model, language: LocaleResolver.tmdbLanguage(for: locale)) }
         }
         .cinemaScreen()
-        .task {
+        .task(id: contextKey) {
             if model == nil { model = ExploreViewModel(catalog: container.catalog) }
-            if model?.items.isEmpty == true { model?.reload(language: LocaleResolver.tmdbLanguage(for: locale)) }
+            guard let model else { return }
+            let changed = model.updateContext(
+                region: container.regionSettings.effectiveRegion,
+                includeAdult: container.adultContent.includeAdult
+            )
+            if changed || model.items.isEmpty {
+                model.reload(language: LocaleResolver.tmdbLanguage(for: locale))
+            }
         }
+    }
+
+    private var contextKey: String {
+        "\(LocaleResolver.tmdbLanguage(for: locale)):\(container.regionSettings.effectiveRegion):\(container.adultContent.includeAdult)"
     }
 
     @ViewBuilder
@@ -49,7 +60,7 @@ public struct ExploreView: View {
                 .frame(maxWidth: 420)
                 .padding(.horizontal)
                 .onChange(of: model.mediaType) {
-                    model.filter = DiscoverFilter()
+                    model.resetFilter()
                     model.reload(language: LocaleResolver.tmdbLanguage(for: locale))
                 }
             if model.items.isEmpty, model.isLoading {
@@ -165,6 +176,92 @@ private struct FilterSheet: View {
                         }
                     }
                 }
+                Section(String(localized: "Release date range", bundle: .module)) {
+                    TextField(
+                        String(localized: "From date (YYYY-MM-DD)", bundle: .module),
+                        text: optionalTextBinding(\.releaseDateFrom)
+                    )
+                    TextField(
+                        String(localized: "Through date (YYYY-MM-DD)", bundle: .module),
+                        text: optionalTextBinding(\.releaseDateThrough)
+                    )
+                }
+                Section(String(localized: "Language and country", bundle: .module)) {
+                    Picker(String(localized: "Original language", bundle: .module), selection: $model.filter.originalLanguage) {
+                        Text(String(localized: "Any language", bundle: .module)).tag(String?.none)
+                        ForEach(model.configuration?.languages ?? []) { language in
+                            Text(language.displayName).tag(String?.some(language.code))
+                        }
+                    }
+                    Picker(String(localized: "Origin country", bundle: .module), selection: $model.filter.originCountry) {
+                        Text(String(localized: "Any country", bundle: .module)).tag(String?.none)
+                        ForEach(model.configuration?.countries ?? []) { country in
+                            Text(country.displayName).tag(String?.some(country.code))
+                        }
+                    }
+                }
+                if model.mediaType == .movie {
+                    Section(String(localized: "Certification", bundle: .module)) {
+                        TextField(
+                            String(localized: "Minimum certification", bundle: .module),
+                            text: optionalTextBinding(\.certificationMinimum)
+                        )
+                        TextField(
+                            String(localized: "Maximum certification", bundle: .module),
+                            text: optionalTextBinding(\.certificationMaximum)
+                        )
+                    }
+                }
+                Section(String(localized: "Runtime and votes", bundle: .module)) {
+                    Picker(String(localized: "Minimum runtime", bundle: .module), selection: $model.filter.minimumRuntime) {
+                        Text(String(localized: "Any runtime", bundle: .module)).tag(Int?.none)
+                        ForEach([15, 30, 45, 60, 90, 120, 180], id: \.self) { value in
+                            Text("\(value) min+").tag(Int?.some(value))
+                        }
+                    }
+                    Picker(String(localized: "Maximum runtime", bundle: .module), selection: $model.filter.maximumRuntime) {
+                        Text(String(localized: "Any runtime", bundle: .module)).tag(Int?.none)
+                        ForEach([30, 45, 60, 90, 120, 180, 240], id: \.self) { value in
+                            Text("≤ \(value) min").tag(Int?.some(value))
+                        }
+                    }
+                    Picker(String(localized: "Minimum vote count", bundle: .module), selection: $model.filter.minimumVoteCount) {
+                        Text(String(localized: "Any votes", bundle: .module)).tag(0)
+                        ForEach([50, 100, 250, 500, 1_000, 5_000], id: \.self) { value in
+                            Text("\(value)+").tag(value)
+                        }
+                    }
+                }
+                Section {
+                    LabeledContent(String(localized: "Provider region", bundle: .module), value: model.filter.region ?? "—")
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            ForEach(model.providers) { provider in
+                                filterChip(provider.name, selected: model.filter.watchProviderIDs.contains(provider.id)) {
+                                    if !model.filter.watchProviderIDs.insert(provider.id).inserted {
+                                        model.filter.watchProviderIDs.remove(provider.id)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack {
+                            ForEach(WatchMonetizationType.allCases) { type in
+                                filterChip(type.displayName, selected: model.filter.monetizationTypes.contains(type)) {
+                                    if !model.filter.monetizationTypes.insert(type).inserted {
+                                        model.filter.monetizationTypes.remove(type)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Text("JustWatch")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } header: {
+                    Text(String(localized: "Watch providers", bundle: .module))
+                }
                 Section(String(localized: "Sort by", bundle: .module)) {
                     Picker(String(localized: "Sort by", bundle: .module), selection: $model.filter.sort) {
                         ForEach(DiscoverSort.allCases) { sort in Text(sort.displayName).tag(sort) }
@@ -174,7 +271,7 @@ private struct FilterSheet: View {
             .navigationTitle(String(localized: "Filters", bundle: .module))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "Reset", bundle: .module)) { model.filter = DiscoverFilter() }
+                    Button(String(localized: "Reset", bundle: .module)) { model.resetFilter() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(String(localized: "Apply", bundle: .module)) {
@@ -186,5 +283,22 @@ private struct FilterSheet: View {
         }
         .preferredColorScheme(.dark)
         .tint(CinemaTheme.accent)
+    }
+
+    private func optionalTextBinding(_ keyPath: WritableKeyPath<DiscoverFilter, String?>) -> Binding<String> {
+        Binding(
+            get: { model.filter[keyPath: keyPath] ?? "" },
+            set: { model.filter[keyPath: keyPath] = $0 }
+        )
+    }
+
+    private func filterChip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(selected ? CinemaTheme.accent : CinemaTheme.surface, in: Capsule())
+        }
+        .buttonStyle(.plain)
     }
 }

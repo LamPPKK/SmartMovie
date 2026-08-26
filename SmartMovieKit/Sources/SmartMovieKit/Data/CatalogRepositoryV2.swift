@@ -5,6 +5,12 @@ extension RemoteCatalogRepository: CatalogV2Repository {
         try await client.get("v2/capabilities")
     }
 
+    public func discoverConfiguration(language: String, region: String?) async throws -> DiscoverConfiguration {
+        var queryItems = [URLQueryItem(name: "language", value: language)]
+        if let region { queryItems.append(URLQueryItem(name: "region", value: region)) }
+        return try await client.get("v2/configuration", queryItems: queryItems)
+    }
+
     public func trending(
         kind: String,
         window: String,

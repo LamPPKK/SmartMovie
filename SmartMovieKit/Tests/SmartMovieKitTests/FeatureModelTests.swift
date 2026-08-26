@@ -49,6 +49,26 @@ final class FeatureModelTests: XCTestCase {
         XCTAssertEqual(pages, [1, 2])
     }
 
+    func testExploreContextChangeClearsProvidersAndResetPreservesSafetyContext() {
+        let model = ExploreViewModel(catalog: CatalogStub())
+
+        XCTAssertTrue(model.updateContext(region: "us", includeAdult: true))
+        model.filter.watchProviderIDs = [8, 337]
+        model.filter.minimumRating = 8
+        XCTAssertTrue(model.updateContext(region: "vn", includeAdult: false))
+        XCTAssertEqual(model.filter.region, "VN")
+        XCTAssertEqual(model.filter.certificationCountry, "VN")
+        XCTAssertFalse(model.filter.includeAdult)
+        XCTAssertTrue(model.filter.watchProviderIDs.isEmpty)
+
+        model.resetFilter()
+        XCTAssertEqual(model.filter.region, "VN")
+        XCTAssertEqual(model.filter.certificationCountry, "VN")
+        XCTAssertFalse(model.filter.includeAdult)
+        XCTAssertEqual(model.filter.minimumRating, 0)
+        XCTAssertFalse(model.updateContext(region: "VN", includeAdult: false))
+    }
+
     func testSearchCancelsOldRequestAndRejectsStaleResults() async throws {
         let catalog = CatalogStub()
         let model = SearchViewModel(catalog: catalog)
@@ -225,6 +245,9 @@ private actor ExternalIDCatalogStub: CatalogRepository, CatalogV2Repository {
     func detail(mediaType: MediaType, id: Int, language: String) async throws -> TitleDetail { throw APIError.notFound }
     func imageConfiguration() async throws -> ImageConfiguration { throw APIError.notFound }
     func capabilities() async throws -> CapabilitiesV2 { throw APIError.notFound }
+    func discoverConfiguration(language: String, region: String?) async throws -> DiscoverConfiguration {
+        throw APIError.notFound
+    }
     func trending(
         kind: String,
         window: String,

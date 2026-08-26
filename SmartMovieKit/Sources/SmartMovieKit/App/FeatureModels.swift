@@ -40,6 +40,7 @@ public final class ExploreViewModel {
     public var layout: CatalogLayout = .grid
     public private(set) var genres: [Genre] = []
     public private(set) var items: [TitleSummary] = []
+    public private(set) var configuration: DiscoverConfiguration?
     public private(set) var isLoading = false
     public private(set) var errorMessage: String?
     public private(set) var canLoadMore = true
@@ -51,27 +52,66 @@ public final class ExploreViewModel {
         self.catalog = catalog
     }
 
+    public var providers: [WatchProviderOption] {
+        configuration?.watchProviders?.values(for: mediaType) ?? []
+    }
+
+    @discardableResult
+    public func updateContext(region: String, includeAdult: Bool) -> Bool {
+        let normalizedRegion = region.uppercased()
+        guard filter.region != normalizedRegion || filter.includeAdult != includeAdult else { return false }
+        let regionChanged = filter.region != normalizedRegion
+        filter.region = normalizedRegion
+        filter.includeAdult = includeAdult
+        if regionChanged {
+            filter.watchProviderIDs.removeAll()
+            filter.certificationCountry = normalizedRegion
+        }
+        return true
+    }
+
+    public func resetFilter() {
+        filter = DiscoverFilter(
+            certificationCountry: filter.region,
+            region: filter.region,
+            includeAdult: filter.includeAdult
+        )
+    }
+
     public func reload(language: String) {
         task?.cancel()
+        normalizeFilter()
         items = []
         page = 0
         canLoadMore = true
         errorMessage = nil
         task = Task { [weak self, catalog] in
             guard let self else { return }
+            let selectedType = mediaType
+            let selectedFilter = filter
             isLoading = true
             defer { isLoading = false }
             do {
-                async let genreRequest = catalog.genres(mediaType: mediaType, language: language)
+                async let genreRequest = catalog.genres(mediaType: selectedType, language: language)
                 async let pageRequest = catalog.discover(
-                    mediaType: mediaType,
-                    filter: filter,
+                    mediaType: selectedType,
+                    filter: selectedFilter,
                     page: 1,
                     language: language
                 )
-                let (loadedGenres, result) = try await (genreRequest, pageRequest)
-                guard !Task.isCancelled else { return }
+                async let configurationRequest = Self.loadConfiguration(
+                    catalog: catalog,
+                    language: language,
+                    region: selectedFilter.region
+                )
+                let (loadedGenres, result, loadedConfiguration) = try await (
+                    genreRequest,
+                    pageRequest,
+                    configurationRequest
+                )
+                guard !Task.isCancelled, mediaType == selectedType, filter == selectedFilter else { return }
                 genres = loadedGenres
+                if let loadedConfiguration { configuration = loadedConfiguration }
                 items = result.results
                 page = result.page
                 canLoadMore = result.page < result.totalPages
@@ -81,6 +121,33 @@ public final class ExploreViewModel {
                 errorMessage = error.localizedDescription
             }
         }
+    }
+
+    private func normalizeFilter() {
+        filter.releaseDateFrom = normalized(filter.releaseDateFrom)
+        filter.releaseDateThrough = normalized(filter.releaseDateThrough)
+        filter.originalLanguage = normalized(filter.originalLanguage)?.lowercased()
+        filter.originCountry = normalized(filter.originCountry)?.uppercased()
+        filter.certificationMinimum = normalized(filter.certificationMinimum)
+        filter.certificationMaximum = normalized(filter.certificationMaximum)
+        if let minimum = filter.minimumRuntime, let maximum = filter.maximumRuntime, minimum > maximum {
+            filter.minimumRuntime = maximum
+            filter.maximumRuntime = minimum
+        }
+    }
+
+    private func normalized(_ value: String?) -> String? {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed?.isEmpty == false ? trimmed : nil
+    }
+
+    private static func loadConfiguration(
+        catalog: any CatalogRepository,
+        language: String,
+        region: String?
+    ) async -> DiscoverConfiguration? {
+        guard let catalog = catalog as? any CatalogV2Repository else { return nil }
+        return try? await catalog.discoverConfiguration(language: language, region: region)
     }
 
     public func loadMoreIfNeeded(current item: TitleSummary, language: String) {
@@ -410,28 +477,4 @@ public final class DetailViewModel {
     }
 
     public var containsAdultContent: Bool { deepDetail?.adult ?? summary.isAdult }
-}
-
-@MainActor
-@Observable
-public final class LibraryViewModel {
-    public var collection: LibraryCollection = .favorites
-    public var mediaType: MediaType?
-    public var sort: LibrarySort = .recentlyAdded
-    public private(set) var items: [LibrarySnapshot] = []
-    public private(set) var errorMessage: String?
-    private let library: any LibraryRepository
-
-    public init(library: any LibraryRepository) {
-        self.library = library
-    }
-
-    public func reload() {
-        do {
-            items = try library.items(in: collection, mediaType: mediaType, sort: sort)
-            errorMessage = nil
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
 }

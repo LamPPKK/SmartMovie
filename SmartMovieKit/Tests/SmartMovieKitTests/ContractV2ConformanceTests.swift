@@ -15,6 +15,13 @@ final class ContractV2ConformanceTests: XCTestCase {
         XCTAssertEqual(capabilities.apiVersion, "v2")
         XCTAssertEqual(Set(capabilities.supportedEntityKinds), Set(EntityKind.allCases))
 
+        let configuration = try decode(DiscoverConfiguration.self, fixture: "configuration")
+        XCTAssertEqual(configuration.region, "US")
+        XCTAssertEqual(configuration.countries.map(\.code), ["US", "VN"])
+        XCTAssertEqual(configuration.languages.map(\.code), ["en", "vi"])
+        XCTAssertEqual(configuration.watchProviders?.movie.map(\.id), [8])
+        XCTAssertEqual(configuration.watchProviders?.tv.map(\.id), [337])
+
         let page = try decode(PagedResult<CatalogEntity>.self, fixture: "entities")
         XCTAssertEqual(Set(page.results.map(\.kind)), Set(EntityKind.allCases))
 

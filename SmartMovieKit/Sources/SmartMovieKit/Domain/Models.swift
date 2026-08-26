@@ -285,22 +285,84 @@ public enum DiscoverSort: String, CaseIterable, Identifiable, Sendable {
     }
 }
 
+public enum WatchMonetizationType: String, CaseIterable, Identifiable, Sendable {
+    case subscription = "flatrate"
+    case free
+    case ads
+    case rent
+    case buy
+
+    public var id: String { rawValue }
+
+    public var displayName: String {
+        switch self {
+        case .subscription: String(localized: "Streaming", bundle: .module)
+        case .free: String(localized: "Free", bundle: .module)
+        case .ads: String(localized: "With ads", bundle: .module)
+        case .rent: String(localized: "Rent", bundle: .module)
+        case .buy: String(localized: "Buy", bundle: .module)
+        }
+    }
+}
+
 public struct DiscoverFilter: Equatable, Sendable {
     public var genres: Set<Int>
     public var year: Int?
     public var minimumRating: Double
     public var sort: DiscoverSort
+    public var releaseDateFrom: String?
+    public var releaseDateThrough: String?
+    public var originalLanguage: String?
+    public var originCountry: String?
+    public var certificationCountry: String?
+    public var certificationMinimum: String?
+    public var certificationMaximum: String?
+    public var minimumRuntime: Int?
+    public var maximumRuntime: Int?
+    public var minimumVoteCount: Int
+    public var region: String?
+    public var watchProviderIDs: Set<Int>
+    public var monetizationTypes: Set<WatchMonetizationType>
+    public var includeAdult: Bool
 
     public init(
         genres: Set<Int> = [],
         year: Int? = nil,
         minimumRating: Double = 0,
-        sort: DiscoverSort = .popularity
+        sort: DiscoverSort = .popularity,
+        releaseDateFrom: String? = nil,
+        releaseDateThrough: String? = nil,
+        originalLanguage: String? = nil,
+        originCountry: String? = nil,
+        certificationCountry: String? = nil,
+        certificationMinimum: String? = nil,
+        certificationMaximum: String? = nil,
+        minimumRuntime: Int? = nil,
+        maximumRuntime: Int? = nil,
+        minimumVoteCount: Int = 0,
+        region: String? = nil,
+        watchProviderIDs: Set<Int> = [],
+        monetizationTypes: Set<WatchMonetizationType> = [],
+        includeAdult: Bool = false
     ) {
         self.genres = genres
         self.year = year
         self.minimumRating = minimumRating
         self.sort = sort
+        self.releaseDateFrom = releaseDateFrom
+        self.releaseDateThrough = releaseDateThrough
+        self.originalLanguage = originalLanguage
+        self.originCountry = originCountry
+        self.certificationCountry = certificationCountry
+        self.certificationMinimum = certificationMinimum
+        self.certificationMaximum = certificationMaximum
+        self.minimumRuntime = minimumRuntime
+        self.maximumRuntime = maximumRuntime
+        self.minimumVoteCount = minimumVoteCount
+        self.region = region
+        self.watchProviderIDs = watchProviderIDs
+        self.monetizationTypes = monetizationTypes
+        self.includeAdult = includeAdult
     }
 }
 
