@@ -139,8 +139,8 @@ jobs:
       - name: Require Android main to pin this contract
         working-directory: ${{ github.workspace }}
         env:
-          ANDROID_CONTRACT_MANIFEST: https://raw.githubusercontent.com/LamPPKK/Android.Smart.Movie/main/catalog-contract/manifest.json
-          ANDROID_RELEASE_MANIFEST: https://raw.githubusercontent.com/LamPPKK/Android.Smart.Movie/main/release/train.json
+          ANDROID_CONTRACT_MANIFEST: https://raw.githubusercontent.com/LamPPKK/Smart-Movie-Android/main/catalog-contract/manifest.json
+          ANDROID_RELEASE_MANIFEST: https://raw.githubusercontent.com/LamPPKK/Smart-Movie-Android/main/release/train.json
         run: |
           set -euo pipefail
           local_checksum="$(node -e 'const fs=require("node:fs"); console.log(JSON.parse(fs.readFileSync("backend/worker/contract/v2/manifest.json", "utf8")).openapi_sha256)')"

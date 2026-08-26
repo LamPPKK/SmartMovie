@@ -1,9 +1,9 @@
-# SmartMovie 3.0 — Apple apps and TMDb catalog backend
+# Smart Movie iOS 3.0 — Apple apps and TMDb catalog backend
 
-[![Swift](https://github.com/LamPPKK/SmartMovie/actions/workflows/swift.yml/badge.svg?branch=main)](https://github.com/LamPPKK/SmartMovie/actions/workflows/swift.yml)
-[![Xcode build and analyze](https://github.com/LamPPKK/SmartMovie/actions/workflows/xcode-build-analyze.yml/badge.svg?branch=main)](https://github.com/LamPPKK/SmartMovie/actions/workflows/xcode-build-analyze.yml)
-[![iOS smoke test](https://github.com/LamPPKK/SmartMovie/actions/workflows/ios.yml/badge.svg?branch=main)](https://github.com/LamPPKK/SmartMovie/actions/workflows/ios.yml)
-[![Catalog Worker](https://github.com/LamPPKK/SmartMovie/actions/workflows/worker.yml/badge.svg?branch=main)](https://github.com/LamPPKK/SmartMovie/actions/workflows/worker.yml)
+[![Swift](https://github.com/LamPPKK/Smart-Movie-iOS/actions/workflows/swift.yml/badge.svg?branch=main)](https://github.com/LamPPKK/Smart-Movie-iOS/actions/workflows/swift.yml)
+[![Xcode build and analyze](https://github.com/LamPPKK/Smart-Movie-iOS/actions/workflows/xcode-build-analyze.yml/badge.svg?branch=main)](https://github.com/LamPPKK/Smart-Movie-iOS/actions/workflows/xcode-build-analyze.yml)
+[![iOS smoke test](https://github.com/LamPPKK/Smart-Movie-iOS/actions/workflows/ios.yml/badge.svg?branch=main)](https://github.com/LamPPKK/Smart-Movie-iOS/actions/workflows/ios.yml)
+[![Catalog Worker](https://github.com/LamPPKK/Smart-Movie-iOS/actions/workflows/worker.yml/badge.svg?branch=main)](https://github.com/LamPPKK/Smart-Movie-iOS/actions/workflows/worker.yml)
 
 SmartMovie is a cinematic TMDb catalog for the Apple ecosystem. It covers movies, television, people, collections, companies, networks, keywords, seasons, and episodes; adds region-aware availability and trailers; and can optionally synchronize library, ratings, recommendations, and mixed lists through a browser-approved TMDb account.
 
@@ -19,8 +19,8 @@ This repository contains the native SwiftUI apps for iPhone, iPad, Mac Catalyst,
 
 | Repository | Owns | Mobile release role |
 | --- | --- | --- |
-| **[SmartMovie](https://github.com/LamPPKK/SmartMovie)** (this repository) | SwiftUI Apple apps, `SmartMovieKit`, Cloudflare Worker, OpenAPI 3.1 contract, canonical fixtures | App Store source of truth and backend owner |
-| **[Android.Smart.Movie](https://github.com/LamPPKK/Android.Smart.Movie)** | Native Android and Wear OS apps, Compose Multiplatform desktop/web app, versioned contract snapshot | Google Play source of truth |
+| **[Smart Movie iOS](https://github.com/LamPPKK/Smart-Movie-iOS)** (this repository) | SwiftUI Apple apps, `SmartMovieKit`, Cloudflare Worker, OpenAPI 3.1 contract, canonical fixtures | App Store source of truth and backend owner |
+| **[Smart Movie Android](https://github.com/LamPPKK/Smart-Movie-Android)** | Native Android and Wear OS apps, Compose Multiplatform desktop/web app, versioned contract snapshot | Google Play source of truth |
 
 The two native mobile apps keep platform-specific UI and storage while sharing the additive `/v2` Worker contract, six locales, semantic release train, normalized errors, and deterministic decoder fixtures. `/v1` remains served for SmartMovie 2.0 compatibility. Account identity and content belong to TMDb; SmartMovie only brokers opaque sessions and maintains local-first caches/outboxes.
 
@@ -161,8 +161,8 @@ sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
 Clone, generate, and open the project:
 
 ```sh
-git clone https://github.com/LamPPKK/SmartMovie.git
-cd SmartMovie
+git clone https://github.com/LamPPKK/Smart-Movie-iOS.git
+cd Smart-Movie-iOS
 xcodegen generate --spec SmartMovie/project.yml
 open SmartMovie/SmartMovie.xcodeproj
 ```
@@ -202,7 +202,7 @@ cd ../..
 ./scripts/verify-release.sh
 ```
 
-The current verified local baseline contains 57 Swift tests and 91 Worker tests. Coverage includes canonical `/v1` and `/v2` fixture decoding, configured capability/fixture equality, fail-closed browser/TV account rollout, malformed broker configuration and return-URI allowlists, cold-start callback deferral, stale completion invalidation, durable outbox isolation, capability-gated Advanced Discover and Profile provider regions with a fail-closed `/v1` fallback, complete Movie/TV Discover queries and regional provider configuration, External ID and Credit Detail source/path mapping, account recommendations, normalized/paginated custom mixed lists, restart-safe pending item snapshots, local adult filtering and in-flight request invalidation, metadata/item mutations, normalized person/title credit links, unknown and missing nullable fields, success/error schema validation, repeatable D1 migrations, encryption/callback/CSRF controls, durable idempotency, TMDb Changes pagination/backlog recovery, invalid cursor recovery, verified changing-page-count fallback, D1 parameter-bound chunking, monotonic revision and cache-bypass behavior, retries, cancellation, pagination, and data behavior without live personal credentials.
+The current verified local baseline contains 60 Swift tests and 91 Worker tests. Coverage includes canonical `/v1` and `/v2` fixture decoding, configured capability/fixture equality, fail-closed browser/TV account rollout, malformed broker configuration and return-URI allowlists, cold-start callback deferral, stale completion invalidation, durable outbox isolation, capability-gated Advanced Discover and Profile provider regions with a fail-closed `/v1` fallback, complete Movie/TV Discover queries and regional provider configuration, External ID and Credit Detail source/path mapping, account recommendations, normalized/paginated custom mixed lists, restart-safe pending item snapshots, explicit adult age confirmation, six-digit PIN validation, five-attempt lockout, local adult filtering and in-flight request invalidation, metadata/item mutations, normalized person/title credit links, unknown and missing nullable fields, success/error schema validation, repeatable D1 migrations, encryption/callback/CSRF controls, durable idempotency, TMDb Changes pagination/backlog recovery, invalid cursor recovery, verified changing-page-count fallback, D1 parameter-bound chunking, monotonic revision and cache-bypass behavior, retries, cancellation, pagination, and data behavior without live personal credentials.
 
 CI independently builds and analyzes iOS, iPad/Catalyst, tvOS, native macOS, watchOS, and visionOS, then installs and launches the iOS app in Simulator. Read [Testing](docs/TESTING.md) for destination-specific commands and the manual device matrix.
 

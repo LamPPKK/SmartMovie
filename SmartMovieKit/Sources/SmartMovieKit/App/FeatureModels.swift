@@ -20,9 +20,7 @@ public final class ExploreViewModel {
     private var configurationTask: Task<Void, Never>?
     private var requestID = UUID()
     private var configurationRequestID = UUID()
-    public init(catalog: any CatalogRepository) {
-        self.catalog = catalog
-    }
+    public init(catalog: any CatalogRepository) { self.catalog = catalog }
 
     public var providers: [WatchProviderOption] {
         configuration?.watchProviders?.values(for: mediaType) ?? []
@@ -264,10 +262,7 @@ public final class SearchViewModel {
     public var externalIDSource: ExternalIDSource = .imdb
     public private(set) var entities: [CatalogEntity] = []
     public var items: [TitleSummary] {
-        entities.compactMap { entity in
-            if case .title(let title) = entity { return title }
-            return nil
-        }
+        entities.compactMap { if case .title(let title) = $0 { title } else { nil } }
     }
     public private(set) var isLoading = false
     public private(set) var errorMessage: String?
@@ -276,6 +271,8 @@ public final class SearchViewModel {
     private let catalog: any CatalogRepository
     private var page = 0
     private var searchTask: Task<Void, Never>?
+    private var searchGeneration = 0
+    private var includeAdult = false
 
     public init(catalog: any CatalogRepository) {
         self.catalog = catalog
@@ -284,6 +281,7 @@ public final class SearchViewModel {
     public func setMode(_ mode: CatalogSearchMode) {
         guard self.mode != mode else { return }
         searchTask?.cancel()
+        searchGeneration += 1
         self.mode = mode
         query = ""
         entities = []
@@ -297,6 +295,7 @@ public final class SearchViewModel {
     public func resetExternalIDResults() {
         guard mode == .externalID else { return }
         searchTask?.cancel()
+        searchGeneration += 1
         entities = []
         errorMessage = nil
         isLoading = false
@@ -305,6 +304,8 @@ public final class SearchViewModel {
 
     public func scheduleSearch(language: String, region: String? = nil, includeAdult: Bool = false) {
         searchTask?.cancel()
+        searchGeneration += 1
+        self.includeAdult = includeAdult
         guard mode == .catalog else { return }
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
@@ -317,6 +318,7 @@ public final class SearchViewModel {
         let expectedQuery = trimmed
         let expectedScope = scope
         let expectedEntityScope = entityScope
+        let expectedGeneration = searchGeneration
         searchTask = Task { [weak self, catalog] in
             do {
                 try await Task.sleep(for: .milliseconds(350))
@@ -349,6 +351,8 @@ public final class SearchViewModel {
                     )
                 }
                 guard !Task.isCancelled,
+                      searchGeneration == expectedGeneration,
+                      self.includeAdult == includeAdult,
                       query.trimmingCharacters(in: .whitespacesAndNewlines) == expectedQuery,
                       scope == expectedScope,
                       entityScope == expectedEntityScope else { return }
@@ -365,8 +369,10 @@ public final class SearchViewModel {
         }
     }
 
-    public func findExternalID(language: String) {
+    public func findExternalID(language: String, includeAdult: Bool = false) {
         searchTask?.cancel()
+        searchGeneration += 1
+        self.includeAdult = includeAdult
         let externalID = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard mode == .externalID, !externalID.isEmpty else {
             entities = []
@@ -376,6 +382,7 @@ public final class SearchViewModel {
         }
         hasSubmittedExternalID = true
         let expectedSource = externalIDSource
+        let expectedGeneration = searchGeneration
         searchTask = Task { [weak self, catalog] in
             guard let self else { return }
             isLoading = true
@@ -389,10 +396,12 @@ public final class SearchViewModel {
                     language: language
                 )
                 guard !Task.isCancelled,
+                      searchGeneration == expectedGeneration,
+                      self.includeAdult == includeAdult,
                       mode == .externalID,
                       query.trimmingCharacters(in: .whitespacesAndNewlines) == externalID,
                       externalIDSource == expectedSource else { return }
-                entities = result.results
+                entities = result.results.filter { includeAdult || !$0.isAdultTitle }
                 isLoading = false
             } catch is CancellationError {
                 return
@@ -427,10 +436,10 @@ public final class SearchViewModel {
         let expectedScope = scope
         let expectedEntityScope = entityScope
         let nextPage = page + 1
+        let expectedGeneration = searchGeneration
         isLoading = true
-        Task { [weak self, catalog] in
+        searchTask = Task { [weak self, catalog] in
             guard let self else { return }
-            defer { isLoading = false }
             do {
                 let result: PagedResult<CatalogEntity>
                 if let catalogV2 = catalog as? any CatalogV2Repository {
@@ -457,7 +466,10 @@ public final class SearchViewModel {
                         results: legacy.results.map(CatalogEntity.title)
                     )
                 }
-                guard query.trimmingCharacters(in: .whitespacesAndNewlines) == expectedQuery,
+                guard !Task.isCancelled,
+                      searchGeneration == expectedGeneration,
+                      self.includeAdult == includeAdult,
+                      query.trimmingCharacters(in: .whitespacesAndNewlines) == expectedQuery,
                       scope == expectedScope,
                       entityScope == expectedEntityScope else { return }
                 entities.append(contentsOf: result.results.filter { incoming in
@@ -465,9 +477,24 @@ public final class SearchViewModel {
                 })
                 page = result.page
                 canLoadMore = result.page < result.totalPages
+                isLoading = false
+            } catch is CancellationError {
+                return
             } catch {
+                guard searchGeneration == expectedGeneration else { return }
+                isLoading = false
                 errorMessage = error.localizedDescription
             }
         }
+    }
+
+    public func applyAdultVisibility(includeAdult: Bool) {
+        self.includeAdult = includeAdult
+        guard !includeAdult else { return }
+        searchTask?.cancel()
+        searchGeneration += 1
+        entities.removeAll(where: \.isAdultTitle)
+        isLoading = false
+        canLoadMore = false
     }
 }

@@ -2,7 +2,7 @@
 
 ## Repository and client boundaries
 
-`SmartMovie` owns the native SwiftUI products, `SmartMovieKit`, Cloudflare Worker, D1 migrations, and canonical `/v1` + `/v2` contracts. `Android.Smart.Movie` owns native Android/Wear and Compose Multiplatform desktop/web, consuming a checksummed contract snapshot.
+`Smart-Movie-iOS` owns the native SwiftUI products, `SmartMovieKit`, Cloudflare Worker, D1 migrations, and canonical `/v1` + `/v2` contracts. `Smart-Movie-Android` owns native Android/Wear and Compose Multiplatform desktop/web, consuming a checksummed contract snapshot.
 
 Every full client keeps native domain and UI models. Shared behavior comes from OpenAPI/fixtures, parity requirements, normalized errors, and the release train—not generated UI code. Watch/Wear remain safe companions and never authorize independently.
 

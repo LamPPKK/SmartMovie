@@ -57,6 +57,7 @@ public struct DetailView: View {
                 includeAdult: container.adultContent.includeAdult
             )
             guard let model else { return }
+            guard !dismissAdultDetailIfNeeded(model) else { return }
             if case .signedIn = container.accountSession.state { await loadAccountRating() }
             syncWatchRemote(model)
             if autoplayTrailer, !didAutoplayTrailer {
@@ -68,6 +69,10 @@ public struct DetailView: View {
             guard let model else { return }
             model.refreshLibraryState()
             syncWatchRemote(model)
+        }
+        .onChange(of: container.adultContent.includeAdult) {
+            guard let model else { return }
+            _ = dismissAdultDetailIfNeeded(model)
         }
     }
 
@@ -94,6 +99,7 @@ public struct DetailView: View {
                             region: container.regionSettings.effectiveRegion,
                             includeAdult: container.adultContent.includeAdult
                         )
+                        _ = dismissAdultDetailIfNeeded(model)
                     }
                 }
             )
@@ -261,6 +267,12 @@ public struct DetailView: View {
                 hasTrailer: model.preferredTrailer(language: language) != nil
             )
         )
+    }
+
+    private func dismissAdultDetailIfNeeded(_ model: DetailViewModel) -> Bool {
+        guard !container.adultContent.includeAdult, model.containsAdultContent else { return false }
+        dismiss()
+        return true
     }
 
     @MainActor

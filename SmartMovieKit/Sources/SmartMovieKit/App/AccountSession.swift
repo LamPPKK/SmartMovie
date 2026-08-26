@@ -167,7 +167,11 @@ public final class AdultContentController {
     public var includeAdult: Bool { isEnabled && isUnlocked && !isLocked }
     public var isLocked: Bool { lockUntil.map { $0 > now() } ?? false }
 
-    public func configure(pin: String, confirmation: String) -> Bool {
+    public func configure(pin: String, confirmation: String, ageConfirmed: Bool) -> Bool {
+        guard ageConfirmed else {
+            errorMessage = String(localized: "Confirm that you are at least 18 years old.", bundle: .module)
+            return false
+        }
         guard pin == confirmation, pin.range(of: #"^[0-9]{6}$"#, options: .regularExpression) != nil else {
             errorMessage = String(localized: "Enter the same six-digit PIN twice.", bundle: .module)
             return false

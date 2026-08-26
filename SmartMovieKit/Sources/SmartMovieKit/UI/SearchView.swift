@@ -17,6 +17,13 @@ public struct SearchView: View {
         .task {
             if model == nil { model = SearchViewModel(catalog: container.catalog) }
         }
+        .onChange(of: container.adultContent.includeAdult) {
+            guard let model else { return }
+            model.applyAdultVisibility(includeAdult: container.adultContent.includeAdult)
+            if model.mode == .catalog, !model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                schedule(model)
+            }
+        }
     }
 
     private func content(_ model: SearchViewModel) -> some View {
@@ -61,7 +68,10 @@ public struct SearchView: View {
                 .onChange(of: model.externalIDSource) { model.resetExternalIDResults() }
 
                 Button(String(localized: "Find matches", bundle: .module)) {
-                    model.findExternalID(language: LocaleResolver.tmdbLanguage(for: locale))
+                    model.findExternalID(
+                        language: LocaleResolver.tmdbLanguage(for: locale),
+                        includeAdult: container.adultContent.includeAdult
+                    )
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(model.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || model.isLoading)
@@ -87,7 +97,10 @@ public struct SearchView: View {
             if model.mode == .catalog {
                 schedule(model)
             } else {
-                model.findExternalID(language: LocaleResolver.tmdbLanguage(for: locale))
+                model.findExternalID(
+                    language: LocaleResolver.tmdbLanguage(for: locale),
+                    includeAdult: container.adultContent.includeAdult
+                )
             }
         }
         .onChange(of: model.query) {
@@ -157,7 +170,10 @@ public struct SearchView: View {
 
     private func retry(_ model: SearchViewModel) {
         if model.mode == .externalID {
-            model.findExternalID(language: LocaleResolver.tmdbLanguage(for: locale))
+            model.findExternalID(
+                language: LocaleResolver.tmdbLanguage(for: locale),
+                includeAdult: container.adultContent.includeAdult
+            )
         } else {
             schedule(model)
         }

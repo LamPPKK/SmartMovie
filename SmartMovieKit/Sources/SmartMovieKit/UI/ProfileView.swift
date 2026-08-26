@@ -5,8 +5,6 @@ import SwiftUI
 public struct ProfileView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.openURL) private var openURL
-    @State private var pin = ""
-    @State private var pinConfirmation = ""
     @State private var showLogoutChoice = false
     @State private var lists: [UserList] = []
     @State private var listsAccountID: Int?
@@ -161,53 +159,10 @@ public struct ProfileView: View {
                 }
             }
             .pickerStyle(.menu)
-            adultControls
+            AdultContentControls(controller: container.adultContent)
         }
         .padding(20)
         .background(CinemaTheme.surface, in: RoundedRectangle(cornerRadius: CinemaTheme.cornerRadius))
-    }
-
-    @ViewBuilder
-    private var adultControls: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label(String(localized: "Adult content", bundle: .module), systemImage: "18.circle")
-                .font(.headline)
-            Text(String(
-                // swiftlint:disable:next line_length
-                localized: "Off by default. A six-digit PIN is stored only on this device. Adult titles never appear on Watch/Wear remote or public previews.",
-                bundle: .module
-            ))
-                .font(.footnote)
-                .foregroundStyle(CinemaTheme.muted)
-
-            if !container.adultContent.isEnabled {
-                SecureField(String(localized: "Six-digit PIN", bundle: .module), text: $pin)
-                    .textContentType(.newPassword)
-                SecureField(String(localized: "Confirm PIN", bundle: .module), text: $pinConfirmation)
-                    .textContentType(.newPassword)
-                Button(String(localized: "Enable adult content", bundle: .module)) {
-                    if container.adultContent.configure(pin: pin, confirmation: pinConfirmation) {
-                        pin = ""; pinConfirmation = ""
-                    }
-                }
-            } else if container.adultContent.isUnlocked {
-                Label(String(localized: "Unlocked on this device", bundle: .module), systemImage: "lock.open.fill")
-                    .foregroundStyle(.green)
-                HStack {
-                    Button(String(localized: "Lock", bundle: .module)) { container.adultContent.lock() }
-                    Button(String(localized: "Disable", bundle: .module), role: .destructive) { container.adultContent.disable() }
-                }
-            } else {
-                SecureField(String(localized: "Enter PIN", bundle: .module), text: $pin)
-                    .textContentType(.password)
-                Button(String(localized: "Unlock", bundle: .module)) {
-                    if container.adultContent.unlock(pin: pin) { pin = "" }
-                }
-            }
-            if let error = container.adultContent.errorMessage {
-                Text(error).font(.footnote).foregroundStyle(CinemaTheme.accent)
-            }
-        }
     }
 
     private var accountLibrary: some View {
@@ -366,6 +321,86 @@ public struct ProfileView: View {
         listsAccountID = accountID
     }
 
+}
+
+private struct AdultContentControls: View {
+    let controller: AdultContentController
+    @State private var pin = ""
+    @State private var pinConfirmation = ""
+    @State private var ageConfirmed = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label(String(localized: "Adult content", bundle: .module), systemImage: "18.circle")
+                .font(.headline)
+            Text(String(
+                // swiftlint:disable:next line_length
+                localized: "Off by default. Confirm you are at least 18 and create a six-digit PIN stored only on this device. Adult titles never appear on Watch/Wear remote or public previews.",
+                bundle: .module
+            ))
+            .font(.footnote)
+            .foregroundStyle(CinemaTheme.muted)
+
+            if !controller.isEnabled {
+                configurationControls
+            } else if controller.isUnlocked {
+                unlockedControls
+            } else {
+                unlockControls
+            }
+            if let error = controller.errorMessage {
+                Text(error).font(.footnote).foregroundStyle(CinemaTheme.accent)
+            }
+        }
+    }
+
+    private var configurationControls: some View {
+        Group {
+            Toggle(
+                String(localized: "I confirm that I am at least 18 years old.", bundle: .module),
+                isOn: $ageConfirmed
+            )
+            SecureField(String(localized: "Six-digit PIN", bundle: .module), text: $pin)
+                .textContentType(.newPassword)
+            SecureField(String(localized: "Confirm PIN", bundle: .module), text: $pinConfirmation)
+                .textContentType(.newPassword)
+            Button(String(localized: "Enable adult content", bundle: .module), action: configure)
+        }
+    }
+
+    private var unlockedControls: some View {
+        Group {
+            Label(String(localized: "Unlocked on this device", bundle: .module), systemImage: "lock.open.fill")
+                .foregroundStyle(.green)
+            HStack {
+                Button(String(localized: "Lock", bundle: .module)) { controller.lock() }
+                Button(String(localized: "Disable", bundle: .module), role: .destructive, action: disable)
+            }
+        }
+    }
+
+    private var unlockControls: some View {
+        Group {
+            SecureField(String(localized: "Enter PIN", bundle: .module), text: $pin)
+                .textContentType(.password)
+            Button(String(localized: "Unlock", bundle: .module)) {
+                if controller.unlock(pin: pin) { pin = "" }
+            }
+        }
+    }
+
+    private func configure() {
+        if controller.configure(pin: pin, confirmation: pinConfirmation, ageConfirmed: ageConfirmed) {
+            pin = ""
+            pinConfirmation = ""
+            ageConfirmed = false
+        }
+    }
+
+    private func disable() {
+        controller.disable()
+        ageConfirmed = false
+    }
 }
 
 private extension ProfileView {
