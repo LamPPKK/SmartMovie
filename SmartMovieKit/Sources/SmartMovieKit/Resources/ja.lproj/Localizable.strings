@@ -144,11 +144,14 @@
 "Translations" = "翻訳";
 "External identifiers" = "外部識別子";
 "Source repositories" = "ソースリポジトリ";
-"Catalog metadata description" = "作品、シーズン、エピソードのTMDb画像・動画ギャラリー、地域別公開日、年齢区分、ローカライズされたタイトル、翻訳、外部識別子を確認できます。";
+"Catalog metadata description" = "作品、シーズン、エピソードのTMDb画像・動画ギャラリー、レビュー、おすすめ、地域別公開日、年齢区分、ローカライズされたタイトル、翻訳、外部識別子を確認できます。";
 "Details" = "詳細";
 "Images" = "画像";
 "Catalog image" = "TMDbカタログ画像";
 "Videos" = "動画";
+"Reviews" = "レビュー";
+"Recommendations" = "おすすめ";
+"TMDb member" = "TMDbメンバー";
 "Air date" = "放送日";
 "Episodes" = "エピソード";
 "Runtime" = "上映時間";

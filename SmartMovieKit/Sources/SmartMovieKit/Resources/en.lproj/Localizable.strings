@@ -144,11 +144,14 @@
 "Translations" = "Translations";
 "External identifiers" = "External identifiers";
 "Source repositories" = "Source repositories";
-"Catalog metadata description" = "Explore TMDb image and video galleries, regional release dates, certifications, localized titles, translations and external identifiers across titles, seasons and episodes.";
+"Catalog metadata description" = "Explore TMDb image and video galleries, member reviews, catalog recommendations, regional release dates, certifications, localized titles, translations and external identifiers across titles, seasons and episodes.";
 "Details" = "Details";
 "Images" = "Images";
 "Catalog image" = "TMDb catalog image";
 "Videos" = "Videos";
+"Reviews" = "Reviews";
+"Recommendations" = "Recommendations";
+"TMDb member" = "TMDb member";
 "Air date" = "Air date";
 "Episodes" = "Episodes";
 "Runtime" = "Runtime";

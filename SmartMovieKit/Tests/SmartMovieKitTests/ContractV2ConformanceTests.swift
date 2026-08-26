@@ -50,6 +50,10 @@ final class ContractV2ConformanceTests: XCTestCase {
         XCTAssertEqual(detail.images.backdrops.first?.filePath, "/catalog-backdrop.jpg")
         XCTAssertEqual(detail.images.posters.first?.filePath, "/catalog-poster.jpg")
         XCTAssertEqual(detail.videos.map(\.key), ["catalogYT123", "catalogYT456"])
+        XCTAssertEqual(detail.reviews.results.map(\.id), ["review-catalog-1", "review-catalog-2"])
+        XCTAssertEqual(detail.reviews.results.first?.rating, 8.5)
+        XCTAssertEqual(detail.recommendations.results.map(\.libraryKey), ["movie:20", "movie:21"])
+        XCTAssertEqual(detail.similar.map(\.libraryKey), ["movie:30"])
 
         XCTAssertEqual(try decode(PersonDetail.self, fixture: "person").id, 12)
         XCTAssertEqual(try decode(CollectionDetail.self, fixture: "collection").id, 13)

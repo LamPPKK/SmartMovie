@@ -38,7 +38,7 @@ npm test
 
 Verification: Swift tests, Worker type-check, and Worker contract tests all complete with zero failures. Search the repository for `api_key=` and confirm no credential is present.
 
-Current verified local baseline: 64 Swift tests and 93 Worker tests. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the suite changed intentionally; zero failures is always required.
+Current verified local baseline: 66 Swift tests and 93 Worker tests. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the suite changed intentionally; zero failures is always required.
 
 When the contract or release train changes on `main`, confirm the `Sync catalog contract to Android` workflow opens a pull request and that Android native plus desktop conformance CI passes before merging it. Production promotion remains blocked until the Android snapshot is on `main`.
 

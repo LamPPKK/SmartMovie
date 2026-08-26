@@ -118,7 +118,9 @@ public struct DetailView: View {
                 } else if !detail.cast.isEmpty {
                     castShelf(detail.cast)
                 }
-                if !detail.similar.isEmpty { similarShelf(detail.similar) }
+                if !detail.similar.isEmpty {
+                    similarShelf(detail.similar, includeAdult: container.adultContent.includeAdult)
+                }
                 credits
             }
             .padding(.bottom, 40)

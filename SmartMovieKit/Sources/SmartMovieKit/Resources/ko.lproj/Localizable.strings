@@ -144,11 +144,14 @@
 "Translations" = "번역";
 "External identifiers" = "외부 식별자";
 "Source repositories" = "소스 저장소";
-"Catalog metadata description" = "작품, 시즌, 에피소드의 TMDb 이미지·동영상 갤러리, 지역별 공개일, 시청 등급, 현지화 제목, 번역 및 외부 식별자를 확인하세요.";
+"Catalog metadata description" = "작품, 시즌, 에피소드의 TMDb 이미지·동영상 갤러리, 리뷰, 추천, 지역별 공개일, 시청 등급, 현지화 제목, 번역 및 외부 식별자를 확인하세요.";
 "Details" = "세부 정보";
 "Images" = "이미지";
 "Catalog image" = "TMDb 카탈로그 이미지";
 "Videos" = "동영상";
+"Reviews" = "리뷰";
+"Recommendations" = "추천";
+"TMDb member" = "TMDb 회원";
 "Air date" = "방영일";
 "Episodes" = "에피소드";
 "Runtime" = "재생 시간";

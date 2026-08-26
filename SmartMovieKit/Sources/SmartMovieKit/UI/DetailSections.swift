@@ -51,18 +51,43 @@ extension DetailView {
         }
     }
 
-    func similarShelf(_ similar: [TitleSummary]) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            SectionTitle(String(localized: "More like this", bundle: .module)).padding(.horizontal, 24)
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .top, spacing: 16) {
-                    ForEach(similar) { title in
-                        NavigationLink(value: title) { PosterCard(title: title) }
-                            .catalogNavigationButtonStyle()
+    func similarShelf(_ similar: [TitleSummary], includeAdult: Bool) -> some View {
+        titleShelf(
+            String(localized: "More like this", bundle: .module),
+            titles: CatalogEditorialPresentation.titles(similar, includeAdult: includeAdult)
+        )
+    }
+
+    func recommendationShelf(
+        _ recommendations: [TitleSummary],
+        currentLibraryKey: String,
+        includeAdult: Bool
+    ) -> some View {
+        titleShelf(
+            String(localized: "Recommendations", bundle: .module),
+            titles: CatalogEditorialPresentation.titles(
+                recommendations,
+                excluding: currentLibraryKey,
+                includeAdult: includeAdult
+            )
+        )
+    }
+
+    @ViewBuilder
+    private func titleShelf(_ title: String, titles: [TitleSummary]) -> some View {
+        if !titles.isEmpty {
+            VStack(alignment: .leading, spacing: 16) {
+                SectionTitle(title).padding(.horizontal, 24)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(alignment: .top, spacing: 16) {
+                        ForEach(titles) { title in
+                            NavigationLink(value: title) { PosterCard(title: title) }
+                                .catalogNavigationButtonStyle()
+                        }
                     }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 16)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
             }
         }
     }
@@ -137,27 +162,15 @@ extension DetailView {
             providerSection(offers)
         }
 
-        if !detail.reviews.results.isEmpty {
-            VStack(alignment: .leading, spacing: 14) {
-                SectionTitle(String(localized: "Reviews", bundle: .module))
-                ForEach(detail.reviews.results.prefix(4)) { review in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Text(review.author).font(.headline)
-                            Spacer()
-                            if let rating = review.rating { RatingBadge(rating: rating) }
-                        }
-                        Text(review.content).lineLimit(8).foregroundStyle(CinemaTheme.muted)
-                    }
-                    .padding(16)
-                    .background(CinemaTheme.surface, in: RoundedRectangle(cornerRadius: CinemaTheme.cornerRadius))
-                }
-            }
+        CatalogReviewSection(reviews: detail.reviews.results)
             .padding(.horizontal, 24)
-        }
 
         if !detail.recommendations.results.isEmpty {
-            similarShelf(detail.recommendations.results)
+            recommendationShelf(
+                detail.recommendations.results,
+                currentLibraryKey: detail.summary.libraryKey,
+                includeAdult: container.adultContent.includeAdult
+            )
         }
     }
 
