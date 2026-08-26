@@ -173,6 +173,12 @@ public struct CapabilitiesV2: Codable, Sendable {
         public let supported: Bool
         public let defaultEnabled: Bool
         public let localPinRequired: Bool
+
+        public init(supported: Bool, defaultEnabled: Bool, localPinRequired: Bool) {
+            self.supported = supported
+            self.defaultEnabled = defaultEnabled
+            self.localPinRequired = localPinRequired
+        }
     }
 
     public let apiVersion: String
@@ -182,6 +188,24 @@ public struct CapabilitiesV2: Codable, Sendable {
     public let supportedLanguages: [String]
     public let supportedEntityKinds: [EntityKind]
     public let adultContent: AdultContent
+
+    public init(
+        apiVersion: String,
+        releaseTrain: String,
+        catalog: [String: Bool],
+        account: [String: Bool] = [:],
+        supportedLanguages: [String] = [],
+        supportedEntityKinds: [EntityKind] = [],
+        adultContent: AdultContent = AdultContent(supported: false, defaultEnabled: false, localPinRequired: true)
+    ) {
+        self.apiVersion = apiVersion
+        self.releaseTrain = releaseTrain
+        self.catalog = catalog
+        self.account = account
+        self.supportedLanguages = supportedLanguages
+        self.supportedEntityKinds = supportedEntityKinds
+        self.adultContent = adultContent
+    }
 
     public func supportsCatalog(_ capability: String) -> Bool { catalog[capability] == true }
     public func supportsAccount(_ capability: String) -> Bool { account[capability] == true }
@@ -466,33 +490,6 @@ public struct SeasonDetail: Codable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case id, seriesId, seasonNumber, name, overview, posterPath, airDate, episodeCount, episodes, credits, images, videos
-        case externalIDs = "externalIds"
-    }
-}
-
-public struct EpisodeDetail: Codable, Sendable {
-    public let id: Int
-    public let seriesId: Int
-    public let seasonNumber: Int
-    public let episodeNumber: Int
-    public let name: String
-    public let overview: String
-    public let stillPath: String?
-    public let airDate: String?
-    public let runtimeMinutes: Int?
-    public let productionCode: String?
-    public let voteAverage: Double?
-    public let voteCount: Int
-    public let crew: [Credit]
-    public let guestStars: [Credit]
-    public let images: [ImageAsset]
-    public let videos: [Video]
-    public let externalIDs: [String: String]
-
-    private enum CodingKeys: String, CodingKey {
-        case id, seriesId, seasonNumber, episodeNumber, name, overview, stillPath, airDate, runtimeMinutes
-        case productionCode, voteAverage, voteCount
-        case crew, guestStars, images, videos
         case externalIDs = "externalIds"
     }
 }

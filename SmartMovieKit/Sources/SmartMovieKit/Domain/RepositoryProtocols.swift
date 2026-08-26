@@ -18,8 +18,25 @@ public protocol CatalogRepository: TitleSearching, Sendable {
         page: Int,
         language: String
     ) async throws -> PagedResult<TitleSummary>
+    func discoverBasic(
+        mediaType: MediaType,
+        filter: DiscoverFilter,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary>
     func detail(mediaType: MediaType, id: Int, language: String) async throws -> TitleDetail
     func imageConfiguration() async throws -> ImageConfiguration
+}
+
+public extension CatalogRepository {
+    func discoverBasic(
+        mediaType: MediaType,
+        filter: DiscoverFilter,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary> {
+        try await discover(mediaType: mediaType, filter: filter, page: page, language: language)
+    }
 }
 
 public enum LibraryCollection: String, CaseIterable, Identifiable, Sendable {

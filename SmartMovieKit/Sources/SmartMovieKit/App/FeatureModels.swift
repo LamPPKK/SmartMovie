@@ -10,6 +10,7 @@ public final class ExploreViewModel {
     public private(set) var genres: [Genre] = []
     public private(set) var items: [TitleSummary] = []
     public private(set) var configuration: DiscoverConfiguration?
+    public private(set) var advancedDiscoverEnabled = false
     public private(set) var isLoading = false
     public private(set) var errorMessage: String?
     public private(set) var canLoadMore = true
@@ -25,6 +26,20 @@ public final class ExploreViewModel {
 
     public var providers: [WatchProviderOption] {
         configuration?.watchProviders?.values(for: mediaType) ?? []
+    }
+
+    @discardableResult
+    public func updateCapabilities(_ capabilities: CapabilitiesV2?) -> Bool {
+        let enabled = capabilities?.supportsCatalog("advanced_discover") == true
+        guard enabled != advancedDiscoverEnabled else { return false }
+        advancedDiscoverEnabled = enabled
+        configurationTask?.cancel()
+        configuration = nil
+        if !enabled {
+            filter = basicFilter(filter)
+            draftFilter = filter
+        }
+        return true
     }
     @discardableResult
     public func updateContext(region: String, includeAdult: Bool) -> Bool {
@@ -46,12 +61,16 @@ public final class ExploreViewModel {
             draftFilter.certificationMaximum = nil
             configuration = nil
         }
+        if !advancedDiscoverEnabled {
+            filter = basicFilter(filter)
+            draftFilter = basicFilter(draftFilter)
+        }
         return true
     }
 
     public func resetFilter() {
         filter = DiscoverFilter(
-            certificationCountry: filter.region,
+            certificationCountry: advancedDiscoverEnabled ? filter.region : nil,
             region: filter.region,
             includeAdult: filter.includeAdult
         )
@@ -64,14 +83,14 @@ public final class ExploreViewModel {
 
     public func resetDraftFilter() {
         draftFilter = DiscoverFilter(
-            certificationCountry: filter.region,
+            certificationCountry: advancedDiscoverEnabled ? filter.region : nil,
             region: filter.region,
             includeAdult: filter.includeAdult
         )
     }
 
     public func applyDraftFilter(language: String) {
-        filter = draftFilter
+        filter = advancedDiscoverEnabled ? draftFilter : basicFilter(draftFilter)
         reload(language: language)
     }
 
@@ -92,17 +111,21 @@ public final class ExploreViewModel {
         let currentConfigurationRequestID = UUID()
         configurationRequestID = currentConfigurationRequestID
         isLoading = true
-        configurationTask = Task { [weak self, catalog] in
-            guard let self else { return }
-            let loadedConfiguration = await Self.loadConfiguration(
-                catalog: catalog,
-                language: language,
-                region: selectedFilter.region
-            )
-            guard !Task.isCancelled,
-                  configurationRequestID == currentConfigurationRequestID,
-                  filter.region == selectedFilter.region else { return }
-            configuration = loadedConfiguration
+        let supportsAdvancedDiscover = advancedDiscoverEnabled
+        if supportsAdvancedDiscover {
+            configurationTask = Task { [weak self, catalog] in
+                guard let self else { return }
+                let loadedConfiguration = await Self.loadConfiguration(
+                    catalog: catalog,
+                    language: language,
+                    region: selectedFilter.region
+                )
+                guard !Task.isCancelled,
+                      configurationRequestID == currentConfigurationRequestID,
+                      filter.region == selectedFilter.region,
+                      advancedDiscoverEnabled else { return }
+                configuration = loadedConfiguration
+            }
         }
         task = Task { [weak self, catalog] in
             guard let self else { return }
@@ -111,11 +134,12 @@ public final class ExploreViewModel {
             }
             do {
                 async let genreRequest = catalog.genres(mediaType: selectedType, language: language)
-                async let pageRequest = catalog.discover(
+                async let pageRequest = loadPage(
                     mediaType: selectedType,
                     filter: selectedFilter,
                     page: 1,
-                    language: language
+                    language: language,
+                    supportsAdvancedDiscover: supportsAdvancedDiscover
                 )
                 let (loadedGenres, result) = try await (
                     genreRequest,
@@ -124,7 +148,8 @@ public final class ExploreViewModel {
                 guard !Task.isCancelled,
                       requestID == currentRequestID,
                       mediaType == selectedType,
-                      filter == selectedFilter else { return }
+                      filter == selectedFilter,
+                      advancedDiscoverEnabled == supportsAdvancedDiscover else { return }
                 genres = loadedGenres
                 items = result.results
                 page = result.page
@@ -164,30 +189,46 @@ public final class ExploreViewModel {
         return try? await catalog.discoverConfiguration(language: language, region: region)
     }
 
+    private func loadPage(
+        mediaType: MediaType,
+        filter: DiscoverFilter,
+        page: Int,
+        language: String,
+        supportsAdvancedDiscover: Bool
+    ) async throws -> PagedResult<TitleSummary> {
+        if supportsAdvancedDiscover {
+            return try await catalog.discover(mediaType: mediaType, filter: filter, page: page, language: language)
+        }
+        return try await catalog.discoverBasic(mediaType: mediaType, filter: filter, page: page, language: language)
+    }
+
     public func loadMoreIfNeeded(current item: TitleSummary, language: String) {
         guard item.id == items.last?.id, canLoadMore, !isLoading else { return }
         let nextPage = page + 1
         let selectedType = mediaType
         let selectedFilter = filter
+        let supportsAdvancedDiscover = advancedDiscoverEnabled
         let currentRequestID = UUID()
         requestID = currentRequestID
         isLoading = true
-        task = Task { [weak self, catalog] in
+        task = Task { [weak self] in
             guard let self else { return }
             defer {
                 if requestID == currentRequestID { isLoading = false }
             }
             do {
-                let result = try await catalog.discover(
+                let result = try await loadPage(
                     mediaType: selectedType,
                     filter: selectedFilter,
                     page: nextPage,
-                    language: language
+                    language: language,
+                    supportsAdvancedDiscover: supportsAdvancedDiscover
                 )
                 guard !Task.isCancelled,
                       requestID == currentRequestID,
                       mediaType == selectedType,
-                      filter == selectedFilter else { return }
+                      filter == selectedFilter,
+                      advancedDiscoverEnabled == supportsAdvancedDiscover else { return }
                 items.append(contentsOf: result.results.filter { incoming in
                     !items.contains(where: { $0.libraryKey == incoming.libraryKey })
                 })
@@ -199,6 +240,17 @@ public final class ExploreViewModel {
                 if requestID == currentRequestID { errorMessage = error.localizedDescription }
             }
         }
+    }
+
+    private func basicFilter(_ source: DiscoverFilter) -> DiscoverFilter {
+        DiscoverFilter(
+            genres: source.genres,
+            year: source.year,
+            minimumRating: source.minimumRating,
+            sort: source.sort,
+            region: source.region,
+            includeAdult: source.includeAdult
+        )
     }
 }
 
@@ -418,83 +470,4 @@ public final class SearchViewModel {
             }
         }
     }
-}
-
-@MainActor
-@Observable
-public final class DetailViewModel {
-    public private(set) var state: Loadable<TitleDetail> = .idle
-    public private(set) var deepDetail: TitleDetailV2?
-    public private(set) var isFavorite = false
-    public private(set) var isWatchlisted = false
-    private let summary: TitleSummary
-    private let catalog: any CatalogRepository
-    private let library: any LibraryRepository
-
-    public init(summary: TitleSummary, catalog: any CatalogRepository, library: any LibraryRepository) {
-        self.summary = summary
-        self.catalog = catalog
-        self.library = library
-        refreshLibraryState()
-    }
-
-    public func load(language: String, region: String? = nil, includeAdult: Bool = false) async {
-        if case .loaded = state { return }
-        state = .loading
-        do {
-            if let catalogV2 = catalog as? any CatalogV2Repository {
-                let detail = try await catalogV2.deepDetail(
-                    mediaType: summary.mediaType,
-                    id: summary.id,
-                    language: language,
-                    region: region,
-                    includeAdult: includeAdult
-                )
-                deepDetail = detail
-                state = .loaded(detail.legacy)
-            } else {
-                state = .loaded(try await catalog.detail(mediaType: summary.mediaType, id: summary.id, language: language))
-            }
-        } catch is CancellationError {
-            return
-        } catch {
-            state = .failed(error.localizedDescription)
-        }
-    }
-
-    public func toggle(_ collection: LibraryCollection) {
-        do {
-            let currentSummary = deepDetail?.summary ?? {
-                if case .loaded(let detail) = state { return detail.summary }
-                return summary
-            }()
-            try library.toggle(currentSummary, in: collection)
-            refreshLibraryState(using: currentSummary)
-        } catch {
-            state = .failed(error.localizedDescription)
-        }
-    }
-
-    public func preferredTrailer(language: String) -> Video? {
-        guard case .loaded(let detail) = state else { return nil }
-        let videos = deepDetail?.videos ?? detail.videos
-        let youtube = videos.filter { $0.site.caseInsensitiveCompare("YouTube") == .orderedSame }
-        let trailers = youtube.filter { $0.type.caseInsensitiveCompare("Trailer") == .orderedSame }
-        return trailers.first(where: { $0.official && ($0.language == language || language.hasPrefix($0.language ?? "-")) })
-            ?? trailers.first
-            ?? youtube.first(where: { $0.type.caseInsensitiveCompare("Teaser") == .orderedSame })
-    }
-
-    public func refreshLibraryState(using value: TitleSummary? = nil) {
-        let title = value ?? deepDetail?.summary ?? summary
-        do {
-            isFavorite = try library.contains(title, in: .favorites)
-            isWatchlisted = try library.contains(title, in: .watchlist)
-        } catch {
-            isFavorite = false
-            isWatchlisted = false
-        }
-    }
-
-    public var containsAdultContent: Bool { deepDetail?.adult ?? summary.isAdult }
 }

@@ -63,12 +63,13 @@ public struct ProfileView: View {
             await container.syncAccountLibrary(language: LocaleResolver.tmdbLanguage(for: Locale.current))
             await loadLists(reportErrors: false)
         }
-        .task(id: configurationLanguage) {
-            guard let catalog = container.catalog as? any CatalogV2Repository else { return }
-            providerRegions = (try? await catalog.discoverConfiguration(
+        .task(id: profileConfigurationTaskID) {
+            providerRegions = await loadProfileProviderRegions(
+                catalog: container.catalog,
+                capabilities: container.capabilities,
                 language: configurationLanguage,
                 region: container.regionSettings.effectiveRegion
-            ).watchProviderRegions) ?? []
+            )
         }
     }
 
@@ -369,6 +370,11 @@ public struct ProfileView: View {
 }
 
 private extension ProfileView {
+    var profileConfigurationTaskID: String {
+        let enabled = container.capabilities?.supportsCatalog("advanced_discover") == true
+        return "\(configurationLanguage):\(container.regionSettings.effectiveRegion):\(enabled)"
+    }
+
     var configurationLanguage: String {
         LocaleResolver.tmdbLanguage(for: Locale.current)
     }
@@ -387,6 +393,17 @@ private extension ProfileView {
     static let fallbackRegionCodes = [
         "US", "GB", "CA", "AU", "FR", "DE", "JP", "KR", "VN", "TW", "HK", "SG", "IN", "BR", "MX",
     ]
+}
+
+func loadProfileProviderRegions(
+    catalog: any CatalogRepository,
+    capabilities: CapabilitiesV2?,
+    language: String,
+    region: String?
+) async -> [ConfigurationCountry] {
+    guard capabilities?.supportsCatalog("advanced_discover") == true,
+          let catalog = catalog as? any CatalogV2Repository else { return [] }
+    return (try? await catalog.discoverConfiguration(language: language, region: region).watchProviderRegions) ?? []
 }
 
 private struct QRCodeView: View {

@@ -41,6 +41,7 @@ public struct ExploreView: View {
         .task(id: contextKey) {
             if model == nil { model = ExploreViewModel(catalog: container.catalog) }
             guard let model else { return }
+            model.updateCapabilities(container.capabilities)
             _ = model.updateContext(
                 region: container.regionSettings.effectiveRegion,
                 includeAdult: container.adultContent.includeAdult
@@ -50,7 +51,8 @@ public struct ExploreView: View {
     }
 
     private var contextKey: String {
-        "\(LocaleResolver.tmdbLanguage(for: locale)):\(container.regionSettings.effectiveRegion):\(container.adultContent.includeAdult)"
+        let advanced = container.capabilities?.supportsCatalog("advanced_discover") == true
+        return "\(LocaleResolver.tmdbLanguage(for: locale)):\(container.regionSettings.effectiveRegion):\(container.adultContent.includeAdult):\(advanced)"
     }
 
     @ViewBuilder
@@ -177,7 +179,8 @@ private struct FilterSheet: View {
                         }
                     }
                 }
-                Section(String(localized: "Release date range", bundle: .module)) {
+                if model.advancedDiscoverEnabled {
+                    Section(String(localized: "Release date range", bundle: .module)) {
                     TextField(
                         String(localized: "From date (YYYY-MM-DD)", bundle: .module),
                         text: optionalTextBinding(\.releaseDateFrom)
@@ -239,7 +242,7 @@ private struct FilterSheet: View {
                         }
                     }
                 }
-                Section {
+                    Section {
                     LabeledContent(String(localized: "Provider region", bundle: .module), value: model.draftFilter.region ?? "—")
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
@@ -266,8 +269,9 @@ private struct FilterSheet: View {
                     Text("JustWatch")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                } header: {
-                    Text(String(localized: "Watch providers", bundle: .module))
+                    } header: {
+                        Text(String(localized: "Watch providers", bundle: .module))
+                    }
                 }
                 Section(String(localized: "Sort by", bundle: .module)) {
                     Picker(String(localized: "Sort by", bundle: .module), selection: $model.draftFilter.sort) {

@@ -139,6 +139,39 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(query["include_adult"], "true")
     }
 
+    func testBasicDiscoverFallsBackToV1AndOmitsAdvancedFields() async throws {
+        URLProtocolStub.enqueue(status: 200, body: #"{"page":1,"total_pages":1,"results":[]}"#)
+        let repository = RemoteCatalogRepository(client: makeClient())
+        let filter = DiscoverFilter(
+            genres: [28, 12],
+            year: 1999,
+            minimumRating: 7,
+            sort: .rating,
+            releaseDateFrom: "2026-01-01",
+            watchProviderIDs: [8],
+            includeAdult: true
+        )
+
+        _ = try await repository.discoverBasic(
+            mediaType: .movie,
+            filter: filter,
+            page: 1,
+            language: "en-US"
+        )
+
+        let url = try XCTUnwrap(URLProtocolStub.requests.first?.url)
+        let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
+        let query = Dictionary(uniqueKeysWithValues: try XCTUnwrap(components.queryItems).map { ($0.name, $0.value) })
+        XCTAssertEqual(url.path, "/api/v1/discover/movie")
+        XCTAssertEqual(query["genre_ids"], "12,28")
+        XCTAssertEqual(query["year"], "1999")
+        XCTAssertEqual(query["vote_average_gte"], "7.0")
+        XCTAssertEqual(query["sort_by"], "vote_average.desc")
+        XCTAssertFalse(query.keys.contains("include_adult"))
+        XCTAssertFalse(query.keys.contains("release_date_gte"))
+        XCTAssertFalse(query.keys.contains("watch_providers"))
+    }
+
     func testV2ConfigurationUsesRegionAndDecodesProviderOptions() async throws {
         URLProtocolStub.enqueue(status: 200, body: #"""
         {
@@ -164,6 +197,47 @@ final class APIClientTests: XCTestCase {
         let query = Dictionary(uniqueKeysWithValues: (components.queryItems ?? []).map { ($0.name, $0.value) })
         XCTAssertEqual(query["language"], "vi-VN")
         XCTAssertEqual(query["region"], "VN")
+    }
+
+    func testProfileProviderRegionsRequireAdvancedDiscoverCapability() async throws {
+        let repository = RemoteCatalogRepository(client: makeClient())
+
+        let unavailable = await loadProfileProviderRegions(
+            catalog: repository,
+            capabilities: nil,
+            language: "vi-VN",
+            region: "VN"
+        )
+        let disabled = await loadProfileProviderRegions(
+            catalog: repository,
+            capabilities: profileCapabilities(advancedDiscover: false),
+            language: "vi-VN",
+            region: "VN"
+        )
+
+        XCTAssertTrue(unavailable.isEmpty)
+        XCTAssertTrue(disabled.isEmpty)
+        XCTAssertTrue(URLProtocolStub.requests.isEmpty)
+
+        URLProtocolStub.enqueue(status: 200, body: #"""
+        {
+          "countries": [], "languages": [],
+          "watch_provider_regions": [
+            {"iso_3166_1":"VN","english_name":"Vietnam","native_name":"Việt Nam"}
+          ],
+          "region": "VN"
+        }
+        """#)
+        let enabled = await loadProfileProviderRegions(
+            catalog: repository,
+            capabilities: profileCapabilities(advancedDiscover: true),
+            language: "vi-VN",
+            region: "VN"
+        )
+
+        XCTAssertEqual(enabled.map(\.code), ["VN"])
+        XCTAssertEqual(URLProtocolStub.requests.count, 1)
+        XCTAssertEqual(URLProtocolStub.requests.first?.url?.path, "/api/v2/configuration")
     }
 
     func testV2FindExternalIDEncodesSourceAndDecodesDiscriminatedEntities() async throws {
@@ -254,6 +328,14 @@ final class APIClientTests: XCTestCase {
 
     private func errorBody(code: String, requestID: String) -> String {
         #"{"error":{"code":"\#(code)","message":"Failure","request_id":"\#(requestID)"}}"#
+    }
+
+    private func profileCapabilities(advancedDiscover: Bool) -> CapabilitiesV2 {
+        CapabilitiesV2(
+            apiVersion: "v2",
+            releaseTrain: "3.0.0",
+            catalog: ["advanced_discover": advancedDiscover]
+        )
     }
 }
 

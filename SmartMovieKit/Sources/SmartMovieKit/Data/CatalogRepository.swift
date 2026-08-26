@@ -75,6 +75,27 @@ public struct RemoteCatalogRepository: CatalogRepository {
         return try await client.get("v2/discover/\(mediaType.rawValue)", queryItems: query)
     }
 
+    public func discoverBasic(
+        mediaType: MediaType,
+        filter: DiscoverFilter,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary> {
+        var query = [
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "language", value: language),
+            URLQueryItem(name: "sort_by", value: filter.sort.rawValue),
+            URLQueryItem(name: "vote_average_gte", value: String(format: "%.1f", filter.minimumRating))
+        ]
+        if !filter.genres.isEmpty {
+            query.append(URLQueryItem(name: "genre_ids", value: filter.genres.sorted().map(String.init).joined(separator: ",")))
+        }
+        if let year = filter.year {
+            query.append(URLQueryItem(name: "year", value: String(year)))
+        }
+        return try await client.get("v1/discover/\(mediaType.rawValue)", queryItems: query)
+    }
+
     public func search(
         query: String,
         scope: SearchScope,

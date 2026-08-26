@@ -51,6 +51,7 @@ final class FeatureModelTests: XCTestCase {
 
     func testExploreContextChangeClearsProvidersAndResetPreservesSafetyContext() {
         let model = ExploreViewModel(catalog: CatalogStub())
+        model.updateCapabilities(capabilities(advancedDiscover: true))
 
         XCTAssertTrue(model.updateContext(region: "us", includeAdult: true))
         model.filter.watchProviderIDs = [8, 337]
@@ -117,6 +118,33 @@ final class FeatureModelTests: XCTestCase {
 
         let languages = await catalog.discoveredLanguages()
         XCTAssertEqual(languages, ["en-US", "vi-VN"])
+    }
+
+    func testExploreCapabilitiesGateAdvancedStateAndRequestRoute() async throws {
+        let catalog = CatalogStub()
+        let model = ExploreViewModel(catalog: catalog)
+
+        XCTAssertFalse(model.updateCapabilities(nil))
+        XCTAssertFalse(model.advancedDiscoverEnabled)
+        XCTAssertFalse(model.updateCapabilities(capabilities(advancedDiscover: false)))
+        XCTAssertFalse(model.advancedDiscoverEnabled)
+        XCTAssertTrue(model.updateCapabilities(capabilities(advancedDiscover: true)))
+        XCTAssertTrue(model.advancedDiscoverEnabled)
+
+        model.reload(language: "en-US")
+        try await waitUntil { !model.isLoading }
+        let advancedModes = await catalog.discoverModes()
+        XCTAssertEqual(advancedModes, ["advanced"])
+
+        model.filter.releaseDateFrom = "2026-01-01"
+        model.filter.watchProviderIDs = [8]
+        XCTAssertTrue(model.updateCapabilities(capabilities(advancedDiscover: false)))
+        XCTAssertNil(model.filter.releaseDateFrom)
+        XCTAssertTrue(model.filter.watchProviderIDs.isEmpty)
+        model.reload(language: "en-US")
+        try await waitUntil { !model.isLoading }
+        let fallbackModes = await catalog.discoverModes()
+        XCTAssertEqual(fallbackModes, ["advanced", "basic"])
     }
 
     func testSearchCancelsOldRequestAndRejectsStaleResults() async throws {
@@ -206,6 +234,14 @@ final class FeatureModelTests: XCTestCase {
         }
         XCTFail("Timed out waiting for asynchronous state")
     }
+
+    private func capabilities(advancedDiscover: Bool) -> CapabilitiesV2 {
+        CapabilitiesV2(
+            apiVersion: "v2",
+            releaseTrain: "3.0.0",
+            catalog: ["advanced_discover": advancedDiscover]
+        )
+    }
 }
 
 private actor CatalogStub: CatalogRepository {
@@ -215,6 +251,7 @@ private actor CatalogStub: CatalogRepository {
     private var homeCalls = 0
     private var requestedDiscoverPages: [Int] = []
     private var requestedDiscoverLanguages: [String] = []
+    private var requestedDiscoverModes: [String] = []
 
     init(
         discoverPages: [Int: PagedResult<TitleSummary>] = [:],
@@ -244,11 +281,25 @@ private actor CatalogStub: CatalogRepository {
     func discover(mediaType: MediaType, filter: DiscoverFilter, page: Int, language: String) async throws -> PagedResult<TitleSummary> {
         requestedDiscoverPages.append(page)
         requestedDiscoverLanguages.append(language)
+        requestedDiscoverModes.append("advanced")
+        return discoverPages[page] ?? PagedResult(page: page, totalPages: page, results: [])
+    }
+
+    func discoverBasic(
+        mediaType: MediaType,
+        filter: DiscoverFilter,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary> {
+        requestedDiscoverPages.append(page)
+        requestedDiscoverLanguages.append(language)
+        requestedDiscoverModes.append("basic")
         return discoverPages[page] ?? PagedResult(page: page, totalPages: page, results: [])
     }
 
     func discoveredPages() -> [Int] { requestedDiscoverPages }
     func discoveredLanguages() -> [String] { requestedDiscoverLanguages }
+    func discoverModes() -> [String] { requestedDiscoverModes }
 
     func search(query: String, scope: SearchScope, page: Int, language: String) async throws -> PagedResult<TitleSummary> {
         if searchFailure { throw APIError.server(status: 503, requestID: "feature-test") }
