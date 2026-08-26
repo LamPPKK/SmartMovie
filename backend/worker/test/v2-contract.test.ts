@@ -214,6 +214,39 @@ describe("v2 Worker contract", () => {
     expect(upstream).not.toHaveBeenCalled();
   });
 
+  it("requires a watch region for monetization-only discovery", async () => {
+    const upstream = vi.fn();
+    vi.stubGlobal("fetch", upstream);
+    const response = await worker.fetch(request("/v2/discover/tv?watch_monetization_types=free%7Cads"), env(), context);
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: { code: "missing_watch_region" } });
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
+  it("rejects impossible calendar dates before contacting TMDb", async () => {
+    const upstream = vi.fn();
+    vi.stubGlobal("fetch", upstream);
+    const response = await worker.fetch(request("/v2/discover/movie?release_date_gte=2026-99-99"), env(), context);
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: { code: "invalid_release_date_gte" } });
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["movie", "networks=213", "invalid_networks"],
+    ["movie", "air_date_gte=2026-01-01", "invalid_air_date_gte"],
+    ["tv", "region=VN", "invalid_region"],
+    ["tv", "certification_country=US", "invalid_certification_country"],
+    ["tv", "sort_by=revenue.desc", "invalid_sort"],
+  ])("rejects %s discovery filters unsupported by TMDb (%s)", async (type, query, code) => {
+    const upstream = vi.fn();
+    vi.stubGlobal("fetch", upstream);
+    const response = await worker.fetch(request(`/v2/discover/${type}?${query}`), env(), context);
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: { code } });
+    expect(upstream).not.toHaveBeenCalled();
+  });
+
   it("forwards the complete advanced discovery filter set", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = new URL(input instanceof Request ? input.url : input.toString());
@@ -222,7 +255,6 @@ describe("v2 Worker contract", () => {
         language: "vi-VN",
         page: "2",
         include_adult: "true",
-        include_video: "false",
         sort_by: "first_air_date.desc",
         with_genres: "18,10765",
         "first_air_date.gte": "2024-01-01",
@@ -231,7 +263,6 @@ describe("v2 Worker contract", () => {
         "air_date.lte": "2026-12-31",
         with_original_language: "ko",
         with_origin_country: "KR",
-        region: "VN",
         watch_region: "VN",
         "with_runtime.gte": "25",
         "with_runtime.lte": "90",
@@ -246,7 +277,7 @@ describe("v2 Worker contract", () => {
       language: "vi-VN", page: "2", include_adult: "true", sort_by: "primary_release_date.desc",
       genres: "18,10765", release_date_gte: "2024-01-01", release_date_lte: "2026-08-26",
       air_date_gte: "2026-01-01", air_date_lte: "2026-12-31", original_language: "ko",
-      origin_country: "KR", region: "VN", watch_region: "VN", runtime_gte: "25", runtime_lte: "90",
+      origin_country: "KR", watch_region: "VN", runtime_gte: "25", runtime_lte: "90",
       vote_average_gte: "7.5", vote_count_gte: "100", watch_providers: "8|337",
       watch_monetization_types: "flatrate|buy",
     });

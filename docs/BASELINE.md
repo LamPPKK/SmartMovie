@@ -32,15 +32,15 @@ Local verification on 17 August 2026 produced the following evidence:
 
 The Swift checks used the complete toolchain through `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`. The machine-wide `xcode-select` value still points to Command Line Tools and the installed Node.js major is not 24, so `./scripts/doctor.sh` correctly remains red until those host settings are fixed. This is an environment exception, not a product-test failure.
 
-## Latest 3.0 implementation verification — 25 August 2026
+## Latest 3.0 implementation verification — 26 August 2026
 
 The current source was verified after the `/v2` catalog/account broker, durable account outboxes, External ID lookup, cross-platform Credit Detail navigation, and Account Recommendations Profile surfaces were added:
 
 | Check | Result |
 | --- | --- |
 | SwiftLint | Strict mode passed with zero violations |
-| SmartMovieKit | 46 tests passed, including `/v1` + `/v2` fixtures, complete advanced Discover/provider behavior, External ID/Credit Detail behavior, Account Recommendations pagination/adult filtering, and restart-safe/race-safe custom-list account-outbox behavior |
-| Catalog Worker | Type-check and 77 tests passed, including advanced Discover/provider configuration, External ID/Credit Detail schema and mapping, Account Recommendations, normalized paginated mixed-list mapping and PUT/PATCH compatibility, TMDb Changes pagination/14-day backlog recovery, invalid cursor and verified changing-page-count recovery, D1-safe chunking, monotonic entity-cache invalidation, D1-read cache bypass, repeatable D1 migrations, encryption, callback/CSRF/CORS controls, session lifecycle, and mutation replay |
+| SmartMovieKit | 49 tests passed, including `/v1` + `/v2` fixtures, complete advanced Discover/provider behavior, stale pagination and locale reload guards, draft/apply isolation, External ID/Credit Detail behavior, Account Recommendations pagination/adult filtering, and restart-safe/race-safe custom-list account-outbox behavior |
+| Catalog Worker | Type-check and 84 tests passed, including advanced Discover/provider configuration, type-specific query/date validation, External ID/Credit Detail schema and mapping, Account Recommendations, normalized paginated mixed-list mapping and PUT/PATCH compatibility, TMDb Changes pagination/14-day backlog recovery, invalid cursor and verified changing-page-count recovery, D1-safe chunking, monotonic entity-cache invalidation, D1-read cache bypass, repeatable D1 migrations, encryption, callback/CSRF/CORS controls, session lifecycle, and mutation replay |
 | iOS, Catalyst, tvOS, macOS, watchOS | Unsigned source builds passed for every listed destination |
 | iOS launch smoke | The simulator app launched and remained alive for the smoke window |
 | Native macOS launch smoke | `SmartMovieNativeMac` remained alive for five seconds; the earlier exit-code 132 crash was not reproduced |

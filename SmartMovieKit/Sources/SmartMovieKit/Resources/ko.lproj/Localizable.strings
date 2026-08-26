@@ -126,6 +126,8 @@
 "Minimum runtime" = "최소 상영 시간";
 "Maximum runtime" = "최대 상영 시간";
 "Any runtime" = "모든 상영 시간";
+"%d min or longer" = "%d분 이상";
+"%d min or less" = "%d분 이하";
 "Minimum vote count" = "최소 투표 수";
 "Any votes" = "모든 투표 수";
 "Provider region" = "제공 지역";

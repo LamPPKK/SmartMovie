@@ -126,6 +126,8 @@
 "Minimum runtime" = "最短片長";
 "Maximum runtime" = "最長片長";
 "Any runtime" = "不限片長";
+"%d min or longer" = "%d 分鐘以上";
+"%d min or less" = "%d 分鐘以內";
 "Minimum vote count" = "最少評分人數";
 "Any votes" = "不限評分人數";
 "Provider region" = "服務地區";

@@ -126,6 +126,8 @@
 "Minimum runtime" = "Minimum runtime";
 "Maximum runtime" = "Maximum runtime";
 "Any runtime" = "Any runtime";
+"%d min or longer" = "%d min or longer";
+"%d min or less" = "%d min or less";
 "Minimum vote count" = "Minimum vote count";
 "Any votes" = "Any votes";
 "Provider region" = "Provider region";

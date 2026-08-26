@@ -13,6 +13,7 @@ public struct ProfileView: View {
     @State private var accountMessage: String?
     @State private var newListName = ""
     @State private var newListDescription = ""
+    @State private var providerRegions: [ConfigurationCountry] = []
 
     public init() {}
 
@@ -61,6 +62,13 @@ public struct ProfileView: View {
             guard signedInAccountID != nil else { return }
             await container.syncAccountLibrary(language: LocaleResolver.tmdbLanguage(for: Locale.current))
             await loadLists(reportErrors: false)
+        }
+        .task(id: configurationLanguage) {
+            guard let catalog = container.catalog as? any CatalogV2Repository else { return }
+            providerRegions = (try? await catalog.discoverConfiguration(
+                language: configurationLanguage,
+                region: container.regionSettings.effectiveRegion
+            ).watchProviderRegions) ?? []
         }
     }
 
@@ -148,8 +156,8 @@ public struct ProfileView: View {
             SectionTitle(String(localized: "Catalog preferences", bundle: .module))
             Picker(String(localized: "Provider region", bundle: .module), selection: regionBinding) {
                 Text(String(localized: "Device region", bundle: .module)).tag("")
-                ForEach(Self.regions, id: \.self) { code in
-                    Text(Locale.current.localizedString(forRegionCode: code) ?? code).tag(code)
+                ForEach(regionOptions, id: \.code) { region in
+                    Text(region.displayName).tag(region.code)
                 }
             }
             .pickerStyle(.menu)
@@ -358,7 +366,27 @@ public struct ProfileView: View {
         listsAccountID = accountID
     }
 
-    private static let regions = ["US", "GB", "CA", "AU", "FR", "DE", "JP", "KR", "VN", "TW", "HK", "SG", "IN", "BR", "MX"]
+}
+
+private extension ProfileView {
+    var configurationLanguage: String {
+        LocaleResolver.tmdbLanguage(for: Locale.current)
+    }
+
+    var regionOptions: [ConfigurationCountry] {
+        if !providerRegions.isEmpty { return providerRegions }
+        return Self.fallbackRegionCodes.map { code in
+            ConfigurationCountry(
+                code: code,
+                englishName: Locale.current.localizedString(forRegionCode: code) ?? code,
+                nativeName: nil
+            )
+        }
+    }
+
+    static let fallbackRegionCodes = [
+        "US", "GB", "CA", "AU", "FR", "DE", "JP", "KR", "VN", "TW", "HK", "SG", "IN", "BR", "MX",
+    ]
 }
 
 private struct QRCodeView: View {

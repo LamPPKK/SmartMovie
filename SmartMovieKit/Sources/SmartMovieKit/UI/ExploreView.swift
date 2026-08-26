@@ -16,7 +16,10 @@ public struct ExploreView: View {
         .navigationTitle(String(localized: "Explore", bundle: .module))
         .toolbar {
             ToolbarItemGroup {
-                Button { showsFilters = true } label: {
+                Button {
+                    model?.beginEditingFilter()
+                    showsFilters = true
+                } label: {
                     Label(String(localized: "Filters", bundle: .module), systemImage: "line.3.horizontal.decrease.circle")
                 }
                 #if !os(tvOS)
@@ -38,13 +41,11 @@ public struct ExploreView: View {
         .task(id: contextKey) {
             if model == nil { model = ExploreViewModel(catalog: container.catalog) }
             guard let model else { return }
-            let changed = model.updateContext(
+            _ = model.updateContext(
                 region: container.regionSettings.effectiveRegion,
                 includeAdult: container.adultContent.includeAdult
             )
-            if changed || model.items.isEmpty {
-                model.reload(language: LocaleResolver.tmdbLanguage(for: locale))
-            }
+            model.reload(language: LocaleResolver.tmdbLanguage(for: locale))
         }
     }
 
@@ -137,17 +138,17 @@ private struct FilterSheet: View {
                         HStack {
                             ForEach(model.genres) { genre in
                                 Button {
-                                    if model.filter.genres.contains(genre.id) {
-                                        model.filter.genres.remove(genre.id)
+                                    if model.draftFilter.genres.contains(genre.id) {
+                                        model.draftFilter.genres.remove(genre.id)
                                     } else {
-                                        model.filter.genres.insert(genre.id)
+                                        model.draftFilter.genres.insert(genre.id)
                                     }
                                 } label: {
                                     Text(genre.name)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 8)
                                         .background(
-                                            model.filter.genres.contains(genre.id) ? CinemaTheme.accent : CinemaTheme.surface,
+                                            model.draftFilter.genres.contains(genre.id) ? CinemaTheme.accent : CinemaTheme.surface,
                                             in: Capsule()
                                         )
                                 }
@@ -158,18 +159,18 @@ private struct FilterSheet: View {
                 }
                 Section(String(localized: "Minimum rating", bundle: .module)) {
                     #if os(tvOS)
-                    Picker(String(localized: "Minimum rating", bundle: .module), selection: $model.filter.minimumRating) {
+                    Picker(String(localized: "Minimum rating", bundle: .module), selection: $model.draftFilter.minimumRating) {
                         ForEach(Array(stride(from: 0.0, through: 9.0, by: 0.5)), id: \.self) { rating in
                             Text(String(format: "%.1f+", rating)).tag(rating)
                         }
                     }
                     #else
-                    Slider(value: $model.filter.minimumRating, in: 0 ... 9, step: 0.5)
-                    Text(String(format: "%.1f+", model.filter.minimumRating))
+                    Slider(value: $model.draftFilter.minimumRating, in: 0 ... 9, step: 0.5)
+                    Text(String(format: "%.1f+", model.draftFilter.minimumRating))
                     #endif
                 }
                 Section(String(localized: "Release year", bundle: .module)) {
-                    Picker(String(localized: "Year", bundle: .module), selection: $model.filter.year) {
+                    Picker(String(localized: "Year", bundle: .module), selection: $model.draftFilter.year) {
                         Text(String(localized: "Any year", bundle: .module)).tag(Int?.none)
                         ForEach((1950 ... Calendar.current.component(.year, from: .now)).reversed(), id: \.self) { year in
                             Text(String(year)).tag(Int?.some(year))
@@ -187,13 +188,13 @@ private struct FilterSheet: View {
                     )
                 }
                 Section(String(localized: "Language and country", bundle: .module)) {
-                    Picker(String(localized: "Original language", bundle: .module), selection: $model.filter.originalLanguage) {
+                    Picker(String(localized: "Original language", bundle: .module), selection: $model.draftFilter.originalLanguage) {
                         Text(String(localized: "Any language", bundle: .module)).tag(String?.none)
                         ForEach(model.configuration?.languages ?? []) { language in
                             Text(language.displayName).tag(String?.some(language.code))
                         }
                     }
-                    Picker(String(localized: "Origin country", bundle: .module), selection: $model.filter.originCountry) {
+                    Picker(String(localized: "Origin country", bundle: .module), selection: $model.draftFilter.originCountry) {
                         Text(String(localized: "Any country", bundle: .module)).tag(String?.none)
                         ForEach(model.configuration?.countries ?? []) { country in
                             Text(country.displayName).tag(String?.some(country.code))
@@ -213,19 +214,25 @@ private struct FilterSheet: View {
                     }
                 }
                 Section(String(localized: "Runtime and votes", bundle: .module)) {
-                    Picker(String(localized: "Minimum runtime", bundle: .module), selection: $model.filter.minimumRuntime) {
+                    Picker(String(localized: "Minimum runtime", bundle: .module), selection: $model.draftFilter.minimumRuntime) {
                         Text(String(localized: "Any runtime", bundle: .module)).tag(Int?.none)
                         ForEach([15, 30, 45, 60, 90, 120, 180], id: \.self) { value in
-                            Text("\(value) min+").tag(Int?.some(value))
+                            Text(String(
+                                format: String(localized: "%d min or longer", bundle: .module),
+                                value
+                            )).tag(Int?.some(value))
                         }
                     }
-                    Picker(String(localized: "Maximum runtime", bundle: .module), selection: $model.filter.maximumRuntime) {
+                    Picker(String(localized: "Maximum runtime", bundle: .module), selection: $model.draftFilter.maximumRuntime) {
                         Text(String(localized: "Any runtime", bundle: .module)).tag(Int?.none)
                         ForEach([30, 45, 60, 90, 120, 180, 240], id: \.self) { value in
-                            Text("≤ \(value) min").tag(Int?.some(value))
+                            Text(String(
+                                format: String(localized: "%d min or less", bundle: .module),
+                                value
+                            )).tag(Int?.some(value))
                         }
                     }
-                    Picker(String(localized: "Minimum vote count", bundle: .module), selection: $model.filter.minimumVoteCount) {
+                    Picker(String(localized: "Minimum vote count", bundle: .module), selection: $model.draftFilter.minimumVoteCount) {
                         Text(String(localized: "Any votes", bundle: .module)).tag(0)
                         ForEach([50, 100, 250, 500, 1_000, 5_000], id: \.self) { value in
                             Text("\(value)+").tag(value)
@@ -233,13 +240,13 @@ private struct FilterSheet: View {
                     }
                 }
                 Section {
-                    LabeledContent(String(localized: "Provider region", bundle: .module), value: model.filter.region ?? "—")
+                    LabeledContent(String(localized: "Provider region", bundle: .module), value: model.draftFilter.region ?? "—")
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
                             ForEach(model.providers) { provider in
-                                filterChip(provider.name, selected: model.filter.watchProviderIDs.contains(provider.id)) {
-                                    if !model.filter.watchProviderIDs.insert(provider.id).inserted {
-                                        model.filter.watchProviderIDs.remove(provider.id)
+                                filterChip(provider.name, selected: model.draftFilter.watchProviderIDs.contains(provider.id)) {
+                                    if !model.draftFilter.watchProviderIDs.insert(provider.id).inserted {
+                                        model.draftFilter.watchProviderIDs.remove(provider.id)
                                     }
                                 }
                             }
@@ -248,9 +255,9 @@ private struct FilterSheet: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
                             ForEach(WatchMonetizationType.allCases) { type in
-                                filterChip(type.displayName, selected: model.filter.monetizationTypes.contains(type)) {
-                                    if !model.filter.monetizationTypes.insert(type).inserted {
-                                        model.filter.monetizationTypes.remove(type)
+                                filterChip(type.displayName, selected: model.draftFilter.monetizationTypes.contains(type)) {
+                                    if !model.draftFilter.monetizationTypes.insert(type).inserted {
+                                        model.draftFilter.monetizationTypes.remove(type)
                                     }
                                 }
                             }
@@ -263,7 +270,7 @@ private struct FilterSheet: View {
                     Text(String(localized: "Watch providers", bundle: .module))
                 }
                 Section(String(localized: "Sort by", bundle: .module)) {
-                    Picker(String(localized: "Sort by", bundle: .module), selection: $model.filter.sort) {
+                    Picker(String(localized: "Sort by", bundle: .module), selection: $model.draftFilter.sort) {
                         ForEach(DiscoverSort.allCases) { sort in Text(sort.displayName).tag(sort) }
                     }
                 }
@@ -271,11 +278,11 @@ private struct FilterSheet: View {
             .navigationTitle(String(localized: "Filters", bundle: .module))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "Reset", bundle: .module)) { model.resetFilter() }
+                    Button(String(localized: "Reset", bundle: .module)) { model.resetDraftFilter() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(String(localized: "Apply", bundle: .module)) {
-                        model.reload(language: language)
+                        model.applyDraftFilter(language: language)
                         dismiss()
                     }
                 }
@@ -287,8 +294,8 @@ private struct FilterSheet: View {
 
     private func optionalTextBinding(_ keyPath: WritableKeyPath<DiscoverFilter, String?>) -> Binding<String> {
         Binding(
-            get: { model.filter[keyPath: keyPath] ?? "" },
-            set: { model.filter[keyPath: keyPath] = $0 }
+            get: { model.draftFilter[keyPath: keyPath] ?? "" },
+            set: { model.draftFilter[keyPath: keyPath] = $0 }
         )
     }
 
@@ -300,5 +307,6 @@ private struct FilterSheet: View {
                 .background(selected ? CinemaTheme.accent : CinemaTheme.surface, in: Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }

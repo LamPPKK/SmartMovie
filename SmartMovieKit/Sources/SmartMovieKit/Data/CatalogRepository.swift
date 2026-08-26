@@ -50,7 +50,7 @@ public struct RemoteCatalogRepository: CatalogRepository {
             query.append(URLQueryItem(name: "vote_count_gte", value: String(filter.minimumVoteCount)))
         }
         if let region = filter.region?.uppercased() {
-            query.append(URLQueryItem(name: "region", value: region))
+            if mediaType == .movie { query.append(URLQueryItem(name: "region", value: region)) }
             if !filter.watchProviderIDs.isEmpty || !filter.monetizationTypes.isEmpty {
                 query.append(URLQueryItem(name: "watch_region", value: region))
             }

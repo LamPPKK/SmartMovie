@@ -126,6 +126,8 @@
 "Minimum runtime" = "Thời lượng tối thiểu";
 "Maximum runtime" = "Thời lượng tối đa";
 "Any runtime" = "Mọi thời lượng";
+"%d min or longer" = "Từ %d phút";
+"%d min or less" = "Tối đa %d phút";
 "Minimum vote count" = "Số lượt bình chọn tối thiểu";
 "Any votes" = "Mọi số lượt bình chọn";
 "Provider region" = "Khu vực nhà cung cấp";

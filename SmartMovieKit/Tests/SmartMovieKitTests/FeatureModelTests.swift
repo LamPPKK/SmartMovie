@@ -54,12 +54,16 @@ final class FeatureModelTests: XCTestCase {
 
         XCTAssertTrue(model.updateContext(region: "us", includeAdult: true))
         model.filter.watchProviderIDs = [8, 337]
+        model.filter.certificationMinimum = "PG-13"
+        model.filter.certificationMaximum = "R"
         model.filter.minimumRating = 8
         XCTAssertTrue(model.updateContext(region: "vn", includeAdult: false))
         XCTAssertEqual(model.filter.region, "VN")
         XCTAssertEqual(model.filter.certificationCountry, "VN")
         XCTAssertFalse(model.filter.includeAdult)
         XCTAssertTrue(model.filter.watchProviderIDs.isEmpty)
+        XCTAssertNil(model.filter.certificationMinimum)
+        XCTAssertNil(model.filter.certificationMaximum)
 
         model.resetFilter()
         XCTAssertEqual(model.filter.region, "VN")
@@ -67,6 +71,52 @@ final class FeatureModelTests: XCTestCase {
         XCTAssertFalse(model.filter.includeAdult)
         XCTAssertEqual(model.filter.minimumRating, 0)
         XCTAssertFalse(model.updateContext(region: "VN", includeAdult: false))
+    }
+
+    func testExploreDraftDoesNotChangeAppliedFilterUntilApply() {
+        let model = ExploreViewModel(catalog: CatalogStub())
+        _ = model.updateContext(region: "US", includeAdult: false)
+        model.beginEditingFilter()
+        model.draftFilter.minimumRating = 8
+        model.draftFilter.watchProviderIDs = [8]
+
+        XCTAssertEqual(model.filter.minimumRating, 0)
+        XCTAssertTrue(model.filter.watchProviderIDs.isEmpty)
+
+        model.beginEditingFilter()
+        XCTAssertEqual(model.draftFilter, model.filter)
+    }
+
+    func testExploreRejectsStalePaginationAfterContextReload() async throws {
+        let catalog = StaleExploreCatalog()
+        let model = ExploreViewModel(catalog: catalog)
+        _ = model.updateContext(region: "US", includeAdult: true)
+        model.reload(language: "en-US")
+        try await waitUntil { !model.isLoading && model.items.map(\.id) == [1] }
+
+        model.loadMoreIfNeeded(current: try XCTUnwrap(model.items.last), language: "en-US")
+        _ = model.updateContext(region: "VN", includeAdult: false)
+        model.reload(language: "vi-VN")
+        try await waitUntil { !model.isLoading && model.items.map(\.id) == [10] }
+        try await Task.sleep(for: .milliseconds(50))
+
+        XCTAssertEqual(model.items.map(\.id), [10])
+        XCTAssertFalse(model.filter.includeAdult)
+        XCTAssertEqual(model.filter.region, "VN")
+    }
+
+    func testExploreReloadUsesNewLanguageWhenOnlyLocaleChanges() async throws {
+        let catalog = CatalogStub()
+        let model = ExploreViewModel(catalog: catalog)
+        _ = model.updateContext(region: "US", includeAdult: false)
+
+        model.reload(language: "en-US")
+        try await waitUntil { !model.isLoading }
+        model.reload(language: "vi-VN")
+        try await waitUntil { !model.isLoading }
+
+        let languages = await catalog.discoveredLanguages()
+        XCTAssertEqual(languages, ["en-US", "vi-VN"])
     }
 
     func testSearchCancelsOldRequestAndRejectsStaleResults() async throws {
@@ -164,6 +214,7 @@ private actor CatalogStub: CatalogRepository {
     private let detailVideos: [Video]
     private var homeCalls = 0
     private var requestedDiscoverPages: [Int] = []
+    private var requestedDiscoverLanguages: [String] = []
 
     init(
         discoverPages: [Int: PagedResult<TitleSummary>] = [:],
@@ -192,10 +243,12 @@ private actor CatalogStub: CatalogRepository {
 
     func discover(mediaType: MediaType, filter: DiscoverFilter, page: Int, language: String) async throws -> PagedResult<TitleSummary> {
         requestedDiscoverPages.append(page)
+        requestedDiscoverLanguages.append(language)
         return discoverPages[page] ?? PagedResult(page: page, totalPages: page, results: [])
     }
 
     func discoveredPages() -> [Int] { requestedDiscoverPages }
+    func discoveredLanguages() -> [String] { requestedDiscoverLanguages }
 
     func search(query: String, scope: SearchScope, page: Int, language: String) async throws -> PagedResult<TitleSummary> {
         if searchFailure { throw APIError.server(status: 503, requestID: "feature-test") }
@@ -223,6 +276,52 @@ private actor CatalogStub: CatalogRepository {
         ImageConfiguration(secureBaseURL: "https://image.tmdb.org/t/p/", posterSizes: ["w500"], backdropSizes: ["w1280"], profileSizes: ["w185"])
     }
 
+}
+
+private actor StaleExploreCatalog: CatalogRepository {
+    func home(mediaType: MediaType, language: String) async throws -> HomeFeed {
+        HomeFeed(mediaType: mediaType, hero: nil, sections: [])
+    }
+
+    func genres(mediaType: MediaType, language: String) async throws -> [Genre] { [] }
+
+    func discover(
+        mediaType: MediaType,
+        filter: DiscoverFilter,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary> {
+        if page == 2 {
+            try? await Task.sleep(for: .milliseconds(200))
+            return PagedResult(page: 2, totalPages: 2, results: [sampleTitle(id: 2, title: "Stale adult")])
+        }
+        let title = filter.region == "VN"
+            ? sampleTitle(id: 10, title: "Vietnam")
+            : sampleTitle(id: 1, title: "United States")
+        return PagedResult(page: 1, totalPages: 2, results: [title])
+    }
+
+    func search(
+        query: String,
+        scope: SearchScope,
+        page: Int,
+        language: String
+    ) async throws -> PagedResult<TitleSummary> {
+        PagedResult(page: page, totalPages: page, results: [])
+    }
+
+    func detail(mediaType: MediaType, id: Int, language: String) async throws -> TitleDetail {
+        TitleDetail(id: id, mediaType: mediaType, title: "", originalTitle: "", overview: "")
+    }
+
+    func imageConfiguration() async throws -> ImageConfiguration {
+        ImageConfiguration(
+            secureBaseURL: "https://image.tmdb.org/t/p/",
+            posterSizes: [],
+            backdropSizes: [],
+            profileSizes: []
+        )
+    }
 }
 
 private actor ExternalIDCatalogStub: CatalogRepository, CatalogV2Repository {

@@ -1,42 +1,11 @@
 import Foundation
 import Observation
-
-@MainActor
-@Observable
-public final class HomeViewModel {
-    public var mediaType: MediaType = .movie
-    public private(set) var state: Loadable<HomeFeed> = .idle
-    private let catalog: any CatalogRepository
-    private var loadTask: Task<Void, Never>?
-
-    public init(catalog: any CatalogRepository) {
-        self.catalog = catalog
-    }
-
-    public func load(language: String, force: Bool = false) {
-        if !force, case .loaded(let feed) = state, feed.mediaType == mediaType { return }
-        loadTask?.cancel()
-        state = .loading
-        let selectedType = mediaType
-        loadTask = Task { [weak self, catalog] in
-            do {
-                let feed = try await catalog.home(mediaType: selectedType, language: language)
-                guard !Task.isCancelled, self?.mediaType == selectedType else { return }
-                self?.state = .loaded(feed)
-            } catch is CancellationError {
-                return
-            } catch {
-                self?.state = .failed(error.localizedDescription)
-            }
-        }
-    }
-}
-
 @MainActor
 @Observable
 public final class ExploreViewModel {
     public var mediaType: MediaType = .movie
     public var filter = DiscoverFilter()
+    public var draftFilter = DiscoverFilter()
     public var layout: CatalogLayout = .grid
     public private(set) var genres: [Genre] = []
     public private(set) var items: [TitleSummary] = []
@@ -47,7 +16,9 @@ public final class ExploreViewModel {
     private let catalog: any CatalogRepository
     private var page = 0
     private var task: Task<Void, Never>?
-
+    private var configurationTask: Task<Void, Never>?
+    private var requestID = UUID()
+    private var configurationRequestID = UUID()
     public init(catalog: any CatalogRepository) {
         self.catalog = catalog
     }
@@ -55,7 +26,6 @@ public final class ExploreViewModel {
     public var providers: [WatchProviderOption] {
         configuration?.watchProviders?.values(for: mediaType) ?? []
     }
-
     @discardableResult
     public func updateContext(region: String, includeAdult: Bool) -> Bool {
         let normalizedRegion = region.uppercased()
@@ -63,9 +33,18 @@ public final class ExploreViewModel {
         let regionChanged = filter.region != normalizedRegion
         filter.region = normalizedRegion
         filter.includeAdult = includeAdult
+        draftFilter.region = normalizedRegion
+        draftFilter.includeAdult = includeAdult
         if regionChanged {
             filter.watchProviderIDs.removeAll()
             filter.certificationCountry = normalizedRegion
+            filter.certificationMinimum = nil
+            filter.certificationMaximum = nil
+            draftFilter.watchProviderIDs.removeAll()
+            draftFilter.certificationCountry = normalizedRegion
+            draftFilter.certificationMinimum = nil
+            draftFilter.certificationMaximum = nil
+            configuration = nil
         }
         return true
     }
@@ -76,21 +55,60 @@ public final class ExploreViewModel {
             region: filter.region,
             includeAdult: filter.includeAdult
         )
+        draftFilter = filter
+    }
+
+    public func beginEditingFilter() {
+        draftFilter = filter
+    }
+
+    public func resetDraftFilter() {
+        draftFilter = DiscoverFilter(
+            certificationCountry: filter.region,
+            region: filter.region,
+            includeAdult: filter.includeAdult
+        )
+    }
+
+    public func applyDraftFilter(language: String) {
+        filter = draftFilter
+        reload(language: language)
     }
 
     public func reload(language: String) {
         task?.cancel()
+        configurationTask?.cancel()
         normalizeFilter()
+        draftFilter = filter
         items = []
         page = 0
         canLoadMore = true
         errorMessage = nil
+        configuration = nil
+        let selectedType = mediaType
+        let selectedFilter = filter
+        let currentRequestID = UUID()
+        requestID = currentRequestID
+        let currentConfigurationRequestID = UUID()
+        configurationRequestID = currentConfigurationRequestID
+        isLoading = true
+        configurationTask = Task { [weak self, catalog] in
+            guard let self else { return }
+            let loadedConfiguration = await Self.loadConfiguration(
+                catalog: catalog,
+                language: language,
+                region: selectedFilter.region
+            )
+            guard !Task.isCancelled,
+                  configurationRequestID == currentConfigurationRequestID,
+                  filter.region == selectedFilter.region else { return }
+            configuration = loadedConfiguration
+        }
         task = Task { [weak self, catalog] in
             guard let self else { return }
-            let selectedType = mediaType
-            let selectedFilter = filter
-            isLoading = true
-            defer { isLoading = false }
+            defer {
+                if requestID == currentRequestID { isLoading = false }
+            }
             do {
                 async let genreRequest = catalog.genres(mediaType: selectedType, language: language)
                 async let pageRequest = catalog.discover(
@@ -99,26 +117,22 @@ public final class ExploreViewModel {
                     page: 1,
                     language: language
                 )
-                async let configurationRequest = Self.loadConfiguration(
-                    catalog: catalog,
-                    language: language,
-                    region: selectedFilter.region
-                )
-                let (loadedGenres, result, loadedConfiguration) = try await (
+                let (loadedGenres, result) = try await (
                     genreRequest,
-                    pageRequest,
-                    configurationRequest
+                    pageRequest
                 )
-                guard !Task.isCancelled, mediaType == selectedType, filter == selectedFilter else { return }
+                guard !Task.isCancelled,
+                      requestID == currentRequestID,
+                      mediaType == selectedType,
+                      filter == selectedFilter else { return }
                 genres = loadedGenres
-                if let loadedConfiguration { configuration = loadedConfiguration }
                 items = result.results
                 page = result.page
                 canLoadMore = result.page < result.totalPages
             } catch is CancellationError {
                 return
             } catch {
-                errorMessage = error.localizedDescription
+                if requestID == currentRequestID { errorMessage = error.localizedDescription }
             }
         }
     }
@@ -153,33 +167,39 @@ public final class ExploreViewModel {
     public func loadMoreIfNeeded(current item: TitleSummary, language: String) {
         guard item.id == items.last?.id, canLoadMore, !isLoading else { return }
         let nextPage = page + 1
+        let selectedType = mediaType
+        let selectedFilter = filter
+        let currentRequestID = UUID()
+        requestID = currentRequestID
         isLoading = true
-        Task { [weak self, catalog] in
+        task = Task { [weak self, catalog] in
             guard let self else { return }
-            defer { isLoading = false }
+            defer {
+                if requestID == currentRequestID { isLoading = false }
+            }
             do {
                 let result = try await catalog.discover(
-                    mediaType: mediaType,
-                    filter: filter,
+                    mediaType: selectedType,
+                    filter: selectedFilter,
                     page: nextPage,
                     language: language
                 )
+                guard !Task.isCancelled,
+                      requestID == currentRequestID,
+                      mediaType == selectedType,
+                      filter == selectedFilter else { return }
                 items.append(contentsOf: result.results.filter { incoming in
                     !items.contains(where: { $0.libraryKey == incoming.libraryKey })
                 })
                 page = result.page
                 canLoadMore = result.page < result.totalPages
+            } catch is CancellationError {
+                return
             } catch {
-                errorMessage = error.localizedDescription
+                if requestID == currentRequestID { errorMessage = error.localizedDescription }
             }
         }
     }
-}
-
-public enum CatalogLayout: String, CaseIterable, Identifiable {
-    case grid
-    case list
-    public var id: String { rawValue }
 }
 
 @MainActor

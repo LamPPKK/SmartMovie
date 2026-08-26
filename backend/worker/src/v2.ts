@@ -568,13 +568,20 @@ function discoverParametersV2(url: URL, type: MediaType): URLSearchParams {
     "vote_count_gte", "watch_region", "watch_providers", "watch_monetization_types", "year",
   ]);
   rejectUnknown(url, allowed);
+  const unsupported = type === "movie"
+    ? ["networks", "air_date_gte", "air_date_lte"]
+    : ["region", "certification_country", "certification_gte", "certification_lte"];
+  const invalid = unsupported.find((name) => url.searchParams.has(name));
+  if (invalid) {
+    throw new RequestProblem(400, `invalid_${invalid}`, `${invalid} is not supported for ${type} discovery.`);
+  }
   const parameters = new URLSearchParams({
     language: language(url),
     page: String(page(url)),
     include_adult: String(booleanQuery(url, "include_adult", false)),
-    include_video: "false",
     sort_by: discoverSort(url, type),
   });
+  if (type === "movie") parameters.set("include_video", "false");
   copyCSV(url, parameters, "genres", "with_genres");
   copyCSV(url, parameters, "companies", "with_companies");
   copyCSV(url, parameters, "keywords", "with_keywords");
@@ -585,7 +592,7 @@ function discoverParametersV2(url: URL, type: MediaType): URLSearchParams {
   copyDate(url, parameters, "air_date_lte", "air_date.lte");
   copyPattern(url, parameters, "original_language", "with_original_language", /^[a-z]{2,3}$/i);
   copyPattern(url, parameters, "origin_country", "with_origin_country", /^[A-Z]{2}$/);
-  copyPattern(url, parameters, "region", "region", /^[A-Z]{2}$/);
+  if (type === "movie") copyPattern(url, parameters, "region", "region", /^[A-Z]{2}$/);
   copyPattern(url, parameters, "watch_region", "watch_region", /^[A-Z]{2}$/);
   copyPattern(url, parameters, "certification_country", "certification_country", /^[A-Z]{2}$/);
   copyText(url, parameters, "certification_gte", "certification.gte", 20);
@@ -597,8 +604,13 @@ function discoverParametersV2(url: URL, type: MediaType): URLSearchParams {
   copyInteger(url, parameters, "year", type === "movie" ? "primary_release_year" : "first_air_date_year", 1870, 2100);
   copyCSV(url, parameters, "watch_providers", "with_watch_providers", "|");
   copyPattern(url, parameters, "watch_monetization_types", "with_watch_monetization_types", /^(flatrate|free|ads|rent|buy)(\|(flatrate|free|ads|rent|buy))*$/);
-  if (parameters.has("with_watch_providers") && !parameters.has("watch_region")) {
-    throw new RequestProblem(400, "missing_watch_region", "watch_region is required with watch_providers.");
+  if ((parameters.has("with_watch_providers") || parameters.has("with_watch_monetization_types")) &&
+      !parameters.has("watch_region")) {
+    throw new RequestProblem(
+      400,
+      "missing_watch_region",
+      "watch_region is required with watch provider or monetization filters.",
+    );
   }
   return parameters;
 }
@@ -656,10 +668,11 @@ function nonNegativeInteger(value: string, name: string): number {
 
 function discoverSort(url: URL, type: MediaType): string {
   const value = url.searchParams.get("sort_by") ?? "popularity.desc";
-  const allowed = new Set([
+  const common = [
     "popularity.asc", "popularity.desc", "vote_average.asc", "vote_average.desc", "vote_count.asc", "vote_count.desc",
     "primary_release_date.asc", "primary_release_date.desc", "revenue.asc", "revenue.desc",
-  ]);
+  ];
+  const allowed = new Set(type === "movie" ? common : common.filter((item) => !item.startsWith("revenue")));
   if (!allowed.has(value)) throw new RequestProblem(400, "invalid_sort", "The requested sort order is not supported.");
   if (type === "tv" && value.startsWith("primary_release_date")) return value.replace("primary_release_date", "first_air_date");
   return value;
@@ -674,7 +687,19 @@ function copyCSV(url: URL, target: URLSearchParams, source: string, destination:
 }
 
 function copyDate(url: URL, target: URLSearchParams, source: string, destination: string): void {
-  copyPattern(url, target, source, destination, /^\d{4}-\d{2}-\d{2}$/);
+  const value = url.searchParams.get(source);
+  if (value === null) return;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) throw new RequestProblem(400, `invalid_${source}`, `${source} has an invalid format.`);
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (year === 0 || month < 1 || month > 12 || day < 1 || day > days[month - 1]!) {
+    throw new RequestProblem(400, `invalid_${source}`, `${source} must be a valid calendar date.`);
+  }
+  target.set(destination, value);
 }
 
 function copyPattern(url: URL, target: URLSearchParams, source: string, destination: string, pattern: RegExp): void {
