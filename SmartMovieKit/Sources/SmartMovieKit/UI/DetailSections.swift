@@ -116,7 +116,7 @@ extension DetailView {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(alignment: .top, spacing: 16) {
                         ForEach(detail.seasons) { season in
-                            NavigationLink(value: SeasonRoute(seriesID: detail.id, season: season)) {
+                            NavigationLink(value: SeasonRoute(series: detail.summary, season: season)) {
                                 CatalogEntityCard(entity: .season(season))
                             }
                             .catalogNavigationButtonStyle()

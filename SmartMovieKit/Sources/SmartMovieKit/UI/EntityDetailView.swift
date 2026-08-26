@@ -1,25 +1,60 @@
 import SwiftUI
 
 public struct SeasonRoute: Hashable, Sendable {
-    public let seriesID: Int
+    public let series: TitleSummary
     public let season: SeasonSummary
 
-    public init(seriesID: Int, season: SeasonSummary) {
-        self.seriesID = seriesID
+    public init(series: TitleSummary, season: SeasonSummary) {
+        self.series = series
         self.season = season
     }
+
+    @available(*, deprecated, message: "Pass the full series summary to preserve companion and privacy context.")
+    public init(seriesID: Int, season: SeasonSummary) {
+        self.init(
+            series: TitleSummary(
+                id: seriesID,
+                mediaType: .tv,
+                title: "",
+                originalTitle: "",
+                overview: "",
+                isAdult: true
+            ),
+            season: season
+        )
+    }
+
+    public var seriesID: Int { series.id }
 }
 
 public struct EpisodeRoute: Hashable, Sendable {
-    public let seriesID: Int
+    public let series: TitleSummary
     public let seasonNumber: Int
     public let episode: EpisodeSummary
 
-    public init(seriesID: Int, seasonNumber: Int, episode: EpisodeSummary) {
-        self.seriesID = seriesID
+    public init(series: TitleSummary, seasonNumber: Int, episode: EpisodeSummary) {
+        self.series = series
         self.seasonNumber = seasonNumber
         self.episode = episode
     }
+
+    @available(*, deprecated, message: "Pass the full series summary to preserve companion and privacy context.")
+    public init(seriesID: Int, seasonNumber: Int, episode: EpisodeSummary) {
+        self.init(
+            series: TitleSummary(
+                id: seriesID,
+                mediaType: .tv,
+                title: "",
+                originalTitle: "",
+                overview: "",
+                isAdult: true
+            ),
+            seasonNumber: seasonNumber,
+            episode: episode
+        )
+    }
+
+    public var seriesID: Int { series.id }
 }
 
 public struct EntityDetailView: View {
@@ -209,7 +244,7 @@ public struct SeasonDetailView: View {
                         CreditShelf(title: String(localized: "Crew", bundle: .module), credits: detail.credits.crew)
                         ForEach(detail.episodes) { episode in
                             NavigationLink(value: EpisodeRoute(
-                                seriesID: route.seriesID,
+                                series: route.series,
                                 seasonNumber: detail.seasonNumber,
                                 episode: episode
                             )) {
@@ -305,6 +340,9 @@ public struct EpisodeDetailView: View {
         .navigationTitle(route.episode.name)
         .cinemaScreen()
         .task { await load() }
+        .onDisappear {
+            container.watchRemoteSession?.clear(contextKey: "episode:\(route.episode.episodeKey)")
+        }
         .alert(String(localized: "Rating", bundle: .module), isPresented: Binding(
             get: { ratingMessage != nil },
             set: { if !$0 { ratingMessage = nil } }
@@ -322,6 +360,7 @@ public struct EpisodeDetailView: View {
                 language: LocaleResolver.tmdbLanguage(for: locale)
             )
             state = .loaded(detail)
+            syncWatchRemote(detail)
             if let pending = await container.pendingEpisodeRating(
                 seriesID: detail.seriesId,
                 seasonNumber: detail.seasonNumber,
@@ -330,6 +369,32 @@ public struct EpisodeDetailView: View {
                 accountRating = pending.value
             }
         } catch { state = .failed(error.localizedDescription) }
+    }
+
+    private func syncWatchRemote(_ detail: EpisodeDetail) {
+        guard !route.series.isAdult else { return }
+        let episode = EpisodeSummary(
+            id: detail.id,
+            seriesId: detail.seriesId,
+            seasonNumber: detail.seasonNumber,
+            episodeNumber: detail.episodeNumber,
+            name: detail.name,
+            overview: detail.overview,
+            stillPath: detail.stillPath,
+            airDate: detail.airDate,
+            runtimeMinutes: detail.runtimeMinutes,
+            voteAverage: detail.voteAverage
+        )
+        container.watchRemoteSession?.update(
+            context: WatchRemoteContext(
+                title: route.series,
+                episode: episode,
+                artworkURL: container.imageURL(path: detail.stillPath, kind: .backdrop),
+                isFavorite: false,
+                isWatchlisted: false,
+                hasTrailer: false
+            )
+        )
     }
 
     @MainActor

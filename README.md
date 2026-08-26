@@ -35,7 +35,7 @@ The two native mobile apps keep platform-specific UI and storage while sharing t
 - **Connect TMDb safely** through browser approval or TV QR without entering a password in SmartMovie. Browse paginated Movie/TV account recommendations, rate Movie/TV/Episode titles, and manage account library/lists with durable offline mutation retry.
 - **Manage mixed custom lists** by loading every list page, editing metadata, paging through Movie/TV contents, searching the catalog, and adding or removing titles with restart-safe optimistic synchronization.
 - **Build a local-first library** with independent Favorite and Watchlist actions. SwiftData keeps both readable offline; private CloudKit remains an Apple storage option.
-- **Move between Apple devices naturally** with five adaptive destinations, keyboard/pointer support, focus-driven TV navigation, multi-window Mac/visionOS details, and a safe Apple Watch companion remote.
+- **Move between Apple devices naturally** with five adaptive destinations, keyboard/pointer support, focus-driven TV navigation, multi-window Mac/visionOS details, and an Apple Watch companion that mirrors a safe title or exact episode and opens it back on iPhone.
 - **Use the app in six languages**: English, Vietnamese, Japanese, Korean, Simplified Chinese, and Traditional Chinese.
 - **Rely on accessible defaults** including Dynamic Type, VoiceOver labels, Increase Contrast, Reduce Motion, and platform-native focus behavior.
 
@@ -67,7 +67,7 @@ The universal app expands shelves and content density on iPad while retaining th
 <table>
   <tr>
     <td width="72%" align="center"><strong>Apple TV</strong><br><sub>10-foot catalog with focus and Siri Remote navigation</sub></td>
-    <td width="28%" align="center"><strong>Apple Watch</strong><br><sub>Remote for the title open on the paired iPhone</sub></td>
+    <td width="28%" align="center"><strong>Apple Watch</strong><br><sub>Safe title/episode context with exact-detail iPhone handoff</sub></td>
   </tr>
   <tr>
     <td align="center"><img src="docs/images/screenshots/apple-tv-home.png" alt="SmartMovie Home on Apple TV" width="760"></td>
@@ -86,7 +86,7 @@ Screenshots come from the real SwiftUI targets using deterministic local fixture
 | Mac Catalyst | macOS compatible with the iOS 17 target | Shared universal app with expanded navigation | `SmartMovie` |
 | Apple TV | tvOS 17 | 10-foot layout, focus-driven shelves, Siri Remote/D-pad navigation, and trailer handoff | `SmartMovieTV` |
 | Apple Vision Pro | visionOS 1 | Resizable catalog window and separate title-detail windows | `SmartMovieVision` |
-| Apple Watch | watchOS 10 | Non-standalone WatchConnectivity companion remote | `SmartMovieWatch` |
+| Apple Watch | watchOS 10 | Non-standalone WatchConnectivity companion for safe title/episode context and phone handoff | `SmartMovieWatch` |
 | Native Mac | macOS 14 | `NavigationSplitView`, menu commands, keyboard shortcuts, and multi-window details | `SmartMovieNativeMac` |
 
 The universal Apple product uses bundle ID `LamNDT.SmartMovie`, the embedded watch companion uses `LamNDT.SmartMovie.watchkitapp`, and the native Mac product uses `LamNDT.SmartMovie.NativeMac`. The catalog products share the private CloudKit container `iCloud.LamNDT.SmartMovie`.
@@ -203,7 +203,7 @@ cd ../..
 ./scripts/verify-release.sh
 ```
 
-The current verified local baseline contains 60 Swift tests and 92 Worker tests. Coverage includes canonical `/v1` and `/v2` fixture decoding, typed regional release/content-rating, Movie/TV alternative-title and translation metadata, configured capability/fixture equality, fail-closed browser/TV account rollout, malformed broker configuration and return-URI allowlists, cold-start callback deferral, stale completion invalidation, durable outbox isolation, capability-gated Advanced Discover and Profile provider regions with a fail-closed `/v1` fallback, complete Movie/TV Discover queries and regional provider configuration, External ID and Credit Detail source/path mapping, account recommendations, normalized/paginated custom mixed lists, restart-safe pending item snapshots, explicit adult age confirmation, six-digit PIN validation, five-attempt lockout, local adult filtering and in-flight request invalidation, metadata/item mutations, normalized person/title credit links, unknown and missing nullable fields, success/error schema validation, repeatable D1 migrations, encryption/callback/CSRF controls, durable idempotency, TMDb Changes pagination/backlog recovery, invalid cursor recovery, verified changing-page-count fallback, D1 parameter-bound chunking, monotonic revision and cache-bypass behavior, retries, cancellation, pagination, and data behavior without live personal credentials.
+The current verified local baseline contains 61 Swift tests and 92 Worker tests. Coverage includes canonical `/v1` and `/v2` fixture decoding, typed regional release/content-rating, Movie/TV alternative-title and translation metadata, configured capability/fixture equality, fail-closed browser/TV account rollout, malformed broker configuration and return-URI allowlists, cold-start callback deferral, stale completion invalidation, durable outbox isolation, capability-gated Advanced Discover and Profile provider regions with a fail-closed `/v1` fallback, complete Movie/TV Discover queries and regional provider configuration, External ID and Credit Detail source/path mapping, account recommendations, normalized/paginated custom mixed lists, restart-safe pending item snapshots, explicit adult age confirmation, six-digit PIN validation, five-attempt lockout, local adult filtering and in-flight request invalidation, metadata/item mutations, normalized person/title credit links, exact episode companion context, unknown and missing nullable fields, success/error schema validation, repeatable D1 migrations, encryption/callback/CSRF controls, durable idempotency, TMDb Changes pagination/backlog recovery, invalid cursor recovery, verified changing-page-count fallback, D1 parameter-bound chunking, monotonic revision and cache-bypass behavior, retries, cancellation, pagination, and data behavior without live personal credentials.
 
 CI independently builds and analyzes iOS, iPad/Catalyst, tvOS, native macOS, watchOS, and visionOS, then installs and launches the iOS app in Simulator. Read [Testing](docs/TESTING.md) for destination-specific commands and the manual device matrix.
 

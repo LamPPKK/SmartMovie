@@ -22,7 +22,7 @@ This document is the release authority for behavior shared by native Apple, nati
 | PAR-NETWORK-002 | Network | Send stable anonymous client identity, honor the normalized error envelope, retry 429/transient 5xx at most twice, honor `Retry-After`, and preserve cancellation. |
 | PAR-LOCALE-001 | Localization | Ship English, Vietnamese, Japanese, Korean, Simplified Chinese, and Traditional Chinese; map exactly to the six Worker locales. |
 | PAR-PRIVACY-002 | Privacy | Keep TMDb credentials and encrypted upstream tokens in the Worker; never log token/session/PIN/sensitive query values; ship no analytics or advertising. |
-| PAR-COMPANION-002 | Watch/Wear | Mirror safe active-title/episode context and phone actions only; no independent login or adult content. |
+| PAR-COMPANION-002 | Watch/Wear | Mirror safe active-title/episode context and phone actions only; opening an episode returns to that exact series/season/episode, while trailer and library actions remain title-only; no independent login or adult content. |
 
 ## Intentional platform differences
 

@@ -42,7 +42,9 @@ struct WatchRemoteView: View {
                 artwork(title)
                 titleMetadata(title)
                 primaryControls(title)
-                libraryControls(title)
+                if title.libraryActionsAvailable {
+                    libraryControls(title)
+                }
                 connectionStatus
             }
             .padding(.horizontal, 6)
@@ -77,7 +79,7 @@ struct WatchRemoteView: View {
 
     private func titleMetadata(_ title: WatchRemoteTitle) -> some View {
         VStack(spacing: 3) {
-            Text(title.mediaType == "movie" ? String(localized: "MOVIE") : String(localized: "SERIES"))
+            Text(contentKind(title))
                 .font(.system(size: 9, weight: .black))
                 .tracking(1.5)
                 .foregroundStyle(.red)
@@ -90,17 +92,43 @@ struct WatchRemoteView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
+            if title.contextKind == "episode" {
+                Text(episodeSubtitle(title))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
         }
+    }
+
+    private func contentKind(_ title: WatchRemoteTitle) -> String {
+        if title.contextKind == "episode" { return String(localized: "EPISODE") }
+        return title.mediaType == "movie" ? String(localized: "MOVIE") : String(localized: "SERIES")
+    }
+
+    private func episodeSubtitle(_ title: WatchRemoteTitle) -> String {
+        let number = [
+            title.seasonNumber.map { "S\($0)" },
+            title.episodeNumber.map { "E\($0)" }
+        ]
+            .compactMap { $0 }
+            .joined(separator: " · ")
+        return [title.seriesTitle, number.isEmpty ? nil : number]
+            .compactMap { $0 }
+            .joined(separator: " · ")
     }
 
     private func primaryControls(_ title: WatchRemoteTitle) -> some View {
         HStack(spacing: 8) {
-            remoteButton(
-                title: String(localized: "Trailer"),
-                systemImage: "play.fill",
-                disabled: !title.hasTrailer,
-                action: model.playTrailer
-            )
+            if title.contextKind != "episode" {
+                remoteButton(
+                    title: String(localized: "Trailer"),
+                    systemImage: "play.fill",
+                    disabled: !title.hasTrailer,
+                    action: model.playTrailer
+                )
+            }
             remoteButton(
                 title: String(localized: "Open"),
                 systemImage: "iphone.gen3",
@@ -168,7 +196,7 @@ struct WatchRemoteView: View {
                 .foregroundStyle(.red)
             Text(String(localized: "SmartMovie Remote"))
                 .font(.headline)
-            Text(String(localized: "Open a title on your iPhone to start controlling it."))
+            Text(String(localized: "Open a title or episode on your iPhone to start controlling it."))
                 .font(.caption)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)

@@ -5,12 +5,18 @@ import WatchKit
 
 struct WatchRemoteTitle: Equatable, Sendable {
     let libraryKey: String
+    let contextKey: String
+    let contextKind: String
     let title: String
     let mediaType: String
+    let seriesTitle: String?
+    let seasonNumber: Int?
+    let episodeNumber: Int?
     let year: String?
     let artworkURL: URL?
     let rating: Double
     let hasTrailer: Bool
+    let libraryActionsAvailable: Bool
     var isFavorite: Bool
     var isWatchlisted: Bool
 }
@@ -28,10 +34,17 @@ final class WatchRemoteModel: NSObject {
     private enum Key {
         static let action = "action"
         static let artworkURL = "artworkURL"
+        static let cleared = "cleared"
+        static let contextKey = "contextKey"
+        static let contextKind = "contextKind"
+        static let episodeNumber = "episodeNumber"
         static let favorite = "favorite"
         static let hasTrailer = "hasTrailer"
         static let libraryKey = "libraryKey"
+        static let libraryActionsAvailable = "libraryActionsAvailable"
         static let mediaType = "mediaType"
+        static let seasonNumber = "seasonNumber"
+        static let seriesTitle = "seriesTitle"
         static let success = "ok"
         static let rating = "rating"
         static let title = "title"
@@ -80,6 +93,7 @@ final class WatchRemoteModel: NSObject {
         }
         let message: [String: Any] = [
             Key.action: action.rawValue,
+            Key.contextKey: currentTitle.contextKey,
             Key.libraryKey: currentTitle.libraryKey
         ]
         session.sendMessage(message) { [weak self] reply in
@@ -119,12 +133,18 @@ final class WatchRemoteModel: NSObject {
 
         return WatchRemoteTitle(
             libraryKey: libraryKey,
+            contextKey: context[Key.contextKey] as? String ?? libraryKey,
+            contextKind: context[Key.contextKind] as? String ?? "title",
             title: title,
             mediaType: mediaType,
+            seriesTitle: context[Key.seriesTitle] as? String,
+            seasonNumber: context[Key.seasonNumber] as? Int,
+            episodeNumber: context[Key.episodeNumber] as? Int,
             year: context[Key.year] as? String,
             artworkURL: (context[Key.artworkURL] as? String).flatMap(URL.init(string:)),
             rating: context[Key.rating] as? Double ?? 0,
             hasTrailer: context[Key.hasTrailer] as? Bool ?? false,
+            libraryActionsAvailable: context[Key.libraryActionsAvailable] as? Bool ?? true,
             isFavorite: context[Key.favorite] as? Bool ?? false,
             isWatchlisted: context[Key.watchlist] as? Bool ?? false
         )
@@ -138,10 +158,14 @@ extension WatchRemoteModel: WCSessionDelegate {
         error: (any Error)?
     ) {
         let reachable = activationState == .activated && session.isReachable
-        let receivedTitle = Self.decode(context: session.receivedApplicationContext)
+        let applicationContext = session.receivedApplicationContext
+        let receivedTitle = Self.decode(context: applicationContext)
+        let shouldClear = applicationContext[Key.cleared] as? Bool == true
         Task { @MainActor [weak self] in
             self?.isReachable = reachable
-            if let receivedTitle {
+            if shouldClear {
+                self?.currentTitle = nil
+            } else if let receivedTitle {
                 self?.currentTitle = receivedTitle
             }
         }
@@ -156,8 +180,11 @@ extension WatchRemoteModel: WCSessionDelegate {
 
     nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
         let receivedTitle = Self.decode(context: applicationContext)
+        let shouldClear = applicationContext[Key.cleared] as? Bool == true
         Task { @MainActor [weak self] in
-            if let receivedTitle {
+            if shouldClear {
+                self?.currentTitle = nil
+            } else if let receivedTitle {
                 self?.currentTitle = receivedTitle
             }
         }

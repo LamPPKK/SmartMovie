@@ -38,6 +38,11 @@ public struct AboutView: View {
                     bundle: .module
                 ))
                     .foregroundStyle(CinemaTheme.muted)
+                Text(String(
+                    localized: "Companion episode description",
+                    bundle: .module
+                ))
+                    .foregroundStyle(CinemaTheme.muted)
                 Text(String(localized: "Source repositories", bundle: .module))
                     .font(.title2.bold())
                 Link("Smart Movie iOS", destination: URL(string: "https://github.com/LamPPKK/Smart-Movie-iOS")!)

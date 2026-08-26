@@ -56,10 +56,18 @@ public struct SmartMovieRootView: View {
             }
             .sheet(item: remotePresentation) { presentation in
                 NavigationStack {
-                    DetailView(
-                        summary: presentation.title,
-                        autoplayTrailer: presentation.playsTrailer
-                    )
+                    if let episode = presentation.episode {
+                        EpisodeDetailView(route: EpisodeRoute(
+                            series: presentation.title,
+                            seasonNumber: episode.seasonNumber,
+                            episode: episode
+                        ))
+                    } else {
+                        DetailView(
+                            summary: presentation.title,
+                            autoplayTrailer: presentation.playsTrailer
+                        )
+                    }
                 }
                 .environment(container)
             }

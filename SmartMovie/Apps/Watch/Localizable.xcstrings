@@ -1,6 +1,15 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "EPISODE" : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エピソード" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "에피소드" } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "TẬP PHIM" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "剧集" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "集數" } }
+      }
+    },
     "Favorite" : {
       "localizations" : {
         "ja" : { "stringUnit" : { "state" : "translated", "value" : "お気に入り" } },
@@ -53,6 +62,15 @@
         "vi" : { "stringUnit" : { "state" : "translated", "value" : "Mở một tựa phim trên iPhone để bắt đầu điều khiển." } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在 iPhone 上打开一个影视条目即可开始控制。" } },
         "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "在 iPhone 上開啟一個影視項目即可開始控制。" } }
+      }
+    },
+    "Open a title or episode on your iPhone to start controlling it." : {
+      "localizations" : {
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "iPhoneで作品またはエピソードを開くと操作を開始できます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "iPhone에서 작품이나 에피소드를 열어 제어를 시작하세요." } },
+        "vi" : { "stringUnit" : { "state" : "translated", "value" : "Mở một tựa phim hoặc tập phim trên iPhone để bắt đầu điều khiển." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在 iPhone 上打开影视条目或剧集即可开始控制。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "在 iPhone 上開啟影視項目或集數即可開始控制。" } }
       }
     },
     "Open iPhone app" : {

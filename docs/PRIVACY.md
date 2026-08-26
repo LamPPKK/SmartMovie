@@ -16,7 +16,7 @@ SmartMovie is an advertising-free movie and television catalog. It does not crea
 - **Adult-content PIN:** The six-digit PIN and lockout state stay on the individual device. The PIN is not sent to the Worker, TMDb, CloudKit, or another SmartMovie client.
 - **Artwork and trailers:** Images load from TMDb's CDN. Opening a trailer sends its YouTube identifier to YouTube or the system browser.
 - **Availability:** Provider data comes from JustWatch through TMDb. SmartMovie opens only the availability URL supplied by TMDb.
-- **Watch/Wear companions:** Safe active-title context and remote commands travel between paired devices. Adult titles and independent account sessions are excluded.
+- **Watch/Wear companions:** Safe active-title or exact-episode context and remote commands travel between paired devices. Adult titles and independent account sessions are excluded.
 
 ## Service providers
 
