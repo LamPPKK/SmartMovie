@@ -42,8 +42,21 @@
     }
   ],
   "external_ids": { "imdb_id": "tt0000010" },
-  "images": { "backdrops": [], "posters": [], "logos": [] },
-  "videos": [],
+  "images": {
+    "backdrops": [
+      { "kind": "backdrop", "file_path": "/catalog-backdrop.jpg", "aspect_ratio": 1.778, "height": 1080, "width": 1920, "language": null, "vote_average": 5.4 }
+    ],
+    "posters": [
+      { "kind": "poster", "file_path": "/catalog-poster.jpg", "aspect_ratio": 0.667, "height": 1500, "width": 1000, "language": "en", "vote_average": 5.1 }
+    ],
+    "logos": [
+      { "kind": "logo", "file_path": "/catalog-logo.png", "aspect_ratio": 2.4, "height": 500, "width": 1200, "language": "en", "vote_average": 4.8 }
+    ]
+  },
+  "videos": [
+    { "id": "catalog-trailer", "key": "catalogYT123", "name": "Official trailer", "site": "YouTube", "type": "Trailer", "official": true, "language": "en" },
+    { "id": "catalog-featurette", "key": "catalogYT456", "name": "Behind the scenes", "site": "YouTube", "type": "Featurette", "official": false, "language": "en" }
+  ],
   "reviews": { "page": 1, "total_pages": 0, "results": [] },
   "recommendations": { "page": 1, "total_pages": 0, "results": [] },
   "similar": [],

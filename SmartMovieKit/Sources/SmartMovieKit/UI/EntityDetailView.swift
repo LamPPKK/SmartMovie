@@ -238,8 +238,21 @@ public struct SeasonDetailView: View {
             case .loaded(let detail):
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 18) {
+                        if detail.posterPath != nil {
+                            RemoteArtwork(
+                                url: container.imageURL(path: detail.posterPath, kind: .poster),
+                                kind: .poster
+                            )
+                            .frame(width: 220, height: 330)
+                            .clipShape(RoundedRectangle(cornerRadius: CinemaTheme.cornerRadius))
+                        }
                         Text(detail.name).font(.system(.largeTitle, design: .serif, weight: .black))
                         if !detail.overview.isEmpty { Text(detail.overview).foregroundStyle(CinemaTheme.muted) }
+                        CatalogMetadataSection(
+                            values: seasonMetadata(detail),
+                            externalIDs: detail.externalIDs
+                        )
+                        CatalogMediaSection(images: detail.images, videos: detail.videos)
                         CreditShelf(title: String(localized: "Cast", bundle: .module), credits: detail.credits.cast)
                         CreditShelf(title: String(localized: "Crew", bundle: .module), credits: detail.credits.crew)
                         ForEach(detail.episodes) { episode in
@@ -272,6 +285,15 @@ public struct SeasonDetailView: View {
                 language: LocaleResolver.tmdbLanguage(for: locale)
             ))
         } catch { state = .failed(error.localizedDescription) }
+    }
+
+    private func seasonMetadata(_ detail: SeasonDetail) -> [(label: String, value: String)] {
+        var values: [(label: String, value: String)] = []
+        if let airDate = detail.airDate {
+            values.append((String(localized: "Air date", bundle: .module), String(airDate.prefix(10))))
+        }
+        values.append((String(localized: "Episodes", bundle: .module), "\(detail.episodeCount)"))
+        return values
     }
 }
 
@@ -307,9 +329,13 @@ public struct EpisodeDetailView: View {
                         Text("S\(detail.seasonNumber) · E\(detail.episodeNumber)")
                             .font(.caption.weight(.black)).foregroundStyle(CinemaTheme.accent)
                         Text(detail.name).font(.system(.largeTitle, design: .serif, weight: .black))
-                        if let date = detail.airDate { Text(date).foregroundStyle(CinemaTheme.muted) }
                         Text(detail.overview.isEmpty ? String(localized: "No overview is available.", bundle: .module) : detail.overview)
                             .lineSpacing(4)
+                        CatalogMetadataSection(
+                            values: episodeMetadata(detail),
+                            externalIDs: detail.externalIDs
+                        )
+                        CatalogMediaSection(images: detail.images, videos: detail.videos)
                         CreditShelf(title: String(localized: "Guest stars", bundle: .module), credits: detail.guestStars)
                         CreditShelf(title: String(localized: "Crew", bundle: .module), credits: detail.crew)
                         if case .signedIn = container.accountSession.state {
@@ -369,6 +395,27 @@ public struct EpisodeDetailView: View {
                 accountRating = pending.value
             }
         } catch { state = .failed(error.localizedDescription) }
+    }
+
+    private func episodeMetadata(_ detail: EpisodeDetail) -> [(label: String, value: String)] {
+        var values: [(label: String, value: String)] = []
+        if let airDate = detail.airDate {
+            values.append((String(localized: "Air date", bundle: .module), String(airDate.prefix(10))))
+        }
+        if let runtime = detail.runtimeMinutes {
+            values.append((
+                String(localized: "Runtime", bundle: .module),
+                String(format: String(localized: "%d min", bundle: .module), runtime)
+            ))
+        }
+        if let productionCode = detail.productionCode, !productionCode.isEmpty {
+            values.append((String(localized: "Production code", bundle: .module), productionCode))
+        }
+        if let voteAverage = detail.voteAverage {
+            values.append((String(localized: "Rating", bundle: .module), String(format: "%.1f / 10", voteAverage)))
+        }
+        values.append((String(localized: "Votes", bundle: .module), "\(detail.voteCount)"))
+        return values
     }
 
     private func syncWatchRemote(_ detail: EpisodeDetail) {

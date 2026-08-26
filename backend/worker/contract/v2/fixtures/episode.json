@@ -6,15 +6,19 @@
   "episode_number": 1,
   "name": "Pilot",
   "overview": "",
-  "still_path": null,
-  "air_date": null,
-  "runtime_minutes": null,
-  "vote_average": 0,
-  "production_code": null,
-  "vote_count": 0,
+  "still_path": "/pilot-still.jpg",
+  "air_date": "2026-09-01",
+  "runtime_minutes": 52,
+  "vote_average": 8.3,
+  "production_code": "SM-101",
+  "vote_count": 240,
   "crew": [],
   "guest_stars": [],
-  "images": [],
-  "videos": [],
-  "external_ids": {}
+  "images": [
+    { "kind": "still", "file_path": "/pilot-gallery.jpg", "aspect_ratio": 1.778, "height": 1080, "width": 1920, "language": null, "vote_average": 5.5 }
+  ],
+  "videos": [
+    { "id": "episode-clip", "key": "episodeYT123", "name": "Episode preview", "site": "YouTube", "type": "Clip", "official": true, "language": "en" }
+  ],
+  "external_ids": { "imdb_id": "ttepisode101", "tvdb_id": "episode-67890" }
 }

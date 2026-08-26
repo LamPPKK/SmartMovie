@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import worker, { detail, discoverParameters, pageResponse } from "../src/index";
 import type { Env } from "../src/index";
+import { episodeDetail, seasonDetail } from "../src/transform-v2";
 
 const context = { waitUntil: (promise: Promise<unknown>) => void promise };
 
@@ -305,6 +306,23 @@ describe("catalog contract", () => {
     expect(result.cast.map((member) => member.name)).toEqual(["First", "Second"]);
     expect(result.videos.map((video) => video.id)).toEqual(["youtube"]);
     expect(result.similar[0]).toMatchObject({ id: 8, media_type: "tv", title: "Similar" });
+  });
+
+  it("preserves numeric and string season and episode external IDs as strings", () => {
+    const season = seasonDetail(7, {
+      id: 11,
+      season_number: 1,
+      external_ids: { tvdb_id: 12345, freebase_id: " season-one ", tvrage_id: null },
+    });
+    const episode = episodeDetail(7, {
+      id: 12,
+      season_number: 1,
+      episode_number: 2,
+      external_ids: { tvdb_id: 67890, imdb_id: "ttepisode102", empty_id: " " },
+    });
+
+    expect(season.external_ids).toEqual({ tvdb_id: "12345", freebase_id: "season-one" });
+    expect(episode.external_ids).toEqual({ tvdb_id: "67890", imdb_id: "ttepisode102" });
   });
 });
 

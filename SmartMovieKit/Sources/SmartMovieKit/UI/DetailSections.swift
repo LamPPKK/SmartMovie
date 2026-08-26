@@ -104,6 +104,11 @@ extension DetailView {
 
         productionSection(detail)
         releaseAndLocalizationSection(detail)
+        CatalogMediaSection(
+            images: detail.images.backdrops + detail.images.posters + detail.images.logos,
+            videos: detail.videos
+        )
+        .padding(.horizontal, 24)
 
         CreditShelf(title: String(localized: "Cast", bundle: .module), credits: detail.cast)
             .padding(.horizontal, 24)

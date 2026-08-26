@@ -308,7 +308,7 @@ export function relatedResource(
     case "similar":
       return titlePageV2(raw as unknown as TmdbPage<TmdbTitle>, type);
     case "external-ids":
-      return { external_ids: compactRecord(raw as Record<string, string | null | undefined>) };
+      return { external_ids: compactRecord(raw as Record<string, string | number | null | undefined>) };
     case "watch-providers":
       return {
         attribution: "JustWatch",
@@ -392,6 +392,11 @@ function emptyPage(): TmdbPage<TmdbTitle> {
   return { page: 1, total_pages: 0, results: [] };
 }
 
-function compactRecord(value: Record<string, string | null | undefined>) {
-  return Object.fromEntries(Object.entries(value).filter(([, item]) => typeof item === "string" && item.length > 0));
+function compactRecord(value: Record<string, string | number | null | undefined>) {
+  return Object.fromEntries(Object.entries(value).flatMap(([key, item]) => {
+    const normalized = typeof item === "number" && Number.isFinite(item)
+      ? String(item)
+      : typeof item === "string" ? item.trim() : "";
+    return normalized.length > 0 ? [[key, normalized]] : [];
+  }));
 }

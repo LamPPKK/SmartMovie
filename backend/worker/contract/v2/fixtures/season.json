@@ -5,13 +5,17 @@
   "season_number": 1,
   "name": "Season 1",
   "overview": "",
-  "poster_path": null,
-  "air_date": null,
-  "vote_average": 0,
+  "poster_path": "/season-poster.jpg",
+  "air_date": "2026-09-01",
+  "vote_average": 8.1,
   "episode_count": 1,
-  "episodes": [{ "entity_kind": "episode", "id": 18, "series_id": 11, "season_number": 1, "episode_number": 1, "name": "Pilot", "overview": "", "still_path": null, "air_date": null, "runtime_minutes": null }],
+  "episodes": [{ "entity_kind": "episode", "id": 18, "series_id": 11, "season_number": 1, "episode_number": 1, "name": "Pilot", "overview": "", "still_path": "/pilot-still.jpg", "air_date": "2026-09-01", "runtime_minutes": 52 }],
   "credits": { "cast": [], "crew": [] },
-  "images": [],
-  "videos": [],
-  "external_ids": {}
+  "images": [
+    { "kind": "poster", "file_path": "/season-gallery.jpg", "aspect_ratio": 0.667, "height": 1500, "width": 1000, "language": "en", "vote_average": 5.2 }
+  ],
+  "videos": [
+    { "id": "season-trailer", "key": "seasonYT123", "name": "Season trailer", "site": "YouTube", "type": "Trailer", "official": true, "language": "en" }
+  ],
+  "external_ids": { "tvdb_id": "season-12345" }
 }

@@ -1,5 +1,7 @@
 import type { TmdbPage, TmdbTitle } from "./contracts";
 
+type TmdbExternalID = string | number | null | undefined;
+
 export type EntityKind =
   | "movie"
   | "tv"
@@ -29,7 +31,7 @@ export interface TmdbPerson {
   known_for?: TmdbTitle[];
   images?: { profiles?: TmdbImage[] };
   combined_credits?: { cast?: TmdbCredit[]; crew?: TmdbCredit[] };
-  external_ids?: Record<string, string | null | undefined>;
+  external_ids?: Record<string, TmdbExternalID>;
 }
 
 export interface TmdbCollection {
@@ -133,7 +135,7 @@ export interface TmdbSeason {
   guest_stars?: TmdbCredit[];
   images?: { posters?: TmdbImage[] };
   videos?: { results?: TmdbVideoV2[] };
-  external_ids?: Record<string, string | null | undefined>;
+  external_ids?: Record<string, TmdbExternalID>;
 }
 
 export interface TmdbEpisode {
@@ -153,7 +155,7 @@ export interface TmdbEpisode {
   credits?: { cast?: TmdbCredit[]; crew?: TmdbCredit[]; guest_stars?: TmdbCredit[] };
   images?: { stills?: TmdbImage[] };
   videos?: { results?: TmdbVideoV2[] };
-  external_ids?: Record<string, string | null | undefined>;
+  external_ids?: Record<string, TmdbExternalID>;
 }
 
 export interface TmdbVideoV2 {
@@ -216,7 +218,7 @@ export interface TmdbTitleV2 extends TmdbTitle {
     titles?: Array<{ iso_3166_1?: string; title?: string; type?: string }>;
     results?: Array<{ iso_3166_1?: string; title?: string; type?: string }>;
   };
-  external_ids?: Record<string, string | null | undefined>;
+  external_ids?: Record<string, TmdbExternalID>;
   images?: { backdrops?: TmdbImage[]; posters?: TmdbImage[]; logos?: TmdbImage[] };
   reviews?: TmdbPage<TmdbReview>;
   recommendations?: TmdbPage<TmdbTitle>;

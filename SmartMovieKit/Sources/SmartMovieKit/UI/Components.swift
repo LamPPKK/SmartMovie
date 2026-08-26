@@ -3,10 +3,12 @@ import SwiftUI
 public struct RemoteArtwork: View {
     private let url: URL?
     private let kind: ImageKind
+    private let contentMode: ContentMode
 
-    public init(url: URL?, kind: ImageKind) {
+    public init(url: URL?, kind: ImageKind, contentMode: ContentMode = .fill) {
         self.url = url
         self.kind = kind
+        self.contentMode = contentMode
     }
 
     public var body: some View {
@@ -15,7 +17,7 @@ public struct RemoteArtwork: View {
             case .empty:
                 LoadingPlaceholder()
             case .success(let image):
-                image.resizable().scaledToFill()
+                image.resizable().aspectRatio(contentMode: contentMode)
             case .failure:
                 ZStack {
                     CinemaTheme.elevated
