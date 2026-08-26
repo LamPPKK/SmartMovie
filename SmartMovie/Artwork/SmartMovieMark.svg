@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960">
+  <g transform="translate(288 -32)" fill="none" stroke="#ffffff" stroke-width="78" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M 599 287 H 383 L 253 512 L 383 737 H 599"/>
+    <path d="M 713 331 L 795 512 L 713 693"/>
+  </g>
+  <polygon fill="#ffffff" points="738,372 863,372 925,480 863,588 738,588 676,480"/>
+</svg>

@@ -9,7 +9,7 @@
 - Swift, native Android, and KMP test canonical discriminator/nullable/unknown-field fixtures and local-first storage/outbox behavior.
 - Native Android CI validates unit/lint/goldens plus phone/TV launch; main and Wear release workflows verify shared signing identity.
 - KMP desktop tests/compile, JS, Wasm, and portable desktop packages are release blockers.
-- Apple source gates cover Swift tests, strict SwiftLint, iOS/Catalyst/tvOS/macOS/watchOS/visionOS builds, analyze, and launch smoke where runtimes are installed.
+- Apple source gates cover Swift tests, strict SwiftLint, iOS/Catalyst/tvOS/macOS/watchOS/visionOS builds, analyze, and launch smoke where runtimes are installed. Committed release artwork now supplies opaque iOS/Mac icons, a separate Watch icon set, layered tvOS icons/Top Shelf images, a two-layer visionOS icon stack, and the named iOS launch color. Build-log inspection turns relevant asset warnings into CI failures; visionOS validation runs on Apple silicon.
 
 ## Product coverage status
 
@@ -23,7 +23,7 @@ The following require external accounts, protected credentials, approved artwork
 - Create staging/production D1 databases, bind each as `AUTH_DB`, and apply all migrations.
 - Rotate and set `TMDB_BEARER_TOKEN`, `SESSION_ENCRYPTION_KEY`, Cloudflare deployment credentials, callback origins, cookie domain, CORS origin allowlists, and return-URI allowlists.
 - Configure `ANDROID_CONTRACT_SYNC_TOKEN` with least privilege and merge the checksummed Android snapshot PR.
-- Configure Apple signing, App Store Connect records, production CloudKit schema, universal/app links, privacy/support URLs, approved TMDb artwork, Top Shelf/icons, screenshots, age rating, and metadata.
+- Review and approve the committed Apple artwork, configure signing, App Store Connect records, production CloudKit schema, universal/app links, privacy/support URLs, approved TMDb attribution artwork, screenshots, age rating, and metadata.
 - Configure Android/Play signing secrets, verify main + Wear AAB identity/version/signature, complete Play privacy/age/attribution metadata, and run Internal Testing.
 - Provide desktop code signing/notarization identities and publish the Web origin with correct `application/wasm`, cookie, CORS, and CSRF behavior.
 - Provision a dedicated protected TMDb staging account. Tests must create/clean lists and ratings per run and never use a personal account.

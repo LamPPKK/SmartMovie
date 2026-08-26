@@ -86,7 +86,7 @@ xcodebuild -project SmartMovie/SmartMovie.xcodeproj -scheme SmartMovieVision -de
 
 Verification: all six commands succeed with signing enabled. Exercise Home → Search/Explore → Detail → Favorite/Watchlist in every full catalog target; verify keyboard shortcuts on Mac/iPad, Remote focus/search on Apple TV, resizable and secondary detail windows on Vision Pro, and Watch remote commands while the iPhone app is reachable. Check all six languages, large Dynamic Type, VoiceOver, Increase Contrast, and Reduce Motion.
 
-Before archiving, asset compilation must no longer report missing tvOS, watchOS, or visionOS production artwork, an unassigned Mac/Catalyst icon, or a missing iOS launch configuration. These warnings do not block the current unsigned development builds, but they are release blockers.
+The repository now includes opaque iOS/Mac store icons, a separate complete Watch icon set, layered tvOS small/large icons, standard/wide Top Shelf artwork, a two-layer visionOS icon stack, and a named iOS launch color. Before archiving, asset compilation must report no missing tvOS, watchOS, or visionOS production artwork, no unassigned Mac/Catalyst icon, and no missing iOS launch configuration. Verify visionOS on Apple silicon with a visionOS runtime; an Intel host with only the SDK cannot complete that asset gate. Any remaining asset warning is a release blocker.
 
 ## 5. Promote production
 

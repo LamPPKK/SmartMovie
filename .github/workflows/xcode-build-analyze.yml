@@ -64,6 +64,7 @@ jobs:
       - name: Build and analyze
         run: |
           set -o pipefail
+          build_log="$RUNNER_TEMP/${{ matrix.artifact }}.log"
           xcodebuild \
             -project "$PROJECT" \
             -scheme "${{ matrix.scheme }}" \
@@ -72,7 +73,12 @@ jobs:
             -derivedDataPath "$RUNNER_TEMP/DerivedData-${{ matrix.artifact }}" \
             -resultBundlePath "$RUNNER_TEMP/$RESULT_BUNDLE_NAME" \
             CODE_SIGNING_ALLOWED=NO \
-            clean build analyze
+            clean build analyze 2>&1 | tee "$build_log"
+
+          if grep -E 'com\.apple\.actool\.document\.(errors|warnings)|Assets\.xcassets.*warning:|warning:.*([Aa]pp [Ii]con|Top Shelf|launch (screen|configuration))' "$build_log"; then
+            echo "Release-blocking Apple artwork error or warning detected."
+            exit 1
+          fi
 
       - name: Native macOS launch smoke test
         if: matrix.artifact == 'macos-build-analyze'
@@ -96,5 +102,14 @@ jobs:
         with:
           name: ${{ matrix.artifact }}-result
           path: ${{ runner.temp }}/${{ env.RESULT_BUNDLE_NAME }}
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload failed build log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}-build-log
+          path: ${{ runner.temp }}/${{ matrix.artifact }}.log
           if-no-files-found: ignore
           retention-days: 7
