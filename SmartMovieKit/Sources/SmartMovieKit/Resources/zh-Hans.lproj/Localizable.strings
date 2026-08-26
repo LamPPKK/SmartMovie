@@ -138,6 +138,13 @@
 "I confirm that I am at least 18 years old." = "我确认自己已年满18岁。";
 "Confirm that you are at least 18 years old." = "请确认您已年满18岁。";
 "Six-digit PIN" = "六位PIN";
+"Production" = "制作";
+"Release & localization" = "发行与本地化";
+"Alternative titles" = "其他片名";
+"Translations" = "翻译";
+"External identifiers" = "外部标识符";
+"Source repositories" = "源代码仓库";
+"Catalog metadata description" = "查看 TMDb 提供的地区发行日期、分级、本地化片名、翻译和外部标识符。";
 "Confirm PIN" = "确认PIN";
 "Enable adult content" = "启用成人内容";
 "Unlocked on this device" = "已在此设备解锁";

@@ -357,15 +357,15 @@ public struct TitleDetailV2: Codable, Sendable {
     public let companies: [OrganizationSummary]
     public let networks: [OrganizationSummary]
     public let seasons: [SeasonSummary]
-    public let alternativeTitles: [JSONValue]
+    public let alternativeTitles: [AlternativeTitle]
     public let externalIDs: [String: String]
     public let images: ImageGroup
     public let videos: [Video]
     public let reviews: PagedResult<Review>
     public let recommendations: PagedResult<TitleSummary>
     public let similar: [TitleSummary]
-    public let releaseInformation: [JSONValue]
-    public let translations: [JSONValue]
+    public let releaseInformation: [ReleaseInformation]
+    public let translations: [TitleTranslation]
     public let watchProviders: [ProviderRegion]
 
     private enum CodingKeys: String, CodingKey {

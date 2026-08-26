@@ -30,15 +30,58 @@
   "companies": [],
   "networks": [],
   "seasons": [],
-  "alternative_titles": [],
+  "alternative_titles": [
+    {
+      "iso_3166_1": "VN",
+      "title": "Phim Mẫu",
+      "type": "Localized title",
+      "future_optional_field": true
+    },
+    {
+      "title": "Catalog Sample"
+    }
+  ],
   "external_ids": { "imdb_id": "tt0000010" },
   "images": { "backdrops": [], "posters": [], "logos": [] },
   "videos": [],
   "reviews": { "page": 1, "total_pages": 0, "results": [] },
   "recommendations": { "page": 1, "total_pages": 0, "results": [] },
   "similar": [],
-  "release_information": [],
-  "translations": [],
+  "release_information": [
+    {
+      "iso_3166_1": "US",
+      "release_dates": [
+        {
+          "certification": "PG-13",
+          "descriptors": [
+            "Violence"
+          ],
+          "iso_639_1": "en",
+          "note": "",
+          "release_date": "2026-08-25T00:00:00.000Z",
+          "type": 3
+        }
+      ]
+    }
+  ],
+  "translations": [
+    {
+      "iso_639_1": "vi",
+      "iso_3166_1": "VN",
+      "name": "Tiếng Việt",
+      "english_name": "Vietnamese",
+      "data": {
+        "title": "Phim Mẫu",
+        "overview": "Bản dịch xác định dùng cho kiểm thử.",
+        "homepage": "",
+        "tagline": "Danh mục mọi câu chuyện.",
+        "runtime": 120
+      },
+      "future_optional_field": {
+        "safe": true
+      }
+    }
+  ],
   "watch_providers": [
     { "region": "US", "tmdb_url": "https://www.themoviedb.org/movie/10/watch", "attribution": "JustWatch", "stream": [{ "provider_id": 8, "provider_name": "Example Stream", "logo_path": null, "display_priority": 1 }], "rent": [], "buy": [], "ads": [], "free": [] }
   ],

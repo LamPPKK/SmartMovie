@@ -33,6 +33,11 @@ public struct AboutView: View {
                     .font(.system(.largeTitle, design: .serif, weight: .black))
                 Text(String(localized: "A cinematic place to discover movies and television.", bundle: .module))
                     .foregroundStyle(CinemaTheme.muted)
+                Text(String(
+                    localized: "Catalog metadata description",
+                    bundle: .module
+                ))
+                    .foregroundStyle(CinemaTheme.muted)
                 Text(String(localized: "Source repositories", bundle: .module))
                     .font(.title2.bold())
                 Link("Smart Movie iOS", destination: URL(string: "https://github.com/LamPPKK/Smart-Movie-iOS")!)

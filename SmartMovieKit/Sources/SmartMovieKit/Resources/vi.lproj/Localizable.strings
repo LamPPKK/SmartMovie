@@ -138,6 +138,13 @@
 "I confirm that I am at least 18 years old." = "Tôi xác nhận mình đã đủ 18 tuổi.";
 "Confirm that you are at least 18 years old." = "Hãy xác nhận bạn đã đủ 18 tuổi.";
 "Six-digit PIN" = "PIN sáu chữ số";
+"Production" = "Sản xuất";
+"Release & localization" = "Phát hành & bản địa hóa";
+"Alternative titles" = "Tên gọi khác";
+"Translations" = "Bản dịch";
+"External identifiers" = "Định danh bên ngoài";
+"Source repositories" = "Kho mã nguồn";
+"Catalog metadata description" = "Khám phá ngày phát hành và phân loại theo khu vực, tên bản địa hóa, bản dịch và định danh ngoài từ TMDb.";
 "Confirm PIN" = "Xác nhận PIN";
 "Enable adult content" = "Bật nội dung 18+";
 "Unlocked on this device" = "Đã mở khóa trên thiết bị này";

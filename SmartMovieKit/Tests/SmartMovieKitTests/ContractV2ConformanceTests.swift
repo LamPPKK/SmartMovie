@@ -38,6 +38,15 @@ final class ContractV2ConformanceTests: XCTestCase {
         XCTAssertEqual(detail.summary.libraryKey, "movie:10")
         XCTAssertEqual(detail.watchProviders.first?.attribution, "JustWatch")
         XCTAssertEqual(detail.externalIDs["imdb_id"], "tt0000010")
+        XCTAssertEqual(detail.alternativeTitles.map(\.title), ["Phim Mẫu", "Catalog Sample"])
+        XCTAssertNil(detail.alternativeTitles.last?.countryCode)
+        XCTAssertEqual(detail.releaseInformation.first?.certification, "PG-13")
+        XCTAssertEqual(detail.releaseInformation.first?.firstReleaseDate, "2026-08-25T00:00:00.000Z")
+        XCTAssertEqual(detail.translations.first?.localizedTitle, "Phim Mẫu")
+        XCTAssertNil(detail.releaseInformation(for: "vn"))
+        XCTAssertEqual(detail.releaseInformation(for: "us")?.countryCode, "US")
+        XCTAssertEqual(detail.displayAlternativeTitles(for: "VN").first?.title, "Phim Mẫu")
+        XCTAssertEqual(detail.displayTranslations(for: "vi-VN").map(\.localizedTitle), ["Phim Mẫu"])
 
         XCTAssertEqual(try decode(PersonDetail.self, fixture: "person").id, 12)
         XCTAssertEqual(try decode(CollectionDetail.self, fixture: "collection").id, 13)
@@ -85,6 +94,11 @@ final class ContractV2ConformanceTests: XCTestCase {
         let entity = try decoder.decode(CatalogEntity.self, from: data)
         XCTAssertEqual(entity.kind, .person)
         XCTAssertEqual(entity.displayName, "Future Person")
+
+        let ratingData = Data(#"{"iso_3166_1":"US","rating":"TV-14","future":true}"#.utf8)
+        let rating = try decoder.decode(ReleaseInformation.self, from: ratingData)
+        XCTAssertEqual(rating.certification, "TV-14")
+        XCTAssertTrue(rating.releaseDates.isEmpty)
     }
 
     private func decode<Value: Decodable>(_ type: Value.Type, fixture: String) throws -> Value {

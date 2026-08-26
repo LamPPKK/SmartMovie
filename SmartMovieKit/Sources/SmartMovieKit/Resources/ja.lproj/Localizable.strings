@@ -138,6 +138,13 @@
 "I confirm that I am at least 18 years old." = "18歳以上であることを確認します。";
 "Confirm that you are at least 18 years old." = "18歳以上であることを確認してください。";
 "Six-digit PIN" = "6桁PIN";
+"Production" = "制作";
+"Release & localization" = "公開・ローカライズ";
+"Alternative titles" = "別タイトル";
+"Translations" = "翻訳";
+"External identifiers" = "外部識別子";
+"Source repositories" = "ソースリポジトリ";
+"Catalog metadata description" = "TMDbの地域別公開日、年齢区分、ローカライズされたタイトル、翻訳、外部識別子を確認できます。";
 "Confirm PIN" = "PINを確認";
 "Enable adult content" = "成人向けを有効化";
 "Unlocked on this device" = "この端末でロック解除済み";

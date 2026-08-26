@@ -212,7 +212,10 @@ export interface TmdbTitleV2 extends TmdbTitle {
   imdb_id?: string | null;
   credits?: { cast?: TmdbCredit[]; crew?: TmdbCredit[] };
   aggregate_credits?: { cast?: TmdbCredit[]; crew?: TmdbCredit[] };
-  alternative_titles?: { titles?: Array<{ iso_3166_1?: string; title?: string; type?: string }> };
+  alternative_titles?: {
+    titles?: Array<{ iso_3166_1?: string; title?: string; type?: string }>;
+    results?: Array<{ iso_3166_1?: string; title?: string; type?: string }>;
+  };
   external_ids?: Record<string, string | null | undefined>;
   images?: { backdrops?: TmdbImage[]; posters?: TmdbImage[]; logos?: TmdbImage[] };
   reviews?: TmdbPage<TmdbReview>;

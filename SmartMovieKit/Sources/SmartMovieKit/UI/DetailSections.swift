@@ -102,6 +102,9 @@ extension DetailView {
             .padding(.horizontal, 24)
         }
 
+        productionSection(detail)
+        releaseAndLocalizationSection(detail)
+
         CreditShelf(title: String(localized: "Cast", bundle: .module), credits: detail.cast)
             .padding(.horizontal, 24)
         CreditShelf(title: String(localized: "Crew", bundle: .module), credits: detail.crew)
@@ -150,6 +153,85 @@ extension DetailView {
 
         if !detail.recommendations.results.isEmpty {
             similarShelf(detail.recommendations.results)
+        }
+    }
+
+    @ViewBuilder
+    func productionSection(_ detail: TitleDetailV2) -> some View {
+        let organizations = detail.companies + detail.networks
+        if !organizations.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                SectionTitle(String(localized: "Production", bundle: .module))
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(Array(organizations.enumerated()), id: \.offset) { _, organization in
+                            NavigationLink(value: CatalogEntity.organization(organization)) {
+                                Text(organization.name)
+                                    .font(.subheadline.weight(.semibold))
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 9)
+                                    .background(CinemaTheme.surface, in: Capsule())
+                            }
+                            .catalogNavigationButtonStyle()
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 24)
+        }
+    }
+
+    @ViewBuilder
+    func releaseAndLocalizationSection(_ detail: TitleDetailV2) -> some View {
+        let region = container.regionSettings.effectiveRegion
+        let release = detail.releaseInformation(for: region)
+        let aliases = Array(detail.displayAlternativeTitles(for: region).prefix(6))
+        let language = LocaleResolver.tmdbLanguage(for: locale)
+        let translations = Array(detail.displayTranslations(for: language).prefix(6))
+        let externalIDs = detail.externalIDs
+            .filter { !$0.value.isEmpty }
+            .sorted { $0.key < $1.key }
+
+        if release != nil || !aliases.isEmpty || !translations.isEmpty || !externalIDs.isEmpty {
+            VStack(alignment: .leading, spacing: 14) {
+                SectionTitle(String(localized: "Release & localization", bundle: .module))
+                if let certification = release?.certification {
+                    LabeledContent(String(localized: "Certification", bundle: .module), value: certification)
+                }
+                if let date = release?.firstReleaseDate {
+                    LabeledContent(String(localized: "Release date", bundle: .module), value: String(date.prefix(10)))
+                }
+                metadataValues(
+                    String(localized: "Alternative titles", bundle: .module),
+                    aliases.map { alias in
+                        [alias.title, alias.countryCode].compactMap { $0 }.joined(separator: " · ")
+                    }
+                )
+                metadataValues(
+                    String(localized: "Translations", bundle: .module),
+                    translations.compactMap { translation in
+                        guard let title = translation.localizedTitle else { return nil }
+                        let language = translation.languageName.isEmpty ? translation.languageCode.uppercased() : translation.languageName
+                        return "\(title) · \(language)"
+                    }
+                )
+                metadataValues(
+                    String(localized: "External identifiers", bundle: .module),
+                    externalIDs.prefix(8).map { "\($0.key): \($0.value)" }
+                )
+            }
+            .foregroundStyle(CinemaTheme.muted)
+            .padding(.horizontal, 24)
+        }
+    }
+
+    @ViewBuilder
+    func metadataValues(_ title: String, _ values: [String]) -> some View {
+        if !values.isEmpty {
+            VStack(alignment: .leading, spacing: 5) {
+                Text(title).font(.subheadline.weight(.bold)).foregroundStyle(CinemaTheme.foreground)
+                ForEach(values, id: \.self) { Text($0).font(.subheadline) }
+            }
         }
     }
 

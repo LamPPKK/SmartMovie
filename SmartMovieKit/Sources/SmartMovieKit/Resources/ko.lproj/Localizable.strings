@@ -138,6 +138,13 @@
 "I confirm that I am at least 18 years old." = "만 18세 이상임을 확인합니다.";
 "Confirm that you are at least 18 years old." = "만 18세 이상임을 확인하세요.";
 "Six-digit PIN" = "6자리 PIN";
+"Production" = "제작";
+"Release & localization" = "공개 및 현지화";
+"Alternative titles" = "대체 제목";
+"Translations" = "번역";
+"External identifiers" = "외부 식별자";
+"Source repositories" = "소스 저장소";
+"Catalog metadata description" = "TMDb의 지역별 공개일, 시청 등급, 현지화 제목, 번역 및 외부 식별자를 확인하세요.";
 "Confirm PIN" = "PIN 확인";
 "Enable adult content" = "성인 콘텐츠 사용";
 "Unlocked on this device" = "이 기기에서 잠금 해제됨";

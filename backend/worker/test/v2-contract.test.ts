@@ -243,14 +243,63 @@ describe("v2 Worker contract", () => {
       recommendations: { page: 1, total_pages: 0, results: [] },
       similar: { page: 1, total_pages: 0, results: [] },
       images: {},
-      release_dates: { results: [] },
-      translations: { translations: [] },
+      alternative_titles: { titles: [{ iso_3166_1: "VN", title: "Phim Mẫu", type: "Localized title" }] },
+      release_dates: {
+        results: [{
+          iso_3166_1: "US",
+          release_dates: [{ certification: "PG-13", release_date: "2026-08-25T00:00:00.000Z", type: 3 }],
+        }],
+      },
+      translations: {
+        translations: [{
+          iso_639_1: "vi",
+          iso_3166_1: "VN",
+          name: "Tiếng Việt",
+          english_name: "Vietnamese",
+          data: { title: "Phim Mẫu" },
+        }],
+      },
       "watch/providers": { results: {} },
     })));
     const response = await worker.fetch(request("/v2/titles/movie/10?language=en-US"), env(), context);
-    const value = await response.json();
+    const value = await response.json() as {
+      alternative_titles: Array<{ title: string }>;
+      release_information: Array<{ release_dates: Array<{ certification: string }> }>;
+      translations: Array<{ data: { title: string } }>;
+    };
     expect(response.status).toBe(200);
     expectContract("TitleDetail", value);
+    expect(value.alternative_titles[0]?.title).toBe("Phim Mẫu");
+    expect(value.release_information[0]?.release_dates[0]?.certification).toBe("PG-13");
+    expect(value.translations[0]?.data.title).toBe("Phim Mẫu");
+  });
+
+  it("maps TV alternative titles from the TMDb results envelope", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({
+      id: 20,
+      name: "Series",
+      original_name: "Series",
+      overview: "Story",
+      adult: false,
+      genres: [],
+      aggregate_credits: { cast: [], crew: [] },
+      videos: { results: [] },
+      reviews: { page: 1, total_pages: 0, results: [] },
+      recommendations: { page: 1, total_pages: 0, results: [] },
+      similar: { page: 1, total_pages: 0, results: [] },
+      images: {},
+      alternative_titles: { results: [{ iso_3166_1: "VN", title: "Loạt phim mẫu", type: "Localized title" }] },
+      content_ratings: { results: [] },
+      translations: { translations: [] },
+      "watch/providers": { results: {} },
+    })));
+    const response = await worker.fetch(request("/v2/titles/tv/20?language=vi-VN"), env(), context);
+    const value = await response.json() as { alternative_titles: Array<{ title: string }> };
+    expect(response.status).toBe(200);
+    expectContract("TitleDetail", value);
+    expect(value.alternative_titles).toEqual([
+      { iso_3166_1: "VN", title: "Loạt phim mẫu", type: "Localized title" },
+    ]);
   });
 
   it("keeps account errors private and returns the v2 error envelope", async () => {

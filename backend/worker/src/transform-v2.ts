@@ -128,7 +128,7 @@ export function titleDetailV2(item: TmdbTitleV2, type: MediaType) {
     companies: (item.production_companies ?? []).map((value) => companySummary(value)),
     networks: (item.networks ?? []).map((value) => companySummary(value, "network")),
     seasons: (item.seasons ?? []).map(seasonSummary),
-    alternative_titles: item.alternative_titles?.titles ?? [],
+    alternative_titles: item.alternative_titles?.titles ?? item.alternative_titles?.results ?? [],
     external_ids: compactRecord(item.external_ids ?? { imdb_id: item.imdb_id }),
     images: normalizeImages(item.images),
     videos: (item.videos?.results ?? []).map(video),
