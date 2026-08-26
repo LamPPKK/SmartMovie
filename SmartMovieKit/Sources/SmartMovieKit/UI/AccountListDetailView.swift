@@ -270,9 +270,9 @@ public struct AccountListDetailView: View {
                 .foregroundStyle(CinemaTheme.muted)
             }
             TextField(String(localized: "List name", bundle: .module), text: $model.name)
-                .textFieldStyle(.roundedBorder)
+                .catalogTextFieldStyle()
             TextField(String(localized: "Description", bundle: .module), text: $model.listDescription, axis: .vertical)
-                .textFieldStyle(.roundedBorder)
+                .catalogTextFieldStyle()
                 .lineLimit(2...5)
             Toggle(String(localized: "Public list", bundle: .module), isOn: $model.isPublic)
             Button {
@@ -342,7 +342,7 @@ public struct AccountListDetailView: View {
             SectionTitle(String(localized: "Add movies and TV series", bundle: .module))
             HStack {
                 TextField(String(localized: "Search titles", bundle: .module), text: $model.searchQuery)
-                    .textFieldStyle(.roundedBorder)
+                    .catalogTextFieldStyle()
                     .onSubmit { Task { await search() } }
                 Button(String(localized: "Search", bundle: .module)) { Task { await search() } }
                     .disabled(model.isSearching || model.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

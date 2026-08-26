@@ -154,6 +154,15 @@ public extension View {
     }
 
     @ViewBuilder
+    func catalogTextFieldStyle() -> some View {
+        #if os(tvOS)
+        self
+        #else
+        textFieldStyle(.roundedBorder)
+        #endif
+    }
+
+    @ViewBuilder
     func catalogNavigationButtonStyle() -> some View {
         #if os(tvOS)
         buttonStyle(.card)

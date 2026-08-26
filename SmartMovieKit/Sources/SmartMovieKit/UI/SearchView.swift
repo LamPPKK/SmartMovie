@@ -79,7 +79,7 @@ public struct SearchView: View {
                 : model.externalIDSource.example,
             text: $model.query
         )
-        .textFieldStyle(.roundedBorder)
+        .catalogTextFieldStyle()
         .autocorrectionDisabled()
         .frame(maxWidth: 520)
         .padding(.horizontal)
