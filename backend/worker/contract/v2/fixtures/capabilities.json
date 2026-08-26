@@ -6,11 +6,19 @@
     "people": true,
     "seasons_and_episodes": true,
     "collections": true,
+    "trending": true,
+    "external_id_search": true,
+    "companies_networks_keywords": true,
+    "advanced_discover": true,
     "watch_providers": true
   },
   "account": {
     "browser_auth": true,
+    "tv_qr_auth": true,
     "favorites": true,
+    "watchlist": true,
+    "ratings": true,
+    "recommendations": true,
     "mixed_lists": true
   },
   "supported_languages": ["en-US", "vi-VN", "ja-JP", "ko-KR", "zh-CN", "zh-TW"],

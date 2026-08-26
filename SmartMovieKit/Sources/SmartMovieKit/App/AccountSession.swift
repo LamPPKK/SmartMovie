@@ -17,34 +17,58 @@ public final class AccountSessionController {
     public private(set) var pendingAttempt: AuthAttempt?
     private let account: any AccountRepository
     private var pollingTask: Task<Void, Never>?
+    private var isEnabled = false
+    private var operationGeneration = 0
 
     public init(account: any AccountRepository) {
         self.account = account
     }
 
+    public func enable() {
+        guard !isEnabled else { return }
+        isEnabled = true
+        operationGeneration += 1
+    }
+
     public func refresh() async {
+        guard let generation = startOperation() else { return }
         do {
-            state = .signedIn(try await account.profile())
+            let profile = try await account.profile()
+            guard isCurrent(generation) else { return }
+            state = .signedIn(profile)
         } catch {
+            guard isCurrent(generation) else { return }
             state = .signedOut
         }
     }
 
+    public func disable() {
+        isEnabled = false
+        operationGeneration += 1
+        pollingTask?.cancel()
+        pendingAttempt = nil
+        state = .signedOut
+    }
+
     public func begin(returnURI: URL, mode: String) async -> URL? {
+        guard let generation = startOperation() else { return nil }
         pollingTask?.cancel()
         state = .authorizing
         do {
             let attempt = try await account.createAuthAttempt(returnURI: returnURI, mode: mode)
+            guard isCurrent(generation) else { return nil }
             pendingAttempt = attempt
-            if mode == "tv" { pollTV(attempt) }
+            if mode == "tv" { pollTV(attempt, generation: generation) }
             return attempt.authorizationUrl
         } catch {
+            guard isCurrent(generation) else { return nil }
             state = .failed(error.localizedDescription)
             return nil
         }
     }
 
     public func handleCallback(_ url: URL) async {
+        guard isEnabled else { return }
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let value = components.queryItems?.first(where: { $0.name == "auth_attempt" })?.value,
               let id = UUID(uuidString: value) else { return }
@@ -52,12 +76,15 @@ public final class AccountSessionController {
     }
 
     public func complete(id: UUID, deviceCode: String? = nil) async {
+        guard let generation = startOperation() else { return }
         state = .authorizing
         do {
             let session = try await account.completeAuth(id: id, deviceCode: deviceCode)
+            guard isCurrent(generation) else { return }
             pendingAttempt = nil
             state = .signedIn(session.profile)
         } catch {
+            guard isCurrent(generation) else { return }
             state = .failed(error.localizedDescription)
         }
     }
@@ -69,13 +96,14 @@ public final class AccountSessionController {
         state = .signedOut
     }
 
-    private func pollTV(_ attempt: AuthAttempt) {
+    private func pollTV(_ attempt: AuthAttempt, generation: Int) {
         pollingTask = Task { [weak self, account] in
             let interval = max(attempt.pollingInterval ?? 5, 5)
-            while !Task.isCancelled, Date() < attempt.expiresAt {
+            while !Task.isCancelled, Date() < attempt.expiresAt, self?.isCurrent(generation) == true {
                 do {
                     try await Task.sleep(for: .seconds(interval))
                     let status = try await account.authAttempt(id: attempt.attemptId, deviceCode: attempt.deviceCode)
+                    guard self?.isCurrent(generation) == true else { return }
                     if status == "approved" {
                         await self?.complete(id: attempt.attemptId, deviceCode: attempt.deviceCode)
                         return
@@ -87,12 +115,27 @@ public final class AccountSessionController {
                 } catch is CancellationError {
                     return
                 } catch {
+                    guard self?.isCurrent(generation) == true else { return }
                     self?.state = .failed(error.localizedDescription)
                     return
                 }
             }
+            guard self?.isCurrent(generation) == true else { return }
             self?.state = .signedOut
         }
+    }
+
+    private func startOperation() -> Int? {
+        guard isEnabled else {
+            state = .signedOut
+            return nil
+        }
+        operationGeneration += 1
+        return operationGeneration
+    }
+
+    private func isCurrent(_ generation: Int) -> Bool {
+        isEnabled && operationGeneration == generation
     }
 }
 

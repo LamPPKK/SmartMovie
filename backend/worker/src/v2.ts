@@ -1,4 +1,5 @@
 import type { MediaType, TmdbPage, TmdbTitle } from "./contracts";
+import { accountCapabilityReadiness, type AccountBrokerConfiguration } from "./account-config";
 import type {
   CapabilitiesV2,
   EntityKind,
@@ -153,12 +154,7 @@ export function routeV2(pathname: string): V2Route | null {
 
 async function capabilities(_request: Request, url: URL, env: WorkerEnvV2): Promise<Response> {
   rejectUnknown(url, new Set());
-  const accountAvailable = Boolean((env as WorkerEnvV2 & {
-    AUTH_DB?: D1Database;
-    SESSION_ENCRYPTION_KEY?: string;
-    AUTH_CALLBACK_ORIGIN?: string;
-  }).AUTH_DB && (env as WorkerEnvV2 & { SESSION_ENCRYPTION_KEY?: string }).SESSION_ENCRYPTION_KEY
-    && (env as WorkerEnvV2 & { AUTH_CALLBACK_ORIGIN?: string }).AUTH_CALLBACK_ORIGIN);
+  const accountReadiness = accountCapabilityReadiness(env as WorkerEnvV2 & AccountBrokerConfiguration);
   const value: CapabilitiesV2 = {
     api_version: "v2",
     release_train: env.RELEASE_TRAIN ?? "3.0.0",
@@ -174,13 +170,13 @@ async function capabilities(_request: Request, url: URL, env: WorkerEnvV2): Prom
       watch_providers: true,
     },
     account: {
-      browser_auth: accountAvailable,
-      tv_qr_auth: accountAvailable,
-      favorites: accountAvailable,
-      watchlist: accountAvailable,
-      ratings: accountAvailable,
-      recommendations: accountAvailable,
-      mixed_lists: accountAvailable,
+      browser_auth: accountReadiness.browserAuth,
+      tv_qr_auth: accountReadiness.tvAuth,
+      favorites: accountReadiness.account,
+      watchlist: accountReadiness.account,
+      ratings: accountReadiness.account,
+      recommendations: accountReadiness.account,
+      mixed_lists: accountReadiness.account,
     },
     supported_languages: ["en-US", "vi-VN", "ja-JP", "ko-KR", "zh-CN", "zh-TW"],
     supported_entity_kinds: [...entityKinds],

@@ -86,6 +86,65 @@ describe("v2 Worker contract", () => {
     expect(Object.values(value.account).every((enabled) => !enabled)).toBe(true);
   });
 
+  it("advertises every canonical account feature when the session broker is configured", async () => {
+    const response = await worker.fetch(request("/v2/capabilities"), env({
+      AUTH_DB: {} as D1Database,
+      SESSION_ENCRYPTION_KEY: "fixture-session-encryption-key-with-at-least-thirty-two-characters",
+      AUTH_CALLBACK_ORIGIN: "https://catalog.example",
+    }), context);
+    expect(response.status).toBe(200);
+    const value = await response.json() as {
+      account: Record<string, boolean>;
+      catalog: Record<string, boolean>;
+    };
+    expectContract("Capabilities", value);
+    expect(value.account).toEqual(capabilitiesFixture.account);
+    expect(value.catalog).toEqual(capabilitiesFixture.catalog);
+  });
+
+  it.each([
+    ["short encryption key", {
+      AUTH_DB: {} as D1Database,
+      SESSION_ENCRYPTION_KEY: "too-short",
+      AUTH_CALLBACK_ORIGIN: "https://catalog.example",
+    }],
+    ["malformed callback origin", {
+      AUTH_DB: {} as D1Database,
+      SESSION_ENCRYPTION_KEY: "fixture-session-encryption-key-with-at-least-thirty-two-characters",
+      AUTH_CALLBACK_ORIGIN: "not a URL",
+    }],
+    ["insecure callback origin", {
+      AUTH_DB: {} as D1Database,
+      SESSION_ENCRYPTION_KEY: "fixture-session-encryption-key-with-at-least-thirty-two-characters",
+      AUTH_CALLBACK_ORIGIN: "http://catalog.example",
+    }],
+  ])("disables every account feature for %s", async (_name, configuration) => {
+    const response = await worker.fetch(request("/v2/capabilities"), env(configuration), context);
+    expect(response.status).toBe(200);
+    const value = await response.json() as { account: Record<string, boolean> };
+    expect(Object.values(value.account).every((enabled) => !enabled)).toBe(true);
+  });
+
+  it.each([
+    ["empty allowlist", "", false, false],
+    ["web-only allowlist", "https://smartmovie.app/auth/callback", false, false],
+    ["native-only allowlist", "smartmovie://auth/callback", false, true],
+  ])(
+    "scopes account authentication for %s",
+    async (_name, allowlist, expectedBrowser, expectedTV) => {
+      const response = await worker.fetch(request("/v2/capabilities"), env({
+        AUTH_DB: {} as D1Database,
+        SESSION_ENCRYPTION_KEY: "fixture-session-encryption-key-with-at-least-thirty-two-characters",
+        AUTH_CALLBACK_ORIGIN: "https://catalog.example",
+        AUTH_RETURN_URI_ALLOWLIST: allowlist,
+      }), context);
+      expect(response.status).toBe(200);
+      const value = await response.json() as { account: Record<string, boolean> };
+      expect(value.account.browser_auth).toBe(expectedBrowser);
+      expect(value.account.tv_qr_auth).toBe(expectedTV);
+    },
+  );
+
   it("normalizes mixed search with a stable discriminator", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = new URL(input instanceof Request ? input.url : input.toString());
@@ -337,6 +396,11 @@ function request(path: string): Request {
   return new Request(`https://catalog.example${path}`, { headers: { "X-SmartMovie-Client": "fixture-client" } });
 }
 
-function env(): Env {
-  return { TMDB_BEARER_TOKEN: "test-token", TMDB_BASE_URL: "https://tmdb.example/3", RELEASE_TRAIN: "3.0.0" };
+function env(overrides: Partial<Env> = {}): Env {
+  return {
+    TMDB_BEARER_TOKEN: "test-token",
+    TMDB_BASE_URL: "https://tmdb.example/3",
+    RELEASE_TRAIN: "3.0.0",
+    ...overrides,
+  };
 }

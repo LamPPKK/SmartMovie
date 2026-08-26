@@ -20,6 +20,7 @@ public final class AppContainer {
         profileSizes: ["w185", "h632", "original"]
     )
     public private(set) var capabilities: CapabilitiesV2?
+    private var accountCapabilityGate = AccountCapabilityGate()
 
     public init(
         catalog: any CatalogRepository,
@@ -51,11 +52,27 @@ public final class AppContainer {
         if let catalog = catalog as? any CatalogV2Repository {
             capabilities = try? await catalog.capabilities()
         }
-        await accountSession.refresh()
+        if accountAuthenticationAvailable {
+            accountSession.enable()
+            if let callback = accountCapabilityGate.resolve(enabled: true) {
+                await accountSession.handleCallback(callback)
+            } else {
+                await accountSession.refresh()
+            }
+        } else {
+            _ = accountCapabilityGate.resolve(enabled: false)
+            accountSession.disable()
+        }
         if case .signedIn(let profile) = accountSession.state,
            let sync = library as? any LibrarySyncRepository {
             try? sync.activateAccount(profile.id)
             _ = await accountMutations.flush(accountID: profile.id)
+        }
+    }
+
+    public func handleAuthCallback(_ url: URL) async {
+        if let callback = accountCapabilityGate.submit(url) {
+            await accountSession.handleCallback(callback)
         }
     }
 
@@ -91,7 +108,9 @@ public final class AppContainer {
     }
 
     public func flushLibraryOutbox() async {
-        guard let sync = library as? any LibrarySyncRepository else { return }
+        guard accountAuthenticationAvailable,
+              case .signedIn = accountSession.state,
+              let sync = library as? any LibrarySyncRepository else { return }
         let mutations = (try? sync.pendingMutations(limit: 100)) ?? []
         for mutation in mutations {
             do {
@@ -112,7 +131,7 @@ public final class AppContainer {
 
     @discardableResult
     public func flushAccountOutbox() async -> AccountMutationFlushReport {
-        guard let accountID = signedInAccountID else {
+        guard accountAuthenticationAvailable, let accountID = signedInAccountID else {
             return AccountMutationFlushReport(failure: APIError.unauthorized.localizedDescription)
         }
         return await accountMutations.flush(accountID: accountID)
@@ -266,6 +285,14 @@ public final class AppContainer {
     private func requireSignedInAccountID() throws -> Int {
         guard let accountID = signedInAccountID else { throw APIError.unauthorized }
         return accountID
+    }
+
+    private var accountAuthenticationAvailable: Bool {
+        #if os(tvOS)
+        capabilities?.supportsAccountAuthentication(mode: "tv") == true
+        #else
+        capabilities?.supportsAccountAuthentication(mode: "browser") == true
+        #endif
     }
 }
 

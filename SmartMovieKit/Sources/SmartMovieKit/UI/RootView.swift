@@ -52,7 +52,7 @@ public struct SmartMovieRootView: View {
         platformNavigation
             .task { await container.prepare() }
             .onOpenURL { url in
-                Task { await container.accountSession.handleCallback(url) }
+                Task { await container.handleAuthCallback(url) }
             }
             .sheet(item: remotePresentation) { presentation in
                 NavigationStack {

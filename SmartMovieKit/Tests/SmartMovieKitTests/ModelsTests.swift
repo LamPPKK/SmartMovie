@@ -26,6 +26,42 @@ final class ModelsTests: XCTestCase {
         XCTAssertEqual(LocaleResolver.tmdbLanguage(for: Locale(identifier: "fr_FR")), "en-US")
     }
 
+    func testAccountAuthenticationCapabilityFailsClosedAndUsesCanonicalKeys() {
+        let disabled = CapabilitiesV2(apiVersion: "v2", releaseTrain: "3.0.0", catalog: [:])
+        let browser = CapabilitiesV2(
+            apiVersion: "v2",
+            releaseTrain: "3.0.0",
+            catalog: [:],
+            account: ["browser_auth": true]
+        )
+        let television = CapabilitiesV2(
+            apiVersion: "v2",
+            releaseTrain: "3.0.0",
+            catalog: [:],
+            account: ["tv_qr_auth": true]
+        )
+
+        XCTAssertFalse(supportsAccountAuthentication(nil, mode: "browser"))
+        XCTAssertFalse(supportsAccountAuthentication(disabled, mode: "browser"))
+        XCTAssertTrue(supportsAccountAuthentication(browser, mode: "browser"))
+        XCTAssertFalse(supportsAccountAuthentication(browser, mode: "tv"))
+        XCTAssertTrue(supportsAccountAuthentication(television, mode: "tv"))
+        XCTAssertFalse(supportsAccountAuthentication(television, mode: "unknown"))
+    }
+
+    func testAuthCallbackGateDefersUntilCapabilityResolutionAndFailsClosed() throws {
+        let callback = try XCTUnwrap(URL(string: "smartmovie://auth/callback?auth_attempt=00000000-0000-0000-0000-000000000001"))
+        var unavailable = AccountCapabilityGate()
+        XCTAssertNil(unavailable.submit(callback))
+        XCTAssertNil(unavailable.resolve(enabled: false))
+        XCTAssertNil(unavailable.submit(callback))
+
+        var enabled = AccountCapabilityGate()
+        XCTAssertNil(enabled.submit(callback))
+        XCTAssertEqual(enabled.resolve(enabled: true), callback)
+        XCTAssertEqual(enabled.submit(callback), callback)
+    }
+
     func testTVSummaryUsesSharedFallbackFields() throws {
         let json = #"""
         {

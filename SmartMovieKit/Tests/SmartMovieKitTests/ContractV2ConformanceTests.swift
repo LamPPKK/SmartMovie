@@ -13,6 +13,10 @@ final class ContractV2ConformanceTests: XCTestCase {
     func testAllCanonicalV2EntitiesDecode() throws {
         let capabilities = try decode(CapabilitiesV2.self, fixture: "capabilities")
         XCTAssertEqual(capabilities.apiVersion, "v2")
+        XCTAssertTrue(capabilities.supportsAccount("browser_auth"))
+        XCTAssertTrue(capabilities.supportsAccount("tv_qr_auth"))
+        XCTAssertTrue(capabilities.supportsAccount("ratings"))
+        XCTAssertTrue(capabilities.supportsCatalog("advanced_discover"))
         XCTAssertEqual(Set(capabilities.supportedEntityKinds), Set(EntityKind.allCases))
 
         let configuration = try decode(DiscoverConfiguration.self, fixture: "configuration")

@@ -81,10 +81,10 @@ public struct ProfileView: View {
             case .checking:
                 ProgressView(String(localized: "Checking session…", bundle: .module))
             case .signedOut:
-                Text(String(
+                Text(accountAuthenticationAvailable ? String(
                     localized: "Sign in through the TMDb website to sync favorites, watchlist, ratings, recommendations, and mixed lists.",
                     bundle: .module
-                ))
+                ) : String(localized: "TMDb account is temporarily unavailable.", bundle: .module))
                     .foregroundStyle(CinemaTheme.muted)
                 signInButton
             case .authorizing:
@@ -113,14 +113,13 @@ public struct ProfileView: View {
 
     private var signInButton: some View {
         Button {
+            guard accountAuthenticationAvailable else { return }
             Task {
-                #if os(tvOS)
-                let mode = "tv"
-                #else
-                let mode = "browser"
-                #endif
                 guard let callback = URL(string: "smartmovie://auth/callback"),
-                      let authorization = await container.accountSession.begin(returnURI: callback, mode: mode) else { return }
+                      let authorization = await container.accountSession.begin(
+                          returnURI: callback,
+                          mode: accountAuthenticationMode
+                      ) else { return }
                 openURL(authorization)
             }
         } label: {
@@ -128,7 +127,7 @@ public struct ProfileView: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(CinemaTheme.accent)
-        .disabled(container.capabilities?.supportsAccount("authentication") == false)
+        .disabled(!accountAuthenticationAvailable)
     }
 
     @ViewBuilder
@@ -370,6 +369,18 @@ public struct ProfileView: View {
 }
 
 private extension ProfileView {
+    var accountAuthenticationMode: String {
+        #if os(tvOS)
+        "tv"
+        #else
+        "browser"
+        #endif
+    }
+
+    var accountAuthenticationAvailable: Bool {
+        supportsAccountAuthentication(container.capabilities, mode: accountAuthenticationMode)
+    }
+
     var profileConfigurationTaskID: String {
         let enabled = container.capabilities?.supportsCatalog("advanced_discover") == true
         return "\(configurationLanguage):\(container.regionSettings.effectiveRegion):\(enabled)"
@@ -393,6 +404,10 @@ private extension ProfileView {
     static let fallbackRegionCodes = [
         "US", "GB", "CA", "AU", "FR", "DE", "JP", "KR", "VN", "TW", "HK", "SG", "IN", "BR", "MX",
     ]
+}
+
+func supportsAccountAuthentication(_ capabilities: CapabilitiesV2?, mode: String) -> Bool {
+    capabilities?.supportsAccountAuthentication(mode: mode) == true
 }
 
 func loadProfileProviderRegions(

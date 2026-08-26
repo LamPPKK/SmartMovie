@@ -3,7 +3,7 @@
 ## Automated source gates
 
 - Canonical `/v1` and `/v2` OpenAPI/fixtures validate public success and normalized error responses.
-- Apple and Android manifests pin product `3.0.0`, contract `2.0.0`, and OpenAPI SHA-256 `0e7c73a2be679ab5e3f2c8c5117424fa79c77e888a9b49c5e95d9d47ccb36d6f`.
+- Apple and Android manifests pin product `3.0.0`, contract `2.0.0`, and OpenAPI SHA-256 `36df27d7f9e20dc7fdd544f3bdc7e3d231f71f17a10eecec92a17bc0de62cc2e`.
 - Native Android and KMP consume the same versioned snapshot; production promotion verifies Android `main` before deploy.
 - Worker tests cover v3/v4 mapping, cache partitions, rate limiting, D1 migrations, encryption, callback/CSRF/CORS controls, session expiry/revoke, durable mutation idempotency, and rollback paths.
 - Swift, native Android, and KMP test canonical discriminator/nullable/unknown-field fixtures and local-first storage/outbox behavior.
@@ -11,9 +11,9 @@
 - KMP desktop tests/compile, JS, Wasm, and portable desktop packages are release blockers.
 - Apple source gates cover Swift tests, strict SwiftLint, iOS/Catalyst/tvOS/macOS/watchOS/visionOS builds, analyze, and launch smoke where runtimes are installed.
 
-## Product blockers still recorded in source
+## Product coverage status
 
-The codebase must not be declared product-complete until [TMDb coverage](../docs/TMDB_COVERAGE.md) has no **Blocker** rows. Current gaps include complete mixed-list editing/items and Worker TMDb-change-feed cache invalidation. Account recommendations now have cross-platform Profile UI and contract/behavior coverage.
+[TMDb coverage](../docs/TMDB_COVERAGE.md) currently has no **Blocker** rows. Mixed-list editing/items, account recommendations, and Worker TMDb-change-feed cache invalidation have cross-platform or backend test coverage. Account authorization is fail-closed on every full client: Apple/Android TV require `tv_qr_auth`, while phone, desktop, and web require `browser_auth`; missing or false flags disable the action before any account request.
 
 ## Release-owner actions
 

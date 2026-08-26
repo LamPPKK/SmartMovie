@@ -1,4 +1,5 @@
 import type { MediaType, TmdbPage, TmdbTitle } from "./contracts";
+import { normalizedCallbackOrigin, returnURIAllowed } from "./account-config";
 import { decryptSecret, encryptSecret, randomToken, secureEqual, sha256 } from "./crypto";
 import type { V2Route, WorkerEnvV2 } from "./v2";
 import { tmdb } from "./v2";
@@ -67,12 +68,6 @@ const GET_POST = new Set(["GET", "POST", "PUT", "OPTIONS"]);
 const GET_MUTATE = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]);
 const SESSION_MAX_AGE = 90 * 24 * 60 * 60;
 const ATTEMPT_MAX_AGE = 15 * 60;
-const DEFAULT_RETURN_URIS = [
-  "smartmovie://auth/callback",
-  "https://smartmovie.app/auth/callback",
-  "http://localhost:8080/auth/callback",
-];
-
 export function routeAccountV2(pathname: string): V2Route | null {
   if (pathname === "/v2/auth/attempts") return privateRoute("v2-auth-attempt", POST, createAuthAttempt);
   if (pathname === "/v2/auth/callback") return privateRoute("v2-auth-callback", GET, authCallback);
@@ -158,10 +153,6 @@ export function routeAccountV2(pathname: string): V2Route | null {
   ));
 
   return null;
-}
-
-export function accountCapabilitiesAvailable(env: WorkerAccountEnv): boolean {
-  return Boolean(env.AUTH_DB && env.SESSION_ENCRYPTION_KEY && env.AUTH_CALLBACK_ORIGIN);
 }
 
 async function createAuthAttempt(request: Request, url: URL, env: WorkerAccountEnv, requestId: string): Promise<Response> {
@@ -853,31 +844,12 @@ function originAllowed(origin: string, env: WorkerAccountEnv): boolean {
   return allowed.includes(origin);
 }
 
-function returnURIAllowed(value: string, env: WorkerAccountEnv): boolean {
-  let candidate: URL;
-  try {
-    candidate = new URL(value);
-  } catch {
-    return false;
-  }
-  if (candidate.username || candidate.password || candidate.hash) return false;
-  const allowed = (env.AUTH_RETURN_URI_ALLOWLIST?.split(",") ?? DEFAULT_RETURN_URIS).map((item) => item.trim()).filter(Boolean);
-  return allowed.some((item) => {
-    try {
-      const expected = new URL(item);
-      return expected.protocol === candidate.protocol && expected.host === candidate.host && expected.pathname === candidate.pathname;
-    } catch {
-      return false;
-    }
-  });
-}
-
 function validatedCallbackOrigin(env: WorkerAccountEnv): string {
   const value = env.AUTH_CALLBACK_ORIGIN;
   if (!value) throw new RequestProblem(503, "account_unavailable", "The auth callback domain is not configured.");
-  const url = new URL(value);
-  if (url.protocol !== "https:" && url.hostname !== "localhost") throw new RequestProblem(500, "invalid_callback_origin", "The auth callback domain must use HTTPS.");
-  return url.origin;
+  const origin = normalizedCallbackOrigin(value);
+  if (!origin) throw new RequestProblem(500, "invalid_callback_origin", "The auth callback domain must use a valid HTTPS URL.");
+  return origin;
 }
 
 function sessionCookie(token: string, env: WorkerAccountEnv, maxAge: number): string {
