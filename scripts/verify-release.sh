@@ -68,4 +68,6 @@ legacy_manifest_version="$(read_json "$legacy_contract_manifest" contract_versio
 [[ "$actual_fixtures_checksum" == "$expected_fixtures_checksum" ]] || { printf 'Fixture checksum %s does not match contract manifest %s\n' "$actual_fixtures_checksum" "$expected_fixtures_checksum"; exit 1; }
 [[ "$legacy_version" == "1.0.0" && "$legacy_manifest_version" == "1.0.0" ]] || { printf '/v1 contract must remain frozen at 1.0.0 while SmartMovie 2.0 is supported.\n'; exit 1; }
 
+"$repo_root/scripts/test-sync-android-contract.sh"
+
 printf 'Release train %s and catalog contract %s are consistent.\n' "$expected_version" "$expected_contract_version"

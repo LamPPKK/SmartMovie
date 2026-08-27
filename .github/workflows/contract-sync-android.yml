@@ -6,6 +6,10 @@ on:
     paths:
       - backend/worker/contract/**
       - release/train.json
+      - scripts/resolve-contract-source-commit.sh
+      - scripts/sync-android-contract.sh
+      - scripts/test-sync-android-contract.sh
+      - scripts/verify-release.sh
       - .github/workflows/contract-sync-android.yml
   workflow_dispatch:
 
@@ -18,76 +22,83 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      GH_TOKEN: ${{ secrets.ANDROID_CONTRACT_SYNC_TOKEN }}
       ANDROID_REPOSITORY: LamPPKK/Smart-Movie-Android
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Verify the canonical contract and release manifest
+        run: ./scripts/verify-release.sh
+
+      - name: Resolve the canonical contract commit
+        id: contract_source
+        run: |
+          set -euo pipefail
+          contract_commit="$(./scripts/resolve-contract-source-commit.sh)"
+          echo "commit=$contract_commit" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether Android main already matches
+        id: sync_state
+        env:
+          CONTRACT_COMMIT: ${{ steps.contract_source.outputs.commit }}
+        run: |
+          set -euo pipefail
+          android_dir="$RUNNER_TEMP/android-smartmovie-check"
+          git clone --depth 1 "https://github.com/$ANDROID_REPOSITORY.git" "$android_dir"
+          ./scripts/sync-android-contract.sh "$android_dir" "$CONTRACT_COMMIT"
+          if [[ -n "$(git -C "$android_dir" status --porcelain -- catalog-contract release/train.json)" ]]; then
+            echo 'required=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'required=false' >> "$GITHUB_OUTPUT"
+            echo 'Android main already contains this contract snapshot.'
+          fi
 
       - name: Require the least-privilege cross-repository token
+        if: steps.sync_state.outputs.required == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.ANDROID_CONTRACT_SYNC_TOKEN }}
         run: |
           if [[ -z "$GH_TOKEN" ]]; then
             echo "ANDROID_CONTRACT_SYNC_TOKEN must allow Contents and Pull requests on $ANDROID_REPOSITORY." >&2
             exit 1
           fi
 
-      - name: Verify the canonical contract and release manifest
-        run: ./scripts/verify-release.sh
-
-      - name: Check out the Android repository
-        run: |
-          gh auth setup-git
-          gh repo clone "$ANDROID_REPOSITORY" "$RUNNER_TEMP/android-smartmovie"
-
-      - name: Update the vendored snapshot
+      - name: Check out and update the Android repository
+        if: steps.sync_state.outputs.required == 'true'
         env:
           ANDROID_DIR: ${{ runner.temp }}/android-smartmovie
+          CONTRACT_COMMIT: ${{ steps.contract_source.outputs.commit }}
+          GH_TOKEN: ${{ secrets.ANDROID_CONTRACT_SYNC_TOKEN }}
         run: |
           set -euo pipefail
+          gh auth setup-git
+          gh repo clone "$ANDROID_REPOSITORY" "$ANDROID_DIR"
           cd "$ANDROID_DIR"
-          branch="contract-sync-${GITHUB_SHA:0:12}"
+          branch="contract-sync-${CONTRACT_COMMIT:0:12}"
           if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
             git fetch origin "$branch"
             git switch -C "$branch" "origin/$branch"
           else
             git switch -c "$branch"
           fi
-          cd "$GITHUB_WORKSPACE"
-          mkdir -p "$ANDROID_DIR/catalog-contract/v1" "$ANDROID_DIR/catalog-contract/v2" "$ANDROID_DIR/release"
-          rsync -a --delete --exclude 'v2/' backend/worker/contract/ "$ANDROID_DIR/catalog-contract/v1/"
-          rsync -a --delete backend/worker/contract/v2/ "$ANDROID_DIR/catalog-contract/v2/"
-          cp release/train.json "$ANDROID_DIR/release/train.json"
-          python3 - "$ANDROID_DIR/catalog-contract/manifest.json" backend/worker/contract/v2/manifest.json "$GITHUB_SHA" <<'PY'
-          import json
-          import sys
-
-          destination, canonical_path, commit = sys.argv[1:]
-          with open(canonical_path, encoding="utf-8") as source:
-              canonical = json.load(source)
-          snapshot = {
-              "schema_version": 1,
-              "contract_version": canonical["contract_version"],
-              "upstream_repository": "LamPPKK/Smart-Movie-iOS",
-              "upstream_commit": commit,
-              "openapi_sha256": canonical["openapi_sha256"],
-              "fixtures_sha256": canonical["fixtures_sha256"],
-          }
-          with open(destination, "w", encoding="utf-8") as output:
-              json.dump(snapshot, output, indent=2)
-              output.write("\n")
-          PY
+          "$GITHUB_WORKSPACE/scripts/sync-android-contract.sh" "$ANDROID_DIR" "$CONTRACT_COMMIT"
 
       - name: Open or refresh the Android pull request
+        if: steps.sync_state.outputs.required == 'true'
         env:
           ANDROID_DIR: ${{ runner.temp }}/android-smartmovie
+          CONTRACT_COMMIT: ${{ steps.contract_source.outputs.commit }}
+          GH_TOKEN: ${{ secrets.ANDROID_CONTRACT_SYNC_TOKEN }}
         run: |
           set -euo pipefail
           cd "$ANDROID_DIR"
-          branch="contract-sync-${GITHUB_SHA:0:12}"
+          branch="contract-sync-${CONTRACT_COMMIT:0:12}"
           git config user.name "smartmovie-contract-bot"
           git config user.email "actions@users.noreply.github.com"
           if [[ -n "$(git status --porcelain)" ]]; then
             git add catalog-contract release/train.json
-            git commit -m "chore: sync catalog contract ${GITHUB_SHA:0:12}"
+            git commit -m "chore: sync catalog contract ${CONTRACT_COMMIT:0:12}"
             git push --set-upstream origin "$branch"
           elif ! git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
             echo "Android main already contains this contract snapshot."
@@ -99,5 +110,5 @@ jobs:
               --base main \
               --head "$branch" \
               --title "chore: sync SmartMovie catalog contract" \
-              --body "Automated snapshot of the canonical catalog contract from LamPPKK/Smart-Movie-iOS@$GITHUB_SHA. Merge only after Android and desktop conformance CI passes."
+              --body "Automated snapshot of the canonical catalog contract from LamPPKK/Smart-Movie-iOS@$CONTRACT_COMMIT. Merge only after Android and desktop conformance CI passes."
           fi

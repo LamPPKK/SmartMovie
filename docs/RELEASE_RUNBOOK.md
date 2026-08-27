@@ -9,7 +9,7 @@
 - A newly issued TMDb API Read Access Token. Revoke the historical key that was committed before SmartMovie 2.0.
 - Separate staging/production Cloudflare D1 databases bound as `AUTH_DB`, with all migrations through `0004_catalog_change_cache.sql` applied.
 - Protected `SESSION_ENCRYPTION_KEY`, callback origins, Web/CORS origin allowlists, cookie domain, and return-URI allowlists for each environment.
-- Repository secret `ANDROID_CONTRACT_SYNC_TOKEN`, limited to Contents and Pull requests on `LamPPKK/Smart-Movie-Android`, so canonical contract changes can open snapshot PRs.
+- Repository secret `ANDROID_CONTRACT_SYNC_TOKEN`, limited to Contents and Pull requests on `LamPPKK/Smart-Movie-Android`, so canonical contract changes can open snapshot PRs. An already-matching Android `main` is verified publicly and completes without reading this secret.
 
 Select the full Xcode toolchain once on each build machine (this requires an administrator password):
 
@@ -40,7 +40,7 @@ Verification: Swift tests, Worker type-check, and Worker contract tests all comp
 
 Current verified local baseline: 67 Swift tests and 96 Worker tests. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the suite changed intentionally; zero failures is always required.
 
-When the contract or release train changes on `main`, confirm the `Sync catalog contract to Android` workflow opens a pull request and that Android native plus desktop conformance CI passes before merging it. Production promotion remains blocked until the Android snapshot is on `main`.
+When the contract or release train changes on `main`, confirm the `Sync catalog contract to Android` workflow either proves Android `main` is already byte-equivalent or opens a pull request. For a real diff, Android native plus desktop conformance CI must pass before merge. Production promotion remains blocked until the Android snapshot is on `main`.
 
 ## 2. Deploy Worker staging
 
