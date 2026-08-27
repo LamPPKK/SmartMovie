@@ -192,7 +192,7 @@ final class FeatureModelTests: XCTestCase {
 
         XCTAssertEqual(model.entities.map(\.kind), [.movie, .person])
         let requests = await catalog.externalIDRequests()
-        XCTAssertEqual(requests, ["Q83495|wikidata_id|vi-VN"])
+        XCTAssertEqual(requests, ["Q83495|wikidata_id|vi-VN|false"])
         XCTAssertFalse(model.canLoadMore)
     }
 
@@ -410,9 +410,10 @@ private actor ExternalIDCatalogStub: CatalogRepository, CatalogV2Repository {
     func findExternalID(
         _ externalID: String,
         source: ExternalIDSource,
-        language: String
+        language: String,
+        includeAdult: Bool
     ) async throws -> ExternalIDFindResult {
-        requests.append("\(externalID)|\(source.rawValue)|\(language)")
+        requests.append("\(externalID)|\(source.rawValue)|\(language)|\(includeAdult)")
         return ExternalIDFindResult(
             source: source,
             externalID: externalID,
@@ -438,15 +439,23 @@ private actor ExternalIDCatalogStub: CatalogRepository, CatalogV2Repository {
         region: String?,
         includeAdult: Bool
     ) async throws -> TitleDetailV2 { throw APIError.notFound }
-    func person(id: Int, language: String) async throws -> PersonDetail { throw APIError.notFound }
-    func collection(id: Int, language: String) async throws -> CollectionDetail { throw APIError.notFound }
-    func organization(kind: EntityKind, id: Int, language: String, page: Int) async throws -> OrganizationDetail {
+    func person(id: Int, language: String, includeAdult: Bool) async throws -> PersonDetail { throw APIError.notFound }
+    func collection(id: Int, language: String, includeAdult: Bool) async throws -> CollectionDetail { throw APIError.notFound }
+    func organization(
+        kind: EntityKind,
+        id: Int,
+        language: String,
+        page: Int,
+        includeAdult: Bool
+    ) async throws -> OrganizationDetail {
         throw APIError.notFound
     }
-    func keyword(id: Int, language: String, page: Int) async throws -> KeywordDetail { throw APIError.notFound }
+    func keyword(id: Int, language: String, page: Int, includeAdult: Bool) async throws -> KeywordDetail {
+        throw APIError.notFound
+    }
     func season(seriesID: Int, number: Int, language: String) async throws -> SeasonDetail { throw APIError.notFound }
     func episode(seriesID: Int, season: Int, number: Int, language: String) async throws -> EpisodeDetail { throw APIError.notFound }
-    func credit(id: String, language: String) async throws -> CreditDetail { throw APIError.notFound }
+    func credit(id: String, language: String, includeAdult: Bool) async throws -> CreditDetail { throw APIError.notFound }
 }
 
 private func sampleTitle(id: Int, title: String, mediaType: MediaType = .movie) -> TitleSummary {

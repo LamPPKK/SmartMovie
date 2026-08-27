@@ -200,10 +200,7 @@ async function home(_request: Request, url: URL, env: WorkerEnvV2, requestId: st
   const sections = endpoints.map(([id], index) => ({
     id,
     title: homeLabels(locale)[id],
-    items: entityPage({
-      ...pages[index],
-      results: pages[index].results.filter((item) => adult || item.adult !== true),
-    }, type).results,
+    items: entityPage(pages[index], type, adult).results,
   }));
   return json({ media_type: type, region, include_adult: adult, hero: sections[0]?.items[0] ?? null, sections });
 }
@@ -217,7 +214,7 @@ async function discover(
 ): Promise<Response> {
   const parameters = discoverParametersV2(url, type);
   const result = await tmdb<TmdbPage<Record<string, unknown>>>(env, `/discover/${type}`, parameters, requestId);
-  return json(entityPage(result, type));
+  return json(entityPage(result, type, booleanQuery(url, "include_adult", false)));
 }
 
 async function trending(
@@ -232,7 +229,7 @@ async function trending(
   const adult = booleanQuery(url, "include_adult", false);
   const parameters = new URLSearchParams({ language: language(url), page: String(page(url)) });
   const result = await tmdb<TmdbPage<Record<string, unknown>>>(env, `/trending/${kind}/${window}`, parameters, requestId);
-  return json(entityPage({ ...result, results: result.results.filter((item) => adult || item.adult !== true) }));
+  return json(entityPage(result, undefined, adult));
 }
 
 async function search(_request: Request, url: URL, env: WorkerEnvV2, requestId: string): Promise<Response> {
@@ -240,11 +237,12 @@ async function search(_request: Request, url: URL, env: WorkerEnvV2, requestId: 
   const query = requiredText(url, "query", 120);
   const scope = searchScope(url);
   const pageNumber = page(url);
+  const adult = booleanQuery(url, "include_adult", false);
   const parameters = new URLSearchParams({
     query,
     language: language(url),
     page: String(pageNumber),
-    include_adult: String(booleanQuery(url, "include_adult", false)),
+    include_adult: String(adult),
   });
   const region = regionQuery(url);
   if (region) parameters.set("region", region);
@@ -259,13 +257,14 @@ async function search(_request: Request, url: URL, env: WorkerEnvV2, requestId: 
       page: pageNumber,
       total_pages: Math.min(Math.max(multi.total_pages, collections.total_pages), 500),
       results: merged
-        .map((item) => searchEntity(item, item.media_type as EntityKind))
+        .filter((item) => adult || (item as Record<string, unknown>).adult !== true)
+        .map((item) => searchEntity(item, item.media_type as EntityKind, adult))
         .filter((item): item is NonNullable<typeof item> => item !== null),
     });
   }
 
   const result = await tmdb<TmdbPage<Record<string, unknown>>>(env, `/search/${scope}`, parameters, requestId);
-  return json(entityPage(result, scope));
+  return json(entityPage(result, scope, adult));
 }
 
 async function findExternal(
@@ -275,9 +274,10 @@ async function findExternal(
   requestId: string,
   externalID: string,
 ): Promise<Response> {
-  rejectUnknown(url, new Set(["source", "language"]));
+  rejectUnknown(url, new Set(["source", "language", "include_adult"]));
   if (!externalID || externalID.length > 160) throw new RequestProblem(400, "invalid_external_id", "External ID is required.");
   const source = url.searchParams.get("source") ?? "imdb_id";
+  const adult = booleanQuery(url, "include_adult", false);
   if (!new Set(["imdb_id", "tvdb_id", "wikidata_id", "facebook_id", "instagram_id", "twitter_id"]).has(source)) {
     throw new RequestProblem(400, "invalid_external_source", "The external ID source is not supported.");
   }
@@ -288,11 +288,14 @@ async function findExternal(
     requestId,
   );
   const results = [
-    ...(raw.movie_results ?? []).map((item) => titleSummaryV2(item, "movie")),
-    ...(raw.tv_results ?? []).map((item) => titleSummaryV2(item, "tv")),
-    ...(raw.person_results ?? []).map((item) => searchEntity(item as unknown as Record<string, unknown>, "person")),
-    ...(raw.tv_season_results ?? []).map(seasonSummary),
-    ...(raw.tv_episode_results ?? []).map((item) => episodeSummary(Number((item as unknown as { show_id?: number }).show_id ?? 0), item)),
+    ...visibleTitles(raw.movie_results, adult).map((item) => titleSummaryV2(item, "movie")),
+    ...visibleTitles(raw.tv_results, adult).map((item) => titleSummaryV2(item, "tv")),
+    ...(raw.person_results ?? []).map((item) => searchEntity(item as unknown as Record<string, unknown>, "person", adult)),
+    ...(adult ? (raw.tv_season_results ?? []).map(seasonSummary) : []),
+    ...(adult ? (raw.tv_episode_results ?? []).map((item) => episodeSummary(
+      Number((item as unknown as { show_id?: number }).show_id ?? 0),
+      item,
+    )) : []),
   ].filter((item): item is NonNullable<typeof item> => item !== null);
   return json({ source, external_id: externalID, results });
 }
@@ -319,7 +322,7 @@ async function title(
   });
   const item = await tmdb<TmdbTitleV2>(env, `/${type}/${id}`, parameters, requestId);
   if (item.adult === true && !adult) throw new RequestProblem(404, "entity_not_found", "The requested entity was not found.");
-  return json(titleDetailV2(item, type));
+  return json(titleDetailV2(item, type, adult));
 }
 
 async function titleRelated(
@@ -332,7 +335,7 @@ async function titleRelated(
   resource: string,
 ): Promise<Response> {
   const paged = new Set(["reviews", "recommendations", "similar"]);
-  const allowed = new Set(["language", "region", ...(paged.has(resource) ? ["page"] : [])]);
+  const allowed = new Set(["language", "region", "include_adult", ...(paged.has(resource) ? ["page"] : [])]);
   rejectUnknown(url, allowed);
   const suffix = resource === "release-information"
     ? type === "movie" ? "release_dates" : "content_ratings"
@@ -342,7 +345,7 @@ async function titleRelated(
   const parameters = new URLSearchParams({ language: language(url) });
   if (paged.has(resource)) parameters.set("page", String(page(url)));
   const raw = await tmdb<Record<string, unknown>>(env, `/${type}/${id}/${suffix}`, parameters, requestId);
-  return json(relatedResource(resource, raw, type));
+  return json(relatedResource(resource, raw, type, booleanQuery(url, "include_adult", false)));
 }
 
 async function entity(
@@ -356,19 +359,20 @@ async function entity(
   if (kind === "movie" || kind === "tv") return title(request, url, env, requestId, kind, id);
   rejectUnknown(url, new Set(["language", "page", "include_adult"]));
   const locale = language(url);
+  const adult = booleanQuery(url, "include_adult", false);
   if (kind === "person") {
     const raw = await tmdb<TmdbPerson>(env, `/person/${id}`, new URLSearchParams({
       language: locale,
       append_to_response: "combined_credits,external_ids,images,translations",
     }), requestId);
-    return json(personDetail(raw));
+    return json(personDetail(raw, adult));
   }
   if (kind === "collection") {
     const [raw, images] = await Promise.all([
       tmdb<TmdbCollection>(env, `/collection/${id}`, new URLSearchParams({ language: locale }), requestId),
       tmdb<TmdbCollection["images"]>(env, `/collection/${id}/images`, new URLSearchParams({ language: locale, include_image_language: `${locale.slice(0, 2)},en,null` }), requestId),
     ]);
-    return json(collectionDetail({ ...raw, images }));
+    return json(collectionDetail({ ...raw, images }, adult));
   }
   if (kind === "company" || kind === "network") {
     const raw = await tmdb<TmdbCompany>(env, `/${kind}/${id}`, new URLSearchParams(), requestId);
@@ -378,20 +382,20 @@ async function entity(
       language: locale,
       page: String(page(url)),
       [filter]: String(id),
-      include_adult: String(booleanQuery(url, "include_adult", false)),
+      include_adult: String(adult),
     }), requestId);
     titles.results = titles.results.map((item) => ({ ...item, media_type: discoverType }));
-    return json(companyDetail(raw, kind, titles));
+    return json(companyDetail(raw, kind, titles, adult));
   }
   const raw = await tmdb<TmdbKeyword>(env, `/keyword/${id}`, new URLSearchParams(), requestId);
   const titles = await tmdb<TmdbPage<TmdbTitle>>(env, "/discover/movie", new URLSearchParams({
     language: locale,
     page: String(page(url)),
     with_keywords: String(id),
-    include_adult: String(booleanQuery(url, "include_adult", false)),
+    include_adult: String(adult),
   }), requestId);
   titles.results = titles.results.map((item) => ({ ...item, media_type: "movie" }));
-  return json(keywordDetail(raw, titles));
+  return json(keywordDetail(raw, titles, adult));
 }
 
 async function season(
@@ -440,7 +444,7 @@ async function creditDetail(
   requestId: string,
   creditID: string,
 ): Promise<Response> {
-  rejectUnknown(url, new Set(["language"]));
+  rejectUnknown(url, new Set(["language", "include_adult"]));
   if (!/^[A-Za-z0-9_-]{1,160}$/.test(creditID)) throw new RequestProblem(400, "invalid_credit_id", "Credit ID is invalid.");
   const raw = await tmdb<TmdbCreditDetail>(
     env,
@@ -448,7 +452,14 @@ async function creditDetail(
     new URLSearchParams({ language: language(url) }),
     requestId,
   );
+  if (raw.media?.adult === true && !booleanQuery(url, "include_adult", false)) {
+    throw new RequestProblem(404, "entity_not_found", "The requested entity was not found.");
+  }
   return json(normalizeCreditDetail(creditID, raw));
+}
+
+function visibleTitles<T extends { adult?: boolean }>(values: T[] | undefined, includeAdult: boolean): T[] {
+  return (values ?? []).filter((value) => includeAdult || value.adult !== true);
 }
 
 async function configuration(

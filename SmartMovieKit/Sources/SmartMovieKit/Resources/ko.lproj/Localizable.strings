@@ -144,7 +144,7 @@
 "Translations" = "번역";
 "External identifiers" = "외부 식별자";
 "Source repositories" = "소스 저장소";
-"Catalog metadata description" = "작품, 시즌, 에피소드의 TMDb 이미지·동영상 갤러리, 리뷰, 추천, 지역별 공개일, 시청 등급, 현지화 제목, 번역 및 외부 식별자를 확인하세요.";
+"Catalog metadata description" = "TMDb 이미지, 동영상, 리뷰, 추천, 공개 정보, 현지화 및 외부 식별자를 확인하세요. 기기 내 성인 콘텐츠 PIN은 검색과 인물, 컬렉션, 제작사, 네트워크, 키워드 및 크레딧 상세의 모든 관련 화면에 적용됩니다.";
 "Details" = "세부 정보";
 "Images" = "이미지";
 "Catalog image" = "TMDb 카탈로그 이미지";

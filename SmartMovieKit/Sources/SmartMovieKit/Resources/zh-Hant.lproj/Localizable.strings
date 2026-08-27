@@ -144,7 +144,7 @@
 "Translations" = "翻譯";
 "External identifiers" = "外部識別碼";
 "Source repositories" = "原始碼儲存庫";
-"Catalog metadata description" = "查看影片、季度和集數的 TMDb 圖片與影片藝廊、影評、推薦、地區發行日期、分級、在地化片名、翻譯和外部識別碼。";
+"Catalog metadata description" = "查看 TMDb 圖片、影片、影評、推薦、發行資訊、在地化內容和外部識別碼。本機成人內容 PIN 適用於搜尋及人物、合輯、公司、電視網、關鍵字和演職員詳細資料的所有相關頁面。";
 "Details" = "詳細資料";
 "Images" = "圖片";
 "Catalog image" = "TMDb 目錄圖片";

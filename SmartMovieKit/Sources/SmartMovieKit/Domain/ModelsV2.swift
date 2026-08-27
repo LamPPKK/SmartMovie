@@ -223,6 +223,7 @@ public struct Credit: Codable, Hashable, Sendable {
     public let posterPath: String?
     public let order: Int?
     public let episodeCount: Int?
+    public let adult: Bool?
 }
 
 public struct ImageAsset: Codable, Hashable, Sendable {

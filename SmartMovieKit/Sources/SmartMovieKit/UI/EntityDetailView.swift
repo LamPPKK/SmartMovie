@@ -63,6 +63,11 @@ public struct EntityDetailView: View {
     @State private var state: EntityState = .loading
     private let entity: CatalogEntity
 
+    private var includeAdult: Bool { container.adultContent.includeAdult }
+    private var loadKey: String {
+        "\(entity.id):\(LocaleResolver.tmdbLanguage(for: locale)):\(includeAdult)"
+    }
+
     public init(entity: CatalogEntity) { self.entity = entity }
 
     public var body: some View {
@@ -86,7 +91,7 @@ public struct EntityDetailView: View {
         .navigationTitle(entity.displayName)
         .inlineNavigationTitle()
         .cinemaScreen()
-        .task(id: entity.id) { await load() }
+        .task(id: loadKey) { await load() }
     }
 
     private func load() async {
@@ -98,11 +103,33 @@ public struct EntityDetailView: View {
         do {
             let language = LocaleResolver.tmdbLanguage(for: locale)
             switch entity {
-            case .person(let value): state = .person(try await catalog.person(id: value.id, language: language))
-            case .collection(let value): state = .collection(try await catalog.collection(id: value.id, language: language))
+            case .person(let value):
+                state = .person(try await catalog.person(
+                    id: value.id,
+                    language: language,
+                    includeAdult: includeAdult
+                ))
+            case .collection(let value):
+                state = .collection(try await catalog.collection(
+                    id: value.id,
+                    language: language,
+                    includeAdult: includeAdult
+                ))
             case .organization(let value):
-                state = .organization(try await catalog.organization(kind: value.entityKind, id: value.id, language: language, page: 1))
-            case .keyword(let value): state = .keyword(try await catalog.keyword(id: value.id, language: language, page: 1))
+                state = .organization(try await catalog.organization(
+                    kind: value.entityKind,
+                    id: value.id,
+                    language: language,
+                    page: 1,
+                    includeAdult: includeAdult
+                ))
+            case .keyword(let value):
+                state = .keyword(try await catalog.keyword(
+                    id: value.id,
+                    language: language,
+                    page: 1,
+                    includeAdult: includeAdult
+                ))
             case .title, .season, .episode:
                 state = .failed(String(localized: "This entity opens from its parent title.", bundle: .module))
             }
@@ -130,7 +157,10 @@ public struct EntityDetailView: View {
                 if !value.biography.isEmpty {
                     detailSection(String(localized: "Biography", bundle: .module), text: value.biography)
                 }
-                titleShelf(String(localized: "Known for", bundle: .module), titles: value.knownFor)
+                titleShelf(
+                    String(localized: "Known for", bundle: .module),
+                    titles: CatalogAdultVisibility.titles(value.knownFor, includeAdult: includeAdult)
+                )
                 CreditShelf(title: String(localized: "Acting credits", bundle: .module), credits: value.credits.cast)
                 CreditShelf(title: String(localized: "Crew credits", bundle: .module), credits: value.credits.crew)
             }
@@ -146,7 +176,7 @@ public struct EntityDetailView: View {
                     .clipShape(RoundedRectangle(cornerRadius: CinemaTheme.cornerRadius))
                 Text(value.name).font(.system(.largeTitle, design: .serif, weight: .black))
                 if !value.overview.isEmpty { Text(value.overview).foregroundStyle(CinemaTheme.muted) }
-                titleGrid(value.parts)
+                titleGrid(CatalogAdultVisibility.titles(value.parts, includeAdult: includeAdult))
             }
             .padding(24)
         }
@@ -165,7 +195,7 @@ public struct EntityDetailView: View {
                     }
                 }
                 if !value.description.isEmpty { detailSection(String(localized: "About", bundle: .module), text: value.description) }
-                titleGrid(value.titles.results)
+                titleGrid(CatalogAdultVisibility.titles(value.titles.results, includeAdult: includeAdult))
             }
             .padding(24)
         }
@@ -176,7 +206,7 @@ public struct EntityDetailView: View {
             LazyVStack(alignment: .leading, spacing: 24) {
                 Label(value.name, systemImage: "number")
                     .font(.system(.largeTitle, design: .serif, weight: .black))
-                titleGrid(value.titles.results)
+                titleGrid(CatalogAdultVisibility.titles(value.titles.results, includeAdult: includeAdult))
             }
             .padding(24)
         }
@@ -459,32 +489,4 @@ public struct EpisodeDetailView: View {
             ratingMessage = error.localizedDescription
         }
     }
-}
-
-private struct EpisodeRow: View {
-    @Environment(AppContainer.self) private var container
-    let episode: EpisodeSummary
-
-    var body: some View {
-        HStack(spacing: 16) {
-            RemoteArtwork(url: container.imageURL(path: episode.stillPath, kind: .backdrop), kind: .backdrop)
-                .frame(width: 180, height: 102)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            VStack(alignment: .leading, spacing: 7) {
-                Text("E\(episode.episodeNumber) · \(episode.name)").font(.headline)
-                Text(episode.overview).font(.subheadline).foregroundStyle(CinemaTheme.muted).lineLimit(3)
-            }
-        }
-        .padding(12)
-        .background(CinemaTheme.surface, in: RoundedRectangle(cornerRadius: CinemaTheme.cornerRadius))
-    }
-}
-
-private enum EntityState {
-    case loading
-    case failed(String)
-    case person(PersonDetail)
-    case collection(CollectionDetail)
-    case organization(OrganizationDetail)
-    case keyword(KeywordDetail)
 }

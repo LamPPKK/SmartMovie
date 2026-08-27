@@ -8,6 +8,18 @@ public struct CreditDetail: Codable, Hashable, Sendable {
     public let character: String?
     public let personSummary: PersonSummary?
     public let titleSummary: TitleSummary?
+
+    public func applyingAdultVisibility(includeAdult: Bool) -> CreditDetail {
+        CreditDetail(
+            creditId: creditId,
+            creditType: creditType,
+            department: department,
+            job: job,
+            character: character,
+            personSummary: personSummary,
+            titleSummary: titleSummary.flatMap { includeAdult || !$0.isAdult ? $0 : nil }
+        )
+    }
 }
 
 public extension Credit {

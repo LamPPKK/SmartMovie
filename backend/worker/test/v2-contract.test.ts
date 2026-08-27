@@ -172,6 +172,8 @@ describe("v2 Worker contract", () => {
       return Response.json({
         movie_results: [{ id: 10, title: "Example Movie", original_title: "Example Movie", overview: "", genre_ids: [18] }],
         person_results: [{ id: 12, name: "Example Person", known_for_department: "Acting", known_for: [] }],
+        tv_season_results: [{ id: 13, season_number: 1, name: "Restricted Series Season", overview: "", episode_count: 8 }],
+        tv_episode_results: [{ id: 14, show_id: 15, season_number: 1, episode_number: 1, name: "Restricted Episode", overview: "" }],
       });
     }));
 
@@ -183,6 +185,14 @@ describe("v2 Worker contract", () => {
     expect(value.source).toBe("imdb_id");
     expect(value.external_id).toBe("tt0000010");
     expect(value.results.map((item) => item.entity_kind)).toEqual(["movie", "person"]);
+
+    const unlocked = await worker.fetch(
+      request("/v2/find/tt0000010?source=imdb_id&language=vi-VN&include_adult=true"),
+      env(),
+      context,
+    );
+    const unlockedValue = await unlocked.json() as { results: Array<{ entity_kind: string }> };
+    expect(unlockedValue.results.map((item) => item.entity_kind)).toEqual(["movie", "person", "season", "episode"]);
   });
 
   it("adds stable person and title summaries to TMDb credit details", async () => {
@@ -227,6 +237,115 @@ describe("v2 Worker contract", () => {
     expect(value.credit_id).toBe("52fe425bc3a36847f80181c1");
     expect(value.person_summary).toMatchObject({ entity_kind: "person", id: 6384 });
     expect(value.title_summary).toMatchObject({ entity_kind: "movie", id: 603 });
+  });
+
+  it("partitions person and collection titles by the adult gate", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      const safe = { id: 10, media_type: "movie", title: "Safe", original_title: "Safe", overview: "", genre_ids: [], adult: false };
+      const restricted = { id: 11, media_type: "movie", title: "Restricted", original_title: "Restricted", overview: "", genre_ids: [], adult: true };
+      if (url.pathname.endsWith("/person/12")) {
+        return Response.json({
+          id: 12,
+          name: "Example Person",
+          known_for: [safe, restricted],
+          combined_credits: {
+            cast: [
+              { ...safe, media_type: "movie", credit_id: "safe-credit", name: "Safe" },
+              { ...restricted, media_type: "movie", credit_id: "adult-credit", name: "Restricted" },
+            ],
+            crew: [],
+          },
+        });
+      }
+      if (url.pathname.endsWith("/collection/13/images")) return Response.json({});
+      if (url.pathname.endsWith("/collection/13")) {
+        return Response.json({ id: 13, name: "Collection", parts: [safe, restricted] });
+      }
+      throw new Error(`Unexpected TMDb route ${url.pathname}`);
+    }));
+
+    const safePerson = await worker.fetch(request("/v2/entities/person/12?language=en-US"), env(), context);
+    const safePersonValue = await safePerson.json() as {
+      known_for: Array<{ id: number }>;
+      credits: { cast: Array<{ id: number; adult: boolean }> };
+    };
+    expect(safePersonValue.known_for.map((item) => item.id)).toEqual([10]);
+    expect(safePersonValue.credits.cast).toEqual([expect.objectContaining({ id: 10, adult: false })]);
+
+    const adultPerson = await worker.fetch(request("/v2/entities/person/12?language=en-US&include_adult=true"), env(), context);
+    const adultPersonValue = await adultPerson.json() as {
+      known_for: Array<{ id: number }>;
+      credits: { cast: Array<{ id: number; adult: boolean }> };
+    };
+    expect(adultPersonValue.known_for.map((item) => item.id)).toEqual([10, 11]);
+    expect(adultPersonValue.credits.cast.map((item) => item.adult)).toEqual([false, true]);
+
+    const safeCollection = await worker.fetch(request("/v2/entities/collection/13?language=en-US"), env(), context);
+    expect((await safeCollection.json() as { parts: Array<{ id: number }> }).parts.map((item) => item.id)).toEqual([10]);
+    const adultCollection = await worker.fetch(
+      request("/v2/entities/collection/13?language=en-US&include_adult=true"),
+      env(),
+      context,
+    );
+    expect((await adultCollection.json() as { parts: Array<{ id: number }> }).parts.map((item) => item.id)).toEqual([10, 11]);
+  });
+
+  it("defensively filters organization and keyword discovery responses", async () => {
+    const upstream = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      if (url.pathname.endsWith("/company/14")) return Response.json({ id: 14, name: "Studio" });
+      if (url.pathname.endsWith("/keyword/16")) return Response.json({ id: 16, name: "example" });
+      if (url.pathname.endsWith("/discover/movie")) {
+        return Response.json({ page: 1, total_pages: 1, results: [
+          { id: 10, title: "Safe", original_title: "Safe", overview: "", genre_ids: [], adult: false },
+          { id: 11, title: "Restricted", original_title: "Restricted", overview: "", genre_ids: [], adult: true },
+        ] });
+      }
+      throw new Error(`Unexpected TMDb route ${url.pathname}`);
+    });
+    vi.stubGlobal("fetch", upstream);
+
+    const company = await worker.fetch(request("/v2/entities/company/14?language=en-US"), env(), context);
+    expect((await company.json() as { titles: { results: Array<{ id: number }> } }).titles.results.map((item) => item.id)).toEqual([10]);
+    const keyword = await worker.fetch(request("/v2/entities/keyword/16?language=en-US"), env(), context);
+    expect((await keyword.json() as { titles: { results: Array<{ id: number }> } }).titles.results.map((item) => item.id)).toEqual([10]);
+    const unlocked = await worker.fetch(
+      request("/v2/entities/company/14?language=en-US&include_adult=true"),
+      env(),
+      context,
+    );
+    expect((await unlocked.json() as { titles: { results: Array<{ id: number }> } }).titles.results.map((item) => item.id)).toEqual([10, 11]);
+    expect(upstream).toHaveBeenCalled();
+  });
+
+  it("hides an adult credit detail unless the request is explicitly unlocked", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json({
+      id: "adult-credit",
+      credit_type: "cast",
+      media_type: "movie",
+      person: { id: 12, name: "Example Person" },
+      media: {
+        id: 99,
+        title: "Restricted",
+        original_title: "Restricted",
+        overview: "",
+        genre_ids: [],
+        adult: true,
+      },
+    })));
+
+    const hidden = await worker.fetch(request("/v2/credits/adult-credit?language=en-US"), env(), context);
+    expect(hidden.status).toBe(404);
+    await expect(hidden.json()).resolves.toMatchObject({ error: { code: "entity_not_found" } });
+
+    const visible = await worker.fetch(
+      request("/v2/credits/adult-credit?language=en-US&include_adult=true"),
+      env(),
+      context,
+    );
+    expect(visible.status).toBe(200);
+    expect((await visible.json() as { title_summary: { adult: boolean } }).title_summary.adult).toBe(true);
   });
 
   it("returns a deep title that conforms to the v2 schema", async () => {

@@ -5,6 +5,21 @@
   "overview": "",
   "poster_path": null,
   "backdrop_path": null,
-  "parts": [],
+  "parts": [
+    {
+      "entity_kind": "movie",
+      "id": 10,
+      "media_type": "movie",
+      "title": "Example Movie",
+      "original_title": "Example Movie",
+      "overview": "A safe canonical collection entry.",
+      "poster_path": null,
+      "backdrop_path": null,
+      "release_date": "2026-08-25",
+      "vote_average": 8.2,
+      "genre_ids": [18],
+      "adult": false
+    }
+  ],
   "images": { "backdrops": [], "posters": [], "logos": [] }
 }

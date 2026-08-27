@@ -23,7 +23,7 @@ export function titleSummaryV2(item: TmdbTitle, fallbackType?: MediaType) {
   return value ? { entity_kind: value.media_type, ...value, adult: (item as TmdbTitle & { adult?: boolean }).adult ?? false } : null;
 }
 
-export function personSummary(item: TmdbPerson) {
+export function personSummary(item: TmdbPerson, includeAdult = false) {
   return {
     entity_kind: "person" as const,
     id: item.id,
@@ -31,7 +31,7 @@ export function personSummary(item: TmdbPerson) {
     profile_path: item.profile_path ?? null,
     known_for_department: item.known_for_department ?? null,
     popularity: item.popularity ?? 0,
-    known_for: (item.known_for ?? [])
+    known_for: visibleTitles(item.known_for, includeAdult)
       .map((value) => titleSummaryV2(value))
       .filter((value): value is NonNullable<typeof value> => value !== null),
   };
@@ -62,14 +62,14 @@ export function keywordSummary(item: TmdbKeyword) {
   return { entity_kind: "keyword" as const, id: item.id, name: item.name ?? "" };
 }
 
-export function searchEntity(item: Record<string, unknown>, fallbackKind?: EntityKind) {
+export function searchEntity(item: Record<string, unknown>, fallbackKind?: EntityKind, includeAdult = false) {
   const kind = typeof item.media_type === "string" ? item.media_type : fallbackKind;
   switch (kind) {
     case "movie":
     case "tv":
       return titleSummaryV2(item as unknown as TmdbTitle, kind);
     case "person":
-      return personSummary(item as unknown as TmdbPerson);
+      return personSummary(item as unknown as TmdbPerson, includeAdult);
     case "collection":
       return collectionSummary(item as unknown as TmdbCollection);
     case "company":
@@ -83,27 +83,28 @@ export function searchEntity(item: Record<string, unknown>, fallbackKind?: Entit
   }
 }
 
-export function entityPage(page: TmdbPage<Record<string, unknown>>, fallbackKind?: EntityKind) {
+export function entityPage(page: TmdbPage<Record<string, unknown>>, fallbackKind?: EntityKind, includeAdult = false) {
   return {
     page: Math.max(1, page.page),
     total_pages: Math.min(Math.max(0, page.total_pages), 500),
     results: page.results
-      .map((item) => searchEntity(item, fallbackKind))
+      .filter((item) => includeAdult || item.adult !== true)
+      .map((item) => searchEntity(item, fallbackKind, includeAdult))
       .filter((item): item is NonNullable<typeof item> => item !== null),
   };
 }
 
-export function titlePageV2(source: TmdbPage<TmdbTitle>, type?: MediaType) {
+export function titlePageV2(source: TmdbPage<TmdbTitle>, type?: MediaType, includeAdult = false) {
   return {
     page: Math.max(1, source.page),
     total_pages: Math.min(Math.max(0, source.total_pages), 500),
-    results: source.results
+    results: visibleTitles(source.results, includeAdult)
       .map((item) => titleSummaryV2(item, type))
       .filter((item): item is NonNullable<typeof item> => item !== null),
   };
 }
 
-export function titleDetailV2(item: TmdbTitleV2, type: MediaType) {
+export function titleDetailV2(item: TmdbTitleV2, type: MediaType, includeAdult = false) {
   const base = titleSummaryV2(item, type)!;
   const credits = item.aggregate_credits ?? item.credits;
   return {
@@ -133,17 +134,17 @@ export function titleDetailV2(item: TmdbTitleV2, type: MediaType) {
     images: normalizeImages(item.images),
     videos: (item.videos?.results ?? []).map(video),
     reviews: page(item.reviews, review),
-    recommendations: titlePageV2(item.recommendations ?? emptyPage(), type),
-    similar: titlePageV2(item.similar ?? emptyPage(), type).results,
+    recommendations: titlePageV2(item.recommendations ?? emptyPage(), type, includeAdult),
+    similar: titlePageV2(item.similar ?? emptyPage(), type, includeAdult).results,
     release_information: type === "movie" ? item.release_dates?.results ?? [] : item.content_ratings?.results ?? [],
     translations: item.translations?.translations ?? [],
     watch_providers: normalizeProviders(item["watch/providers"]?.results ?? {}),
   };
 }
 
-export function personDetail(item: TmdbPerson) {
+export function personDetail(item: TmdbPerson, includeAdult = false) {
   return {
-    ...personSummary(item),
+    ...personSummary(item, includeAdult),
     biography: item.biography ?? "",
     birthday: item.birthday ?? null,
     deathday: item.deathday ?? null,
@@ -152,36 +153,41 @@ export function personDetail(item: TmdbPerson) {
     also_known_as: item.also_known_as ?? [],
     images: (item.images?.profiles ?? []).map((value) => image(value, "profile")),
     credits: {
-      cast: (item.combined_credits?.cast ?? []).map(credit),
-      crew: (item.combined_credits?.crew ?? []).map(credit),
+      cast: visibleTitles(item.combined_credits?.cast, includeAdult).map(credit),
+      crew: visibleTitles(item.combined_credits?.crew, includeAdult).map(credit),
     },
     external_ids: compactRecord(item.external_ids ?? {}),
   };
 }
 
-export function collectionDetail(item: TmdbCollection) {
+export function collectionDetail(item: TmdbCollection, includeAdult = false) {
   return {
     ...collectionSummary(item),
-    parts: (item.parts ?? [])
+    parts: visibleTitles(item.parts, includeAdult)
       .map((value) => titleSummaryV2(value, "movie"))
       .filter((value): value is NonNullable<typeof value> => value !== null),
     images: normalizeImages(item.images),
   };
 }
 
-export function companyDetail(item: TmdbCompany, kind: "company" | "network", titles: TmdbPage<TmdbTitle>) {
+export function companyDetail(
+  item: TmdbCompany,
+  kind: "company" | "network",
+  titles: TmdbPage<TmdbTitle>,
+  includeAdult = false,
+) {
   return {
     ...companySummary(item, kind),
     description: item.description ?? "",
     headquarters: item.headquarters ?? null,
     homepage: item.homepage ?? null,
     parent_company: item.parent_company ? companySummary(item.parent_company) : null,
-    titles: titlePageV2(titles),
+    titles: titlePageV2(titles, undefined, includeAdult),
   };
 }
 
-export function keywordDetail(item: TmdbKeyword, titles: TmdbPage<TmdbTitle>) {
-  return { ...keywordSummary(item), titles: titlePageV2(titles) };
+export function keywordDetail(item: TmdbKeyword, titles: TmdbPage<TmdbTitle>, includeAdult = false) {
+  return { ...keywordSummary(item), titles: titlePageV2(titles, undefined, includeAdult) };
 }
 
 export function seasonDetail(seriesID: number, item: TmdbSeason) {
@@ -226,6 +232,7 @@ export function credit(value: TmdbCredit) {
     poster_path: value.poster_path ?? null,
     order: value.order ?? null,
     episode_count: value.episode_count ?? null,
+    adult: value.adult ?? false,
   };
 }
 
@@ -292,6 +299,7 @@ export function relatedResource(
   resource: string,
   raw: Record<string, unknown>,
   type: MediaType,
+  includeAdult = false,
 ) {
   switch (resource) {
     case "credits": {
@@ -306,7 +314,7 @@ export function relatedResource(
       return page(raw as unknown as TmdbPage<TmdbReview>, review);
     case "recommendations":
     case "similar":
-      return titlePageV2(raw as unknown as TmdbPage<TmdbTitle>, type);
+      return titlePageV2(raw as unknown as TmdbPage<TmdbTitle>, type, includeAdult);
     case "external-ids":
       return { external_ids: compactRecord(raw as Record<string, string | number | null | undefined>) };
     case "watch-providers":
@@ -321,6 +329,10 @@ export function relatedResource(
     default:
       return raw;
   }
+}
+
+function visibleTitles<T extends { adult?: boolean }>(values: T[] | undefined, includeAdult: boolean): T[] {
+  return (values ?? []).filter((value) => includeAdult || value.adult !== true);
 }
 
 function provider(value: TmdbProvider) {

@@ -144,7 +144,7 @@
 "Translations" = "Translations";
 "External identifiers" = "External identifiers";
 "Source repositories" = "Source repositories";
-"Catalog metadata description" = "Explore TMDb image and video galleries, member reviews, catalog recommendations, regional release dates, certifications, localized titles, translations and external identifiers across titles, seasons and episodes.";
+"Catalog metadata description" = "Explore TMDb image and video galleries, member reviews, recommendations, regional release dates, certifications, localized titles, translations and external identifiers. The local adult-content PIN applies to Search and every related Person, Collection, Company, Network, Keyword and Credit Detail surface.";
 "Details" = "Details";
 "Images" = "Images";
 "Catalog image" = "TMDb catalog image";

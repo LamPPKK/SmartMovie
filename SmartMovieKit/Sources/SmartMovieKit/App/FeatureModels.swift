@@ -356,7 +356,7 @@ public final class SearchViewModel {
                       query.trimmingCharacters(in: .whitespacesAndNewlines) == expectedQuery,
                       scope == expectedScope,
                       entityScope == expectedEntityScope else { return }
-                entities = result.results
+                entities = result.results.applyingAdultVisibility(includeAdult: includeAdult)
                 page = result.page
                 canLoadMore = result.page < result.totalPages
                 isLoading = false
@@ -393,7 +393,8 @@ public final class SearchViewModel {
                 let result = try await catalogV2.findExternalID(
                     externalID,
                     source: expectedSource,
-                    language: language
+                    language: language,
+                    includeAdult: includeAdult
                 )
                 guard !Task.isCancelled,
                       searchGeneration == expectedGeneration,
@@ -401,7 +402,7 @@ public final class SearchViewModel {
                       mode == .externalID,
                       query.trimmingCharacters(in: .whitespacesAndNewlines) == externalID,
                       externalIDSource == expectedSource else { return }
-                entities = result.results.filter { includeAdult || !$0.isAdultTitle }
+                entities = result.results.applyingAdultVisibility(includeAdult: includeAdult)
                 isLoading = false
             } catch is CancellationError {
                 return
@@ -472,7 +473,7 @@ public final class SearchViewModel {
                       query.trimmingCharacters(in: .whitespacesAndNewlines) == expectedQuery,
                       scope == expectedScope,
                       entityScope == expectedEntityScope else { return }
-                entities.append(contentsOf: result.results.filter { incoming in
+                entities.append(contentsOf: result.results.applyingAdultVisibility(includeAdult: includeAdult).filter { incoming in
                     !entities.contains(where: { $0.id == incoming.id })
                 })
                 page = result.page
@@ -487,13 +488,12 @@ public final class SearchViewModel {
             }
         }
     }
-
     public func applyAdultVisibility(includeAdult: Bool) {
         self.includeAdult = includeAdult
         guard !includeAdult else { return }
         searchTask?.cancel()
         searchGeneration += 1
-        entities.removeAll(where: \.isAdultTitle)
+        entities = entities.applyingAdultVisibility(includeAdult: false)
         isLoading = false
         canLoadMore = false
     }

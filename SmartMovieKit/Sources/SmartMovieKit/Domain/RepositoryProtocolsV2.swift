@@ -11,7 +11,12 @@ public protocol CatalogV2Repository: Sendable {
         includeAdult: Bool
     ) async throws -> PagedResult<CatalogEntity>
     func searchEntities(_ request: EntitySearchRequest) async throws -> PagedResult<CatalogEntity>
-    func findExternalID(_ externalID: String, source: ExternalIDSource, language: String) async throws -> ExternalIDFindResult
+    func findExternalID(
+        _ externalID: String,
+        source: ExternalIDSource,
+        language: String,
+        includeAdult: Bool
+    ) async throws -> ExternalIDFindResult
     func deepDetail(
         mediaType: MediaType,
         id: Int,
@@ -19,13 +24,19 @@ public protocol CatalogV2Repository: Sendable {
         region: String?,
         includeAdult: Bool
     ) async throws -> TitleDetailV2
-    func person(id: Int, language: String) async throws -> PersonDetail
-    func collection(id: Int, language: String) async throws -> CollectionDetail
-    func organization(kind: EntityKind, id: Int, language: String, page: Int) async throws -> OrganizationDetail
-    func keyword(id: Int, language: String, page: Int) async throws -> KeywordDetail
+    func person(id: Int, language: String, includeAdult: Bool) async throws -> PersonDetail
+    func collection(id: Int, language: String, includeAdult: Bool) async throws -> CollectionDetail
+    func organization(
+        kind: EntityKind,
+        id: Int,
+        language: String,
+        page: Int,
+        includeAdult: Bool
+    ) async throws -> OrganizationDetail
+    func keyword(id: Int, language: String, page: Int, includeAdult: Bool) async throws -> KeywordDetail
     func season(seriesID: Int, number: Int, language: String) async throws -> SeasonDetail
     func episode(seriesID: Int, season: Int, number: Int, language: String) async throws -> EpisodeDetail
-    func credit(id: String, language: String) async throws -> CreditDetail
+    func credit(id: String, language: String, includeAdult: Bool) async throws -> CreditDetail
 }
 
 public protocol AccountRecommendationsLoading: Sendable {

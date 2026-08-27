@@ -13,7 +13,7 @@ SmartMovie is an advertising-free movie and television catalog. It does not crea
 - **Account content:** The Worker does not store Favorites, Watchlist, ratings, recommendations, or custom-list contents. Those values remain at TMDb and in local client databases/caches.
 - **Catalog change refresh:** The Worker stores non-personal TMDb Movie/TV/Person entity IDs, UTC-date cache revisions, and pagination cursors in D1 so changed catalog entries stop using an older cache key. It does not expose this operational data through an app route.
 - **Offline library and outbox:** Apple apps use SwiftData/private CloudKit where configured; Android uses Room/local backup; desktop and web use their platform key-value store. Pending mutations include entity/list identifiers and requested state but never credentials.
-- **Adult-content PIN:** The six-digit PIN and lockout state stay on the individual device. The PIN is not sent to the Worker, TMDb, CloudKit, or another SmartMovie client.
+- **Adult-content PIN:** The six-digit PIN and lockout state stay on the individual device. The PIN is not sent to the Worker, TMDb, CloudKit, or another SmartMovie client. Only the resulting `include_adult` boolean partitions catalog requests and cache keys; Search, External ID, title/entity details, credits, recommendations, and similar titles fail closed and are filtered again before display.
 - **Artwork and trailers:** Images load from TMDb's CDN. Opening a trailer sends its YouTube identifier to YouTube or the system browser.
 - **Availability:** Provider data comes from JustWatch through TMDb. SmartMovie opens only the availability URL supplied by TMDb.
 - **Watch/Wear companions:** Safe active-title or exact-episode context and remote commands travel between paired devices. Adult titles and independent account sessions are excluded.
@@ -36,7 +36,7 @@ Each provider receives the technical network information required to deliver its
 
 ## Children and sensitive data
 
-Adult content is disabled by default and requires local confirmation plus a six-digit PIN. This application-level control is not a replacement for operating-system parental controls, especially on Web. Adult content is excluded from Watch/Wear, public screenshots, notifications, and store preview metadata.
+Adult content is disabled by default and requires local confirmation plus a six-digit PIN. This application-level control is not a replacement for operating-system parental controls, especially on Web. The gate covers every title-bearing catalog surface, including Person/Collection/Company/Network/Keyword and Credit Detail. Adult content is excluded from Watch/Wear, public screenshots, notifications, and store preview metadata.
 
 Search and list text should not be used to submit personal, confidential, or sensitive information.
 

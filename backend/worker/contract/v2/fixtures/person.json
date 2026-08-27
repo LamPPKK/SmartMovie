@@ -5,7 +5,22 @@
   "profile_path": null,
   "known_for_department": "Directing",
   "popularity": 9.5,
-  "known_for": [],
+  "known_for": [
+    {
+      "entity_kind": "movie",
+      "id": 10,
+      "media_type": "movie",
+      "title": "Example Movie",
+      "original_title": "Example Movie",
+      "overview": "A safe canonical credit.",
+      "poster_path": null,
+      "backdrop_path": null,
+      "release_date": "2026-08-25",
+      "vote_average": 8.2,
+      "genre_ids": [18],
+      "adult": false
+    }
+  ],
   "biography": "",
   "birthday": null,
   "deathday": null,
@@ -13,6 +28,20 @@
   "homepage": null,
   "also_known_as": [],
   "images": [],
-  "credits": { "cast": [], "crew": [] },
+  "credits": {
+    "cast": [
+      {
+        "credit_id": "credit-safe-10",
+        "id": 10,
+        "media_type": "movie",
+        "title": "Example Movie",
+        "character": "Lead",
+        "job": null,
+        "department": "Acting",
+        "adult": false
+      }
+    ],
+    "crew": []
+  },
   "external_ids": {}
 }

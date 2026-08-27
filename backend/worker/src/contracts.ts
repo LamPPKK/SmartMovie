@@ -8,6 +8,7 @@ export interface TmdbPage<T> {
 
 export interface TmdbTitle {
   id: number;
+  adult?: boolean;
   media_type?: string;
   title?: string;
   name?: string;

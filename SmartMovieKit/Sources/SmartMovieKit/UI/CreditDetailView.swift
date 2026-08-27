@@ -15,13 +15,17 @@ struct CreditShelf: View {
     let title: String
     let credits: [Credit]
 
+    private var visibleCredits: [Credit] {
+        CatalogAdultVisibility.credits(credits, includeAdult: container.adultContent.includeAdult)
+    }
+
     var body: some View {
-        if !credits.isEmpty {
+        if !visibleCredits.isEmpty {
             VStack(alignment: .leading, spacing: 14) {
                 SectionTitle(title)
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(alignment: .top, spacing: 16) {
-                        ForEach(Array(credits.prefix(40).enumerated()), id: \.offset) { _, credit in
+                        ForEach(Array(visibleCredits.prefix(40).enumerated()), id: \.offset) { _, credit in
                             creditLink(credit)
                         }
                     }
@@ -82,7 +86,8 @@ struct CreditShelf: View {
             title: title,
             originalTitle: title,
             overview: "",
-            posterPath: credit.posterPath
+            posterPath: credit.posterPath,
+            isAdult: credit.adult == true
         )
     }
 
@@ -105,6 +110,11 @@ public struct CreditDetailView: View {
     @State private var state: Loadable<CreditDetail> = .idle
     private let route: CreditRoute
 
+    private var includeAdult: Bool { container.adultContent.includeAdult }
+    private var loadKey: String {
+        "\(route.creditID):\(LocaleResolver.tmdbLanguage(for: locale)):\(includeAdult)"
+    }
+
     public init(route: CreditRoute) { self.route = route }
 
     public var body: some View {
@@ -126,7 +136,7 @@ public struct CreditDetailView: View {
         .navigationTitle(String(localized: "Credit details", bundle: .module))
         .inlineNavigationTitle()
         .cinemaScreen()
-        .task(id: route.creditID) { await load() }
+        .task(id: loadKey) { await load() }
     }
 
     private func content(_ detail: CreditDetail) -> some View {
@@ -139,7 +149,7 @@ public struct CreditDetailView: View {
                     .catalogNavigationButtonStyle()
                 }
                 roleSection(detail)
-                if let title = detail.titleSummary {
+                if let title = detail.titleSummary, includeAdult || !title.isAdult {
                     VStack(alignment: .leading, spacing: 12) {
                         SectionTitle(String(localized: "Title", bundle: .module))
                         NavigationLink(value: title) { PosterCard(title: title) }
@@ -188,11 +198,16 @@ public struct CreditDetailView: View {
             return
         }
         state = .loading
+        let expectedLoadKey = loadKey
+        let requestAllowsAdult = includeAdult
         do {
-            state = .loaded(try await catalog.credit(
+            let detail = try await catalog.credit(
                 id: route.creditID,
-                language: LocaleResolver.tmdbLanguage(for: locale)
-            ))
+                language: LocaleResolver.tmdbLanguage(for: locale),
+                includeAdult: requestAllowsAdult
+            )
+            guard !Task.isCancelled, loadKey == expectedLoadKey else { return }
+            state = .loaded(detail.applyingAdultVisibility(includeAdult: requestAllowsAdult))
         } catch is CancellationError {
             return
         } catch {

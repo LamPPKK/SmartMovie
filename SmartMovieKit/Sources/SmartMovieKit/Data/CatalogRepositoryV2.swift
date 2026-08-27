@@ -40,11 +40,13 @@ extension RemoteCatalogRepository: CatalogV2Repository {
     public func findExternalID(
         _ externalID: String,
         source: ExternalIDSource,
-        language: String
+        language: String,
+        includeAdult: Bool
     ) async throws -> ExternalIDFindResult {
         try await client.get("v2/find/\(externalID)", queryItems: [
             URLQueryItem(name: "source", value: source.rawValue),
-            URLQueryItem(name: "language", value: language)
+            URLQueryItem(name: "language", value: language),
+            URLQueryItem(name: "include_adult", value: String(includeAdult))
         ])
     }
 
@@ -63,26 +65,40 @@ extension RemoteCatalogRepository: CatalogV2Repository {
         return try await client.get("v2/titles/\(mediaType.rawValue)/\(id)", queryItems: queryItems)
     }
 
-    public func person(id: Int, language: String) async throws -> PersonDetail {
-        try await client.get("v2/entities/person/\(id)", queryItems: [URLQueryItem(name: "language", value: language)])
-    }
-
-    public func collection(id: Int, language: String) async throws -> CollectionDetail {
-        try await client.get("v2/entities/collection/\(id)", queryItems: [URLQueryItem(name: "language", value: language)])
-    }
-
-    public func organization(kind: EntityKind, id: Int, language: String, page: Int) async throws -> OrganizationDetail {
-        guard kind == .company || kind == .network else { throw APIError.notFound }
-        return try await client.get("v2/entities/\(kind.rawValue)/\(id)", queryItems: [
+    public func person(id: Int, language: String, includeAdult: Bool) async throws -> PersonDetail {
+        try await client.get("v2/entities/person/\(id)", queryItems: [
             URLQueryItem(name: "language", value: language),
-            URLQueryItem(name: "page", value: String(page))
+            URLQueryItem(name: "include_adult", value: String(includeAdult))
         ])
     }
 
-    public func keyword(id: Int, language: String, page: Int) async throws -> KeywordDetail {
+    public func collection(id: Int, language: String, includeAdult: Bool) async throws -> CollectionDetail {
+        try await client.get("v2/entities/collection/\(id)", queryItems: [
+            URLQueryItem(name: "language", value: language),
+            URLQueryItem(name: "include_adult", value: String(includeAdult))
+        ])
+    }
+
+    public func organization(
+        kind: EntityKind,
+        id: Int,
+        language: String,
+        page: Int,
+        includeAdult: Bool
+    ) async throws -> OrganizationDetail {
+        guard kind == .company || kind == .network else { throw APIError.notFound }
+        return try await client.get("v2/entities/\(kind.rawValue)/\(id)", queryItems: [
+            URLQueryItem(name: "language", value: language),
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "include_adult", value: String(includeAdult))
+        ])
+    }
+
+    public func keyword(id: Int, language: String, page: Int, includeAdult: Bool) async throws -> KeywordDetail {
         try await client.get("v2/entities/keyword/\(id)", queryItems: [
             URLQueryItem(name: "language", value: language),
-            URLQueryItem(name: "page", value: String(page))
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "include_adult", value: String(includeAdult))
         ])
     }
 
@@ -97,10 +113,13 @@ extension RemoteCatalogRepository: CatalogV2Repository {
         )
     }
 
-    public func credit(id: String, language: String) async throws -> CreditDetail {
+    public func credit(id: String, language: String, includeAdult: Bool) async throws -> CreditDetail {
         try await client.get(
             "v2/credits/\(id)",
-            queryItems: [URLQueryItem(name: "language", value: language)]
+            queryItems: [
+                URLQueryItem(name: "language", value: language),
+                URLQueryItem(name: "include_adult", value: String(includeAdult))
+            ]
         )
     }
 }

@@ -144,7 +144,7 @@
 "Translations" = "翻译";
 "External identifiers" = "外部标识符";
 "Source repositories" = "源代码仓库";
-"Catalog metadata description" = "查看影片、季和剧集的 TMDb 图片与视频画廊、影评、推荐、地区发行日期、分级、本地化片名、翻译和外部标识符。";
+"Catalog metadata description" = "查看 TMDb 图片、视频、影评、推荐、发行信息、本地化内容和外部标识符。本地成人内容 PIN 适用于搜索及人物、合集、公司、电视网、关键词和演职员详情的所有相关页面。";
 "Details" = "详细信息";
 "Images" = "图片";
 "Catalog image" = "TMDb 目录图片";

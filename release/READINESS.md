@@ -3,7 +3,7 @@
 ## Automated source gates
 
 - Canonical `/v1` and `/v2` OpenAPI/fixtures validate public success and normalized error responses.
-- Apple and Android manifests pin product `3.0.0`, contract `2.0.0`, and OpenAPI SHA-256 `36df27d7f9e20dc7fdd544f3bdc7e3d231f71f17a10eecec92a17bc0de62cc2e`.
+- Apple and Android manifests pin product `3.0.0`, contract `2.0.0`, and OpenAPI SHA-256 `1b653b89c455c039b0b217e1fee69cae8a86857f662f6338cd85aea7d4b86162`.
 - Native Android and KMP consume the same versioned snapshot; production promotion verifies Android `main` before deploy.
 - Worker tests cover v3/v4 mapping, cache partitions, rate limiting, D1 migrations, encryption, callback/CSRF/CORS controls, session expiry/revoke, durable mutation idempotency, and rollback paths.
 - Swift, native Android, and KMP test canonical discriminator/nullable/unknown-field fixtures and local-first storage/outbox behavior.

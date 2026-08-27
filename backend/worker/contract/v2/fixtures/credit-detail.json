@@ -24,7 +24,8 @@
     "backdrop_path": null,
     "release_date": "1999-03-30",
     "vote_average": 8.2,
-    "genre_ids": [28, 878]
+    "genre_ids": [28, 878],
+    "adult": false
   },
   "future_field": "ignored by clients"
 }

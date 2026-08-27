@@ -82,6 +82,7 @@ export interface TmdbCredit {
   known_for_department?: string;
   order?: number;
   episode_count?: number;
+  adult?: boolean;
 }
 
 export interface TmdbCreditDetail {

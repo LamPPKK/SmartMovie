@@ -254,7 +254,12 @@ final class APIClientTests: XCTestCase {
         """#)
         let repository = RemoteCatalogRepository(client: makeClient())
 
-        let response = try await repository.findExternalID("tt0133093", source: .imdb, language: "vi-VN")
+        let response = try await repository.findExternalID(
+            "tt0133093",
+            source: .imdb,
+            language: "vi-VN",
+            includeAdult: false
+        )
 
         XCTAssertEqual(response.externalID, "tt0133093")
         XCTAssertEqual(response.results.map(\.kind), [.movie])
@@ -263,6 +268,7 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(components.path, "/api/v2/find/tt0133093")
         XCTAssertEqual(components.queryItems?.first(where: { $0.name == "source" })?.value, "imdb_id")
         XCTAssertEqual(components.queryItems?.first(where: { $0.name == "language" })?.value, "vi-VN")
+        XCTAssertEqual(components.queryItems?.first(where: { $0.name == "include_adult" })?.value, "false")
     }
 
     func testV2CreditDetailDecodesStablePersonAndTitleLinks() async throws {
@@ -279,7 +285,11 @@ final class APIClientTests: XCTestCase {
         """#)
         let repository = RemoteCatalogRepository(client: makeClient())
 
-        let response = try await repository.credit(id: "52fe425bc3a36847f80181c1", language: "ko-KR")
+        let response = try await repository.credit(
+            id: "52fe425bc3a36847f80181c1",
+            language: "ko-KR",
+            includeAdult: true
+        )
 
         XCTAssertEqual(response.character, "Neo")
         XCTAssertEqual(response.personSummary?.name, "Keanu Reeves")
@@ -288,6 +298,7 @@ final class APIClientTests: XCTestCase {
         let components = try XCTUnwrap(URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false))
         XCTAssertEqual(components.path, "/api/v2/credits/52fe425bc3a36847f80181c1")
         XCTAssertEqual(components.queryItems?.first(where: { $0.name == "language" })?.value, "ko-KR")
+        XCTAssertEqual(components.queryItems?.first(where: { $0.name == "include_adult" })?.value, "true")
     }
 
     func testInstallationClientIDIsStableAndRepairsInvalidStoredValue() async throws {
