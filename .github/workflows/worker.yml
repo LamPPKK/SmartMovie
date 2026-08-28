@@ -3,10 +3,10 @@ name: Catalog Worker
 on:
   push:
     branches: [main, develop]
-    paths: [backend/worker/**, release/train.json, scripts/verify-release.sh, .github/workflows/worker.yml]
+    paths: [backend/worker/**, release/train.json, scripts/verify-release.sh, scripts/release-preflight.sh, .github/workflows/worker.yml]
   pull_request:
     branches: [main, develop]
-    paths: [backend/worker/**, release/train.json, scripts/verify-release.sh, .github/workflows/worker.yml]
+    paths: [backend/worker/**, release/train.json, scripts/verify-release.sh, scripts/release-preflight.sh, .github/workflows/worker.yml]
   workflow_dispatch:
     inputs:
       deploy_production:
@@ -109,7 +109,7 @@ jobs:
 
   production:
     name: Approved production deploy
-    if: github.event_name == 'workflow_dispatch' && inputs.deploy_production
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy_production && github.ref == 'refs/heads/main'
     needs: staging
     runs-on: ubuntu-latest
     timeout-minutes: 15

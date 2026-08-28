@@ -227,6 +227,8 @@ The shared release manifest pins SmartMovie `3.0.0` and contract `2.0.0`. Apple 
 
 Before App Store submission, the release owner must rotate any historical TMDb credential, activate both Worker domains, configure signing and the CloudKit production schema, add approved TMDb/platform artwork, publish support and privacy URLs, and complete platform-specific screenshots and metadata.
 
+Run `./scripts/release-preflight.sh staging` before dispatching staging and `./scripts/release-preflight.sh production` before production promotion; reserve `all` for the final combined audit. The read-only preflight verifies the local release/contract checksum, required GitHub environment and repository secret names, production approval/branch protection, Android `main` contract parity where production requires it, public DNS/TLS, and optional local Wrangler authentication. After deployment, add `--live` to require the exact live `3.0.0` capability surface and a real Cloudflare Worker version identifier. It never reads or prints secret values and does not change deployments, secrets, DNS, D1 schemas, or account data.
+
 Follow the [Release runbook](docs/RELEASE_RUNBOOK.md) for staging smoke tests, protected account tests, TestFlight, production promotion, store submission, and rollback. [TMDb coverage](docs/TMDB_COVERAGE.md) records product blockers; [Release readiness](release/READINESS.md) separates automated gates from credentials, DNS, signing, artwork, and store-owner actions that cannot live in source control.
 
 ## Attribution

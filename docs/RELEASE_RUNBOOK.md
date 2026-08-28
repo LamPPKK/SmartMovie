@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Xcode on Apple silicon with iOS, tvOS, watchOS, visionOS, and macOS platform SDKs, plus access to the Apple Developer team.
-- XcodeGen 2.46 or newer, Node.js 24, npm, and a Cloudflare account authenticated by Wrangler.
+- XcodeGen 2.46 or newer, Node.js 24, npm, Python 3, an authenticated GitHub CLI, and a Cloudflare account authenticated by Wrangler when manual Cloudflare operations are required.
 - Editable App IDs for `LamNDT.SmartMovie`, `LamNDT.SmartMovie.watchkitapp`, and `LamNDT.SmartMovie.NativeMac`.
 - Private CloudKit container `iCloud.LamNDT.SmartMovie` assigned to the universal and native Mac catalog App IDs.
 - A newly issued TMDb API Read Access Token. Revoke the historical key that was committed before SmartMovie 2.0.
@@ -39,6 +39,16 @@ npm test
 Verification: Swift tests, Worker type-check, and Worker contract tests all complete with zero failures. Search the repository for `api_key=` and confirm no credential is present.
 
 Current verified local baseline: 67 Swift tests, 98 Worker unit/contract tests, and 9 protected-account smoke-runner tests. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the suite changed intentionally; zero failures is always required.
+
+Before dispatching staging, run the read-only external readiness audit scoped to that environment:
+
+```sh
+./scripts/release-preflight.sh staging
+```
+
+Verification: the command confirms the release checksum, GitHub authentication, required staging environment secret names, `ANDROID_CONTRACT_SYNC_TOKEN`, and staging DNS/TLS without prematurely requiring production readiness. It does not read secret values or change deployments, secrets, DNS, D1 schemas, or account data; public GET requests can still exercise Cloudflare rate limiting/cache behavior. A Wrangler authentication warning is acceptable when deployment is performed only by the protected GitHub workflow; every `FAIL` remains a release blocker.
+
+After each environment is deployed, rerun the scoped post-deploy check, for example `./scripts/release-preflight.sh staging --live`. The `--live` phase requires HTTP 200, the exact release capability flags/locales/entity kinds/adult policy, and a UUID `X-SmartMovie-Worker-Version` from Cloudflare version metadata. Keeping this separate allows a previous compatible Worker version to remain online while the next release is being prepared.
 
 When the contract or release train changes on `main`, confirm the `Sync catalog contract to Android` workflow either proves Android `main` is already byte-equivalent or opens a pull request. For a real diff, Android native plus desktop conformance CI must pass before merge. Production promotion remains blocked until the Android snapshot is on `main`.
 
@@ -93,6 +103,8 @@ The repository now includes opaque iOS/Mac store icons, a separate complete Watc
 ## 5. Promote production
 
 Deploy the CloudKit Development schema to Production in CloudKit Console. Then rerun the protected `Catalog Worker` workflow with `deploy_production` enabled. The production job depends on successful staging deployment and smoke tests, requires Android `main` to match the OpenAPI checksum, fixture checksum, contract version, and release train, and uses the protected `production` environment for manual approval.
+
+Immediately before promotion, run `./scripts/release-preflight.sh production`. This scope requires the production secret set, DNS/TLS, at least one environment reviewer, restricted deployment branches, and exact Android `main` parity for the contract, fixtures, release fields, and canonical Apple source commit. The production workflow independently rejects a dispatch whose ref is not `main`. Use `./scripts/release-preflight.sh all` only for the final combined readiness audit once both environments are provisioned.
 
 The production environment owns the Cloudflare custom domain `catalog.smartmovie.app`. The equivalent manual commands are:
 

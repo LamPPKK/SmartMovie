@@ -10,6 +10,7 @@
 - Native Android CI validates unit/lint/goldens plus phone/TV launch; main and Wear release workflows verify shared signing identity.
 - KMP desktop tests/compile, JS, Wasm, and portable desktop packages are release blockers.
 - Apple source gates cover Swift tests, strict SwiftLint, iOS/Catalyst/tvOS/macOS/watchOS/visionOS builds, analyze, and launch smoke where runtimes are installed. Committed release artwork now supplies opaque iOS/Mac icons, a separate Watch icon set, layered tvOS icons/Top Shelf images, a two-layer visionOS icon stack, and the named iOS launch color. Build-log inspection turns relevant asset warnings into CI failures; visionOS validation runs on Apple silicon.
+- `./scripts/release-preflight.sh staging` and `production` are read-only owner gates for the matching promotion stage; `all` is the final combined audit. They check the source manifest, required GitHub secret names without reading their values, matching DNS/TLS, and optional local Wrangler authentication. Production additionally requires reviewer/branch protection plus exact Android `main` contract, fixture, release-manifest, and canonical-source provenance parity. The scoped post-deploy form such as `./scripts/release-preflight.sh staging --live` requires the exact capability contract and a Cloudflare UUID Worker version header; its public GET can exercise normal rate-limit/cache behavior.
 
 ## Product coverage status
 
