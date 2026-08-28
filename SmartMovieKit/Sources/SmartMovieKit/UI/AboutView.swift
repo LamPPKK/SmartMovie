@@ -39,6 +39,11 @@ public struct AboutView: View {
                 ))
                     .foregroundStyle(CinemaTheme.muted)
                 Text(String(
+                    localized: "Account sync description",
+                    bundle: .module
+                ))
+                    .foregroundStyle(CinemaTheme.muted)
+                Text(String(
                     localized: "Companion episode description",
                     bundle: .module
                 ))

@@ -552,7 +552,11 @@ async function accountLists(request: Request, url: URL, env: WorkerAccountEnv, r
   const payload = listMetadata(body, true);
   return idempotentMutation(request, env, session, typeof body.mutation_id === "string" ? body.mutation_id : undefined, "list:create", async (mutation) => {
     const value = await tmdbV4User<Record<string, unknown>>(env, session.accessToken, "/list", { method: "POST", body: JSON.stringify(payload) }, requestId);
-    return { mutation_id: mutation, ...value };
+    const listID = value.id;
+    if (typeof listID !== "number" || !Number.isSafeInteger(listID) || listID <= 0) {
+      throw new RequestProblem(502, "invalid_upstream_response", "TMDb account services returned an invalid list identifier.");
+    }
+    return { ...value, mutation_id: mutation, list_id: listID };
   }, 201);
 }
 
@@ -669,7 +673,7 @@ async function idempotentMutation(
       "UPDATE account_mutations SET response_json = ?, response_status = ?, completed_at = ? WHERE account_id = ? AND mutation_id = ?",
     ).bind(JSON.stringify(acknowledgement), responseStatus, now, session.row.account_id, id).run();
     await database.prepare("DELETE FROM account_mutations WHERE created_at < ?").bind(now - 7 * 24 * 60 * 60).run();
-    return privateJSON(request, env, result, responseStatus);
+    return privateJSON(request, env, acknowledgement, responseStatus);
   } catch (error) {
     await database.prepare("DELETE FROM account_mutations WHERE account_id = ? AND mutation_id = ? AND completed_at IS NULL")
       .bind(session.row.account_id, id)
@@ -805,13 +809,22 @@ async function jsonBody<T>(request: Request): Promise<T> {
 }
 
 function privateJSON(request: Request, env: WorkerAccountEnv, value: unknown, status = 200): Response {
-  const headers = new Headers({ "Content-Type": "application/json; charset=utf-8", "Cache-Control": "private, no-store", Vary: "Origin" });
+  const response = new Response(JSON.stringify(value), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+  });
+  return applyAccountPrivateHeaders(request, env, response);
+}
+
+export function applyAccountPrivateHeaders(request: Request, env: WorkerAccountEnv, response: Response): Response {
+  response.headers.set("Cache-Control", "private, no-store");
+  response.headers.set("Vary", "Origin");
   const origin = request.headers.get("Origin");
   if (origin && originAllowed(origin, env)) {
-    headers.set("Access-Control-Allow-Origin", origin);
-    headers.set("Access-Control-Allow-Credentials", "true");
+    response.headers.set("Access-Control-Allow-Origin", origin);
+    response.headers.set("Access-Control-Allow-Credentials", "true");
   }
-  return new Response(JSON.stringify(value), { status, headers });
+  return response;
 }
 
 function preflight(request: Request, env: WorkerAccountEnv): Response {

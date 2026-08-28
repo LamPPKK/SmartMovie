@@ -38,7 +38,7 @@ npm test
 
 Verification: Swift tests, Worker type-check, and Worker contract tests all complete with zero failures. Search the repository for `api_key=` and confirm no credential is present.
 
-Current verified local baseline: 67 Swift tests and 96 Worker tests. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the suite changed intentionally; zero failures is always required.
+Current verified local baseline: 67 Swift tests, 98 Worker unit/contract tests, and 9 protected-account smoke-runner tests. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the suite changed intentionally; zero failures is always required.
 
 When the contract or release train changes on `main`, confirm the `Sync catalog contract to Android` workflow either proves Android `main` is already byte-equivalent or opens a pull request. For a real diff, Android native plus desktop conformance CI must pass before merge. Production promotion remains blocked until the Android snapshot is on `main`.
 
@@ -61,7 +61,9 @@ Set the actual staging hostname in `SmartMovie/project.yml` under Debug `CATALOG
 
 Verification: request `/v1/configuration`, `/v2/capabilities`, `/v2/home?media_type=movie&language=en-US`, deep/entity detail, and a deliberately invalid query. The capability response must keep account flags false unless D1 + encryption + callback configuration are present. Valid routes return schema-valid JSON and invalid input returns the normalized envelope with a request ID. Responses/logs must not contain Bearer/access/session tokens, PINs, callback state, or search text. Confirm the `17 * * * *` scheduled trigger is active, invoke it once from Cloudflare, then query D1 directly for one cursor row per kind (`movie`, `tv`, `person`) in `catalog_change_cursors`; do not add an HTTP debug route.
 
-Run the protected account smoke with the dedicated TMDb test account: browser callback and TV polling, profile/state, Favorite/Watchlist, Movie/TV/Episode rating, list create/update/items/delete, logout/revoke, and cleanup. Never use a personal account or leave test content behind.
+Run the automated protected account smoke with the dedicated TMDb test account. It reads profile/state and all four Movie/TV Favorite/Watchlist collections, toggles and restores those four states, sets and restores Movie/TV/Episode ratings, validates both account-recommendation feeds, and exercises list create/update/add/comment-mutation acknowledgement/remove/delete with deletion confirmed by a subsequent `entity_not_found`. Every mutation carries one stable idempotency key across 429, 5xx, connection/body-stream failure, and `mutation_in_progress` retry; every success and error response must remain `private, no-store` and come from one Worker version. The runner restores the original library/rating state and finds/deletes its uniquely named temporary list after success or failure. The staging environment variables `ACCOUNT_TEST_MOVIE_ID`, `ACCOUNT_TEST_TV_ID`, `ACCOUNT_TEST_EPISODE_SERIES_ID`, `ACCOUNT_TEST_EPISODE_SEASON_NUMBER`, and `ACCOUNT_TEST_EPISODE_NUMBER` select known catalog records.
+
+Browser callback approval, TV QR polling, and logout/upstream revoke still require manual protected-device QA with disposable sessions; the persistent CI session must not revoke itself. Never use a personal account or leave test content behind.
 
 Rollback/escalation: the protected workflow automatically runs `wrangler rollback` if post-deploy smoke validation fails. If upstream 401/403 persists, rotate the TMDb secret; do not place it in source or an app build setting.
 

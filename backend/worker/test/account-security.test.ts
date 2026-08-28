@@ -8,6 +8,44 @@ const context = { waitUntil: (promise: Promise<unknown>) => void promise };
 afterEach(() => vi.unstubAllGlobals());
 
 describe("v2 session broker security", () => {
+  it("keeps private cache and Worker-version metadata on account errors", async () => {
+    const database = new SessionDatabase({
+      token_hash: "unused",
+      account_object_id: "unused",
+      account_id: 42,
+      access_token_encrypted: "unused",
+      v3_session_encrypted: "unused",
+      csrf_hash: "unused",
+      created_at: now() - 10,
+      last_seen_at: now() - 10,
+      expires_at: now() + 300,
+      revoked_at: null,
+    });
+    const environment = accountEnv(database);
+    environment.CATALOG_RATE_LIMITER = { limit: async () => ({ success: false }) };
+    environment.CF_VERSION_METADATA = { id: "worker-private-error" };
+
+    const response = await worker.fetch(new Request("https://catalog.example/v2/account/profile", {
+      headers: { Origin: "https://smartmovie.app", "X-SmartMovie-Client": "test" },
+    }), environment, context);
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(response.headers.get("X-SmartMovie-Worker-Version")).toBe("worker-private-error");
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe("https://smartmovie.app");
+    expect(response.headers.get("Access-Control-Allow-Credentials")).toBe("true");
+    expect(response.headers.get("Vary")).toBe("Origin");
+    await expect(response.json()).resolves.toMatchObject({ error: { code: "rate_limited", retry_after: 60 } });
+
+    const rejectedOrigin = await worker.fetch(new Request("https://catalog.example/v2/account/profile", {
+      headers: { Origin: "https://evil.example", "X-SmartMovie-Client": "test" },
+    }), environment, context);
+    expect(rejectedOrigin.status).toBe(429);
+    expect(rejectedOrigin.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(rejectedOrigin.headers.get("Access-Control-Allow-Origin")).toBeNull();
+    expect(rejectedOrigin.headers.get("Vary")).toBe("Origin");
+  });
+
   it("encrypts TMDb tokens with randomized AES-GCM ciphertext", async () => {
     const first = await encryptSecret("tmdb-access-token", secret);
     const second = await encryptSecret("tmdb-access-token", secret);
@@ -230,6 +268,102 @@ describe("v2 session broker security", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toMatchObject({ mutation_id: mutationID, list_id: 7, success: true });
     expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
+  it("replays a canonical list identifier and rejects an invalid upstream identifier", async () => {
+    const bearer = "opaque-list-create";
+    const database = new SessionDatabase({
+      token_hash: await sha256(bearer),
+      account_object_id: "v4-account",
+      account_id: 42,
+      access_token_encrypted: await encryptSecret("tmdb-access", secret),
+      v3_session_encrypted: await encryptSecret("tmdb-v3", secret),
+      csrf_hash: await sha256("csrf"),
+      created_at: now() - 10,
+      last_seen_at: now() - 10,
+      expires_at: now() + 300,
+      revoked_at: null,
+    });
+    const upstream = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      expect(url.pathname).toBe("/4/list");
+      expect(init?.method).toBe("POST");
+      return Response.json({ id: 701, success: true, status_code: 1, status_message: "Success." });
+    });
+    vi.stubGlobal("fetch", upstream);
+    const mutationID = "55555555-5555-4555-8555-555555555555";
+    const makeRequest = () => new Request("https://catalog.example/v2/account/lists", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${bearer}`,
+        "Content-Type": "application/json",
+        "X-SmartMovie-Client": "test",
+      },
+      body: JSON.stringify({
+        name: "Weekend",
+        description: "Ready",
+        public: false,
+        iso_3166_1: "US",
+        iso_639_1: "en",
+        mutation_id: mutationID,
+      }),
+    });
+
+    const first = await worker.fetch(makeRequest(), accountEnv(database), context);
+    const firstBody = await first.json();
+    const replay = await worker.fetch(makeRequest(), accountEnv(database), context);
+    const replayBody = await replay.json();
+
+    expect(first.status).toBe(201);
+    expect(replay.status).toBe(201);
+    expect(firstBody).toEqual({
+      mutation_id: mutationID,
+      list_id: 701,
+      success: true,
+      status_code: 1,
+      status_message: "Success.",
+    });
+    expect(replayBody).toEqual(firstBody);
+    expect(upstream).toHaveBeenCalledTimes(1);
+
+    const invalidBearer = "opaque-list-create-invalid-id";
+    const invalidDatabase = new SessionDatabase({
+      token_hash: await sha256(invalidBearer),
+      account_object_id: "v4-account",
+      account_id: 42,
+      access_token_encrypted: await encryptSecret("tmdb-access", secret),
+      v3_session_encrypted: await encryptSecret("tmdb-v3", secret),
+      csrf_hash: await sha256("csrf"),
+      created_at: now() - 10,
+      last_seen_at: now() - 10,
+      expires_at: now() + 300,
+      revoked_at: null,
+    });
+    const invalidUpstream = vi.fn(async () => Response.json({ success: true, status_code: 1, status_message: "Success." }));
+    vi.stubGlobal("fetch", invalidUpstream);
+    const invalidMutationID = "66666666-6666-4666-8666-666666666666";
+
+    const response = await worker.fetch(new Request("https://catalog.example/v2/account/lists", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${invalidBearer}`,
+        "Content-Type": "application/json",
+        "X-SmartMovie-Client": "test",
+      },
+      body: JSON.stringify({
+        name: "Weekend",
+        description: "Ready",
+        public: false,
+        iso_3166_1: "US",
+        iso_639_1: "en",
+        mutation_id: invalidMutationID,
+      }),
+    }), accountEnv(invalidDatabase), context);
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toMatchObject({ error: { code: "invalid_upstream_response" } });
+    expect(invalidDatabase.mutations.size).toBe(0);
+    expect(invalidUpstream).toHaveBeenCalledTimes(1);
   });
 
   it("replays a PATCH list update as the same mutation after a client upgrades to PUT", async () => {

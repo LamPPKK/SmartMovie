@@ -6,7 +6,8 @@
   "scripts": {
     "check": "tsc --noEmit",
     "check:migrations": "node scripts/check-migrations.mjs",
-    "test": "vitest run",
+    "test": "vitest run && npm run test:smoke-runner",
+    "test:smoke-runner": "node --test scripts/account-smoke.node-test.mjs",
     "smoke": "node scripts/contract-smoke.mjs",
     "smoke:account": "node scripts/account-smoke.mjs",
     "dev": "wrangler dev --env staging",

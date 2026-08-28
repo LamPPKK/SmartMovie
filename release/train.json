@@ -2,7 +2,7 @@
   "schema_version": 1,
   "train_version": "3.0.0",
   "contract_version": "2.0.0",
-  "contract_openapi_sha256": "1b653b89c455c039b0b217e1fee69cae8a86857f662f6338cd85aea7d4b86162",
+  "contract_openapi_sha256": "8bf63751f286daa30263a74aa98b633ccb78e9d2777e21a5023719fd1c3b6257",
   "legacy_contract_version": "1.0.0",
   "apple": {
     "marketing_version": "3.0.0",

@@ -32,6 +32,7 @@ type SchemaName =
   | "EpisodeDetail"
   | "ErrorEnvelope"
   | "FindResult"
+  | "ListMutationResult"
   | "MutationResult"
   | "PersonDetail"
   | "SeasonDetail"
@@ -72,7 +73,7 @@ describe("canonical v2 fixtures", () => {
     ["TitlePage", accountRecommendationsFixture],
     ["UserList", accountFixture.list],
     ["AuthAttempt", attemptFixture],
-    ["MutationResult", mutationFixture],
+    ["ListMutationResult", mutationFixture],
     ["ErrorEnvelope", errorFixture],
   ] as const)("validates %s", (schema, fixture) => expectContract(schema, fixture));
 });
@@ -427,7 +428,7 @@ describe("v2 Worker contract", () => {
     }), env(), context);
     const value = await response.json();
     expect(response.status).toBe(503);
-    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
     expectContract("ErrorEnvelope", value);
     expect(value).toMatchObject({ error: { code: "account_unavailable", retry_after: null } });
   });

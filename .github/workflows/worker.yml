@@ -60,12 +60,16 @@ jobs:
       TMDB_BEARER_TOKEN: ${{ secrets.TMDB_BEARER_TOKEN }}
       SESSION_ENCRYPTION_KEY: ${{ secrets.SESSION_ENCRYPTION_KEY }}
       AUTH_D1_DATABASE_ID: ${{ secrets.AUTH_D1_DATABASE_ID }}
-      SMARTMOVIE_ACCOUNT_SESSION_TOKEN: ${{ secrets.SMARTMOVIE_ACCOUNT_SESSION_TOKEN }}
       BASE_URL: https://staging-catalog.smartmovie.app
       CLIENT_ID: 00000000-0000-4000-8000-000000000001
       MEDIA_TYPE: movie
       TITLE_ID: "550"
       SEARCH_QUERY: Dune
+      ACCOUNT_TEST_MOVIE_ID: "550"
+      ACCOUNT_TEST_TV_ID: "1399"
+      ACCOUNT_TEST_EPISODE_SERIES_ID: "1399"
+      ACCOUNT_TEST_EPISODE_SEASON_NUMBER: "1"
+      ACCOUNT_TEST_EPISODE_NUMBER: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v5
@@ -94,6 +98,8 @@ jobs:
       - name: Smoke schemas, locales, pagination and normalized errors
         run: npm run smoke
       - name: Protected TMDb account smoke and cleanup
+        env:
+          SMARTMOVIE_ACCOUNT_SESSION_TOKEN: ${{ secrets.SMARTMOVIE_ACCOUNT_SESSION_TOKEN }}
         run: |
           : "${SMARTMOVIE_ACCOUNT_SESSION_TOKEN:?Missing dedicated staging account session}"
           npm run smoke:account

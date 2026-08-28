@@ -1,5 +1,5 @@
 import type { MediaType, TmdbPage, TmdbTitle } from "./contracts";
-import { routeAccountV2, type WorkerAccountEnv } from "./account";
+import { applyAccountPrivateHeaders, routeAccountV2, type WorkerAccountEnv } from "./account";
 import { catalogCacheRevision, syncCatalogChanges } from "./changes";
 import { detail, pageResponse, summary } from "./transform";
 import { routeV2 } from "./v2";
@@ -35,9 +35,11 @@ export default {
   async fetch(request: Request, env: Env, context: Execution): Promise<Response> {
     const requestId = crypto.randomUUID();
     const workerVersion = env.CF_VERSION_METADATA?.id ?? "development";
+    let isPrivateRoute = false;
     try {
       const url = new URL(request.url);
       const v2Match = routeAccountV2(url.pathname) ?? routeV2(url.pathname);
+      isPrivateRoute = v2Match?.isPrivate === true;
       const v1Match = v2Match ? null : route(url.pathname);
       const match = v2Match ?? v1Match;
       if (!match) throw new RequestProblem(404, "not_found", "The requested catalog route does not exist.");
@@ -67,7 +69,11 @@ export default {
       if (v2Match?.isPrivate) response.headers.set("Cache-Control", "private, no-store");
       return withWorkerVersion(response, workerVersion);
     } catch (error) {
-      return withWorkerVersion(errorResponse(error, requestId), workerVersion);
+      const response = errorResponse(error, requestId);
+      return withWorkerVersion(
+        isPrivateRoute ? applyAccountPrivateHeaders(request, env, response) : response,
+        workerVersion,
+      );
     }
   },
   scheduled(controller: Schedule, env: Env, context: Execution): void {

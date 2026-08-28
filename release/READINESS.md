@@ -3,9 +3,9 @@
 ## Automated source gates
 
 - Canonical `/v1` and `/v2` OpenAPI/fixtures validate public success and normalized error responses.
-- Apple and Android manifests pin product `3.0.0`, contract `2.0.0`, and OpenAPI SHA-256 `1b653b89c455c039b0b217e1fee69cae8a86857f662f6338cd85aea7d4b86162`.
+- Apple and Android manifests pin product `3.0.0`, contract `2.0.0`, and OpenAPI SHA-256 `8bf63751f286daa30263a74aa98b633ccb78e9d2777e21a5023719fd1c3b6257`.
 - Native Android and KMP consume the same versioned snapshot; production promotion verifies Android `main` before deploy.
-- Worker tests cover v3/v4 mapping, cache partitions, rate limiting, D1 migrations, encryption, callback/CSRF/CORS controls, session expiry/revoke, durable mutation idempotency, and rollback paths.
+- Worker tests cover v3/v4 mapping, cache partitions, rate limiting, D1 migrations, encryption, callback/CSRF/CORS controls, session expiry/revoke, durable mutation idempotency, and rollback paths. The protected staging runner snapshots and restores the full Movie/TV library matrix and Movie/TV/Episode ratings, validates recommendations, completes the mixed-list lifecycle, retries safely, and cleans up after failure.
 - Swift, native Android, and KMP test canonical discriminator/nullable/unknown-field fixtures and local-first storage/outbox behavior.
 - Native Android CI validates unit/lint/goldens plus phone/TV launch; main and Wear release workflows verify shared signing identity.
 - KMP desktop tests/compile, JS, Wasm, and portable desktop packages are release blockers.
@@ -26,7 +26,7 @@ The following require external accounts, protected credentials, approved artwork
 - Review and approve the committed Apple artwork, configure signing, App Store Connect records, production CloudKit schema, universal/app links, privacy/support URLs, approved TMDb attribution artwork, screenshots, age rating, and metadata.
 - Configure Android/Play signing secrets, verify main + Wear AAB identity/version/signature, complete Play privacy/age/attribution metadata, and run Internal Testing.
 - Provide desktop code signing/notarization identities and publish the Web origin with correct `application/wasm`, cookie, CORS, and CSRF behavior.
-- Provision a dedicated protected TMDb staging account. Tests must create/clean lists and ratings per run and never use a personal account.
+- Provision a dedicated protected TMDb staging account and persistent non-personal broker session. The automated runner restores library/ratings and deletes lists per run; browser/TV approval and logout/revoke use separate disposable sessions during manual QA.
 
 ## Promotion rule
 

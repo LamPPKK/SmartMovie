@@ -92,6 +92,7 @@ final class ContractV2ConformanceTests: XCTestCase {
 
         let mutation = try decode(MutationResult.self, fixture: "mutation")
         XCTAssertEqual(mutation.success, true)
+        XCTAssertEqual(mutation.listId, 101)
 
         let error = try decode(ErrorEnvelope.self, fixture: "error")
         XCTAssertNotNil(error.error.requestId)

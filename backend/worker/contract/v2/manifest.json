@@ -3,6 +3,6 @@
   "contract_version": "2.0.0",
   "compatibility": "additive-only-within-v2",
   "legacy_v1_support": "at-least-12-months-after-3.0.0",
-  "openapi_sha256": "1b653b89c455c039b0b217e1fee69cae8a86857f662f6338cd85aea7d4b86162",
-  "fixtures_sha256": "72b6910c42ee71d76a693d8b6b3012eb659581e451f890ebc08bf30349eda4a5"
+  "openapi_sha256": "8bf63751f286daa30263a74aa98b633ccb78e9d2777e21a5023719fd1c3b6257",
+  "fixtures_sha256": "facc5f3bd1eaf0fd2fb9ba4dfd180f0c913ea1b3aa3518121dffd8bfa788e191"
 }
