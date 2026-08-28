@@ -144,6 +144,7 @@
 "Translations" = "翻訳";
 "External identifiers" = "外部識別子";
 "Source repositories" = "ソースリポジトリ";
+"Development roadmap" = "開発ロードマップ";
 "Catalog metadata description" = "TMDbの画像、動画、レビュー、おすすめ、公開情報、ローカライズ、外部識別子を確認できます。端末内の成人向けPINは、検索と人物、コレクション、会社、ネットワーク、キーワード、クレジット詳細の関連画面すべてに適用されます。";
 "Account sync description" = "TMDb経由でログインし、お気に入り、ウォッチリスト、評価、おすすめ、映画とTVの混合リストを同期できます。オフライン変更は永続化され、安全に再試行されます。";
 "Details" = "詳細";

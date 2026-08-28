@@ -29,7 +29,7 @@ public struct AboutView: View {
                 Image(systemName: "film.stack.fill")
                     .font(.system(size: 64))
                     .foregroundStyle(CinemaTheme.accent)
-                Text("SmartMovie")
+                Text("Smart Movie iOS")
                     .font(.system(.largeTitle, design: .serif, weight: .black))
                 Text(String(localized: "A cinematic place to discover movies and television.", bundle: .module))
                     .foregroundStyle(CinemaTheme.muted)
@@ -52,6 +52,10 @@ public struct AboutView: View {
                     .font(.title2.bold())
                 Link("Smart Movie iOS", destination: URL(string: "https://github.com/LamPPKK/Smart-Movie-iOS")!)
                 Link("Smart Movie Android", destination: URL(string: "https://github.com/LamPPKK/Smart-Movie-Android")!)
+                Link(
+                    String(localized: "Development roadmap", bundle: .module),
+                    destination: URL(string: "https://github.com/LamPPKK/Smart-Movie-iOS/blob/main/docs/DEVELOPMENT_PLAN.md")!
+                )
                 Divider().overlay(.white.opacity(0.12))
                 Text("TMDB")
                     .font(.title2.bold())

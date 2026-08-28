@@ -24,6 +24,8 @@ This repository contains the native SwiftUI apps for iPhone, iPad, Mac Catalyst,
 
 The two native mobile apps keep platform-specific UI and storage while sharing the additive `/v2` Worker contract, six locales, semantic release train, normalized errors, and deterministic decoder fixtures. `/v1` remains served for SmartMovie 2.0 compatibility. Account identity and content belong to TMDb; SmartMovie only brokers opaque sessions and maintains local-first caches/outboxes.
 
+The single cross-repository roadmap is [Kế hoạch phát triển Smart Movie sau 3.0](docs/DEVELOPMENT_PLAN.md). It defines the release order, parity workflow, per-feature commit/push rule, and shared Definition of Done.
+
 ## What you can do
 
 - **Explore a deep TMDb catalog** through curated Home feeds, advanced Discover filters, day/week trending, pagination, retry, and cancellation.
@@ -41,43 +43,54 @@ The two native mobile apps keep platform-specific UI and storage while sharing t
 - **Use the app in six languages**: English, Vietnamese, Japanese, Korean, Simplified Chinese, and Traditional Chinese.
 - **Rely on accessible defaults** including Dynamic Type, VoiceOver labels, Increase Contrast, Reduce Motion, and platform-native focus behavior.
 
-## Screenshots
+## Latest screenshots
 
-### iPhone — Home and title detail
+These are development captures, not store-release or live-TMDb evidence. The gallery mixes local `/v1` + `/v2` preview captures and older companion baselines; capture dates and remaining platform/UI gaps are recorded in [SCREENSHOTS.md](docs/SCREENSHOTS.md). Abstract artwork is generated demo imagery, not the actual movie poster or actor photograph.
+
+If thumbnails are missing, see [image loading diagnostics](docs/IMAGE_LOADING.md): local preview image transport and production Worker/CDN availability are separate checks.
+
+### iPhone — Home, Detail and Profile
 
 <table>
   <tr>
-    <td width="50%" align="center"><strong>Discover</strong><br><sub>Movie/TV switch, featured title, and catalog shelves</sub></td>
-    <td width="50%" align="center"><strong>Title detail</strong><br><sub>Trailer, library actions, story, cast, and similar titles</sub></td>
+    <td width="33%" align="center"><strong>Home</strong><br><sub>Movie/TV switch, hero and catalog shelves</sub></td>
+    <td width="33%" align="center"><strong>Title detail</strong><br><sub>Metadata, trailer and local-first library actions</sub></td>
+    <td width="33%" align="center"><strong>Profile</strong><br><sub>TMDb browser auth, region and local adult-content PIN</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/screenshots/iphone-home.png" alt="SmartMovie Home on iPhone" width="300"></td>
-    <td align="center"><img src="docs/images/screenshots/iphone-detail.png" alt="SmartMovie title detail on iPhone" width="300"></td>
+    <td align="center"><img src="docs/images/screenshots/iphone-home.png" alt="Smart Movie iOS Home on iPhone" width="300"></td>
+    <td align="center"><img src="docs/images/screenshots/iphone-detail.png" alt="Smart Movie iOS title detail on iPhone" width="300"></td>
+    <td align="center"><img src="docs/images/screenshots/iphone-profile.png" alt="Smart Movie iOS Profile on iPhone" width="300"></td>
   </tr>
 </table>
 
-### iPad — adaptive catalog
+### iPad and native macOS
 
-The universal app expands shelves and content density on iPad while retaining the same Home, Explore, Search, Library, and Profile flow.
-
-<p align="center">
-  <img src="docs/images/screenshots/ipad-home.png" alt="SmartMovie adaptive Home screen on iPad" width="760">
-</p>
+<table>
+  <tr>
+    <td width="50%" align="center"><strong>iPad</strong><br><sub>Adaptive universal catalog for touch, keyboard and pointer</sub></td>
+    <td width="50%" align="center"><strong>Native macOS</strong><br><sub>NavigationSplitView, resizable window and five destinations</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/screenshots/ipad-home.png" alt="Smart Movie iOS adaptive Home on iPad" width="660"></td>
+    <td align="center"><img src="docs/images/screenshots/macos-home.png" alt="Smart Movie native macOS Home" width="660"></td>
+  </tr>
+</table>
 
 ### Apple TV and Apple Watch
 
 <table>
   <tr>
-    <td width="72%" align="center"><strong>Apple TV</strong><br><sub>10-foot catalog with focus and Siri Remote navigation</sub></td>
+    <td width="72%" align="center"><strong>Apple TV</strong><br><sub>10-foot catalog, all five destinations and focus navigation</sub></td>
     <td width="28%" align="center"><strong>Apple Watch</strong><br><sub>Safe title/episode context with exact-detail iPhone handoff</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/screenshots/apple-tv-home.png" alt="SmartMovie Home on Apple TV" width="760"></td>
-    <td align="center"><img src="docs/images/screenshots/watch-remote.png" alt="SmartMovie companion remote on Apple Watch" width="260"></td>
+    <td align="center"><img src="docs/images/screenshots/apple-tv-home.png" alt="Smart Movie Home on Apple TV" width="760"></td>
+    <td align="center"><img src="docs/images/screenshots/watch-remote.png" alt="Smart Movie companion remote on Apple Watch" width="260"></td>
   </tr>
 </table>
 
-Screenshots come from the real SwiftUI targets using deterministic local fixtures and original abstract artwork. They require neither a TMDb credential nor public network access. Adult content and account credentials are excluded. The checked-in gallery currently covers iPhone, iPad, Apple TV, and Apple Watch; final Mac Catalyst, native macOS, and visionOS captures remain release assets and must be added before store publication.
+Mac Catalyst shares the universal SwiftUI composition, but has no separate capture yet. The visionOS target uses the same `SmartMovieKit` in resizable windows, but this capture machine does not have a visionOS Simulator runtime. Neither platform is represented by relabeling another platform's image. See the [Apple screen gallery and capture gaps](docs/SCREENSHOTS.md).
 
 ## Apple app matrix
 

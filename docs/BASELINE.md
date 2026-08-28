@@ -47,3 +47,13 @@ The current source was verified after the `/v2` catalog/account broker, durable 
 | visionOS | Source compile/link validation passed; full asset build remains unverified because the installed host lacks the required visionOS runtime/toolchain support |
 
 This evidence proves the checked-in source behavior on the local host; it does not replace signed-device, CloudKit production, protected TMDb account, cross-OS KMP, or store-candidate validation. Android native and KMP evidence is maintained in the Android repository's `docs/TESTING.md`.
+
+## Artwork regression verification — 28 August 2026
+
+- SmartMovieKit: 71 tests passed, including four new render regressions for loaded-image fill/fit viewport sizing, unavailable-image sizing and nil-URL pixels.
+- Strict SwiftLint: zero violations in 70 files, with the full Xcode `DEVELOPER_DIR` selected.
+- Unsigned iOS, native macOS and tvOS preview builds passed. iPhone and Mac showed downloaded local preview artwork; this does not validate signed-device or live-TMDb behavior.
+- Android/KMP local preview: three HTTP tests passed, including nested fixture images at every advertised size and complete PNG payloads. No native Android image-rendering claim is made by this suite.
+- Release/version checks passed: train `3.0.0`, contract `2.0.0` and vendored checksum remained consistent.
+
+The public TMDb example image was reachable, but both configured Worker domains failed DNS resolution from this machine. See [IMAGE_LOADING.md](IMAGE_LOADING.md); production image loading remains a release blocker, not a passing result hidden by demo artwork.
