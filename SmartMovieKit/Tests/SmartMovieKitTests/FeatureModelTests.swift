@@ -147,17 +147,20 @@ final class FeatureModelTests: XCTestCase {
         XCTAssertEqual(fallbackModes, ["advanced", "basic"])
     }
 
-    func testSearchCancelsOldRequestAndRejectsStaleResults() async throws {
+    func testSearchCancelsInFlightRequestAndLoadsNewQuery() async throws {
         let catalog = CatalogStub()
         let model = SearchViewModel(catalog: catalog)
 
         model.query = "old"
         model.scheduleSearch(language: "en-US")
-        try await Task.sleep(for: .milliseconds(400))
+        try await waitUntil { await catalog.searchRequests().contains("old") }
         model.query = "new"
         model.scheduleSearch(language: "en-US")
-        try await Task.sleep(for: .milliseconds(500))
+        try await waitUntil { model.items.map(\.title) == ["new"] && !model.isLoading }
+        try await waitUntil { await catalog.cancelledSearches().contains("old") }
 
+        let requests = await catalog.searchRequests()
+        XCTAssertEqual(requests, ["old", "new"])
         XCTAssertEqual(model.items.map(\.title), ["new"])
         XCTAssertFalse(model.isLoading)
         XCTAssertNil(model.errorMessage)
@@ -223,13 +226,13 @@ final class FeatureModelTests: XCTestCase {
     }
 
     private func waitUntil(
-        timeout: Duration = .seconds(2),
-        condition: @MainActor () -> Bool
+        timeout: Duration = .seconds(5),
+        condition: @MainActor () async -> Bool
     ) async throws {
         let clock = ContinuousClock()
         let deadline = clock.now.advanced(by: timeout)
         while clock.now < deadline {
-            if condition() { return }
+            if await condition() { return }
             try await Task.sleep(for: .milliseconds(10))
         }
         XCTFail("Timed out waiting for asynchronous state")
@@ -252,6 +255,8 @@ private actor CatalogStub: CatalogRepository {
     private var requestedDiscoverPages: [Int] = []
     private var requestedDiscoverLanguages: [String] = []
     private var requestedDiscoverModes: [String] = []
+    private var requestedSearchQueries: [String] = []
+    private var cancelledSearchQueries: [String] = []
 
     init(
         discoverPages: [Int: PagedResult<TitleSummary>] = [:],
@@ -300,13 +305,20 @@ private actor CatalogStub: CatalogRepository {
     func discoveredPages() -> [Int] { requestedDiscoverPages }
     func discoveredLanguages() -> [String] { requestedDiscoverLanguages }
     func discoverModes() -> [String] { requestedDiscoverModes }
+    func searchRequests() -> [String] { requestedSearchQueries }
+    func cancelledSearches() -> [String] { cancelledSearchQueries }
 
     func search(query: String, scope: SearchScope, page: Int, language: String) async throws -> PagedResult<TitleSummary> {
+        requestedSearchQueries.append(query)
         if searchFailure { throw APIError.server(status: 503, requestID: "feature-test") }
         if query == "old" {
-            try await Task.sleep(for: .milliseconds(500))
-        } else {
-            try await Task.sleep(for: .milliseconds(20))
+            do {
+                // Keep the request in flight beyond the test deadline; only cancellation should finish it.
+                try await Task.sleep(for: .seconds(30))
+            } catch is CancellationError {
+                cancelledSearchQueries.append(query)
+                throw CancellationError()
+            }
         }
         let result = TitleSummary(id: query == "old" ? 1 : 2, mediaType: .movie, title: query, originalTitle: query, overview: "")
         return PagedResult(page: 1, totalPages: 1, results: [result])

@@ -47,7 +47,7 @@ The single cross-repository roadmap is [Kế hoạch phát triển Smart Movie s
 
 These are development captures, not store-release or live-TMDb evidence. The gallery mixes local `/v1` + `/v2` preview captures and older companion baselines; capture dates and remaining platform/UI gaps are recorded in [SCREENSHOTS.md](docs/SCREENSHOTS.md). Abstract artwork is generated demo imagery, not the actual movie poster or actor photograph.
 
-If thumbnails are missing, see [image loading diagnostics](docs/IMAGE_LOADING.md): local preview image transport and production Worker/CDN availability are separate checks.
+If thumbnails are missing, see [image loading diagnostics](docs/IMAGE_LOADING.md): on 29 August, both configured Worker domains still failed DNS while the public TMDb image CDN was reachable. Preview artwork tests passing does not mean production image delivery is fixed.
 
 ### iPhone — Home, Detail and Profile
 

@@ -38,7 +38,7 @@ npm test
 
 Verification: Swift tests, Worker type-check, and Worker contract tests all complete with zero failures. Search the repository for `api_key=` and confirm no credential is present.
 
-Current verified local baseline: 67 Swift tests, 98 Worker unit/contract tests, and 9 protected-account smoke-runner tests. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the suite changed intentionally; zero failures is always required.
+Use the dated [verification baseline](BASELINE.md) and the exact candidate's CI results; a local pass is not a substitute for clean-runner verification. Run `./scripts/verify-release.sh` and see [Testing](TESTING.md) for coverage and unsigned multi-platform build commands. Treat a changed test count as expected only when the suite changed intentionally; zero failures is always required.
 
 Before dispatching staging, run the read-only external readiness audit scoped to that environment:
 

@@ -1,6 +1,6 @@
 # Image loading: diagnosis and verification
 
-Checked on 2026-08-28. Scope: missing thumbnails/artwork in development captures
+Checked on 2026-08-28; network and preview checks repeated on 2026-08-29. Scope: missing thumbnails/artwork in development captures
 and the shared Apple image component. This is not a production-readiness sign-off.
 
 ## Confirmed findings
@@ -11,7 +11,7 @@ and the shared Apple image component. This is not a production-readiness sign-of
 | Apple layout after success | A 1920×1080 loaded backdrop expanded a 343-point hero to about 693 points; fit-mode artwork shrank a 320-point viewport to 45 points. | `RemoteArtwork` now lets the caller's viewport own layout. Four render regression tests cover fill, fit, failure and nil URL. |
 | Apple missing URL | No request could complete, but the empty phase displayed loading indefinitely. | Nil URLs render the same unavailable-artwork state as failure. |
 | TMDb public image CDN | A public image from TMDb's official image-basics example returned HTTP 200, `image/jpeg`, 103,520 bytes. | The CDN was reachable from this machine; this does not verify every title image. |
-| Staging and production Worker origins | Requests to `staging-catalog.smartmovie.app` and `catalog.smartmovie.app` failed DNS resolution (`curl` exit 6). | Unresolved infrastructure blocker. No DNS, secret, token or deployment was changed. |
+| Staging and production Worker origins | Requests to `staging-catalog.smartmovie.app` and `catalog.smartmovie.app` failed DNS resolution (`curl` exit 6), including outside the sandbox on 29 August. | Unresolved infrastructure blocker. No DNS, secret, token or deployment was changed. |
 
 TMDb images are constructed from configuration base URL + supported size + image
 file path, per [TMDb image documentation](https://developer.themoviedb.org/docs/image-basics).
@@ -44,6 +44,17 @@ reported zero violations in 70 files, and three local preview HTTP tests passed.
 Preview tests verify complete PNG responses for all advertised sizes, nested
 artwork paths, missing-image 404 and account 401; they do not prove production
 image delivery. Native Android/TV/Wear image rendering is not revalidated by these tests.
+
+Recheck on 29 August: the preview configuration endpoint was reachable and all three
+preview HTTP tests passed again. The public TMDb image returned HTTP 200 with
+`image/jpeg` and content length 103,520. Both Worker domains still failed DNS.
+The clients cannot fetch fresh catalog paths while those origins are unavailable;
+an existing bundled image configuration or successful demo capture does not resolve that outage.
+
+The read-only staging preflight also reported missing `ANDROID_CONTRACT_SYNC_TOKEN`,
+a missing or unreadable GitHub staging environment, and unauthenticated local Wrangler.
+The release owner must provision the protected deployment path or authenticate Cloudflare
+before the Worker/domain repair can proceed. Do not paste credential values into chat or Markdown.
 
 ## Production completion checklist
 

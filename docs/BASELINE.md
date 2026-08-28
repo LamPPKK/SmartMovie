@@ -67,3 +67,11 @@ The public TMDb example image was reachable, but both configured Worker domains 
 - Actual iPhone 16/iOS 18.6 preview captures confirmed full English action labels at normal size, unbroken rating/year/runtime at maximum Accessibility size, and the complete Watchlist label after scrolling. The simulator's original `large` text setting was restored. See [screenshots and remaining QA gaps](SCREENSHOTS.md).
 
 The release train and contract stay at `3.0.0`/`2.0.0`. Production/account/store gates remain open; this layout fix is not a release-readiness declaration.
+
+## CI timing and image recheck — 29 August 2026
+
+- Apple commit `632be36` passed iOS and Xcode build/analyze CI, but [Swift run 33200358791](https://github.com/LamPPKK/Smart-Movie-iOS/actions/runs/33200358791) failed two assertions in the Search test after its fixed wait expired. All four artwork and seven Detail layout tests passed in that run.
+- The Search test now waits for the old request to actually enter the repository, for the new result to arrive, and for cancellation of the old request. The stub records requests and cancellation; app debounce and production code are unchanged. The renamed test does not claim to cover a cancellation-ignoring stale success response.
+- Independent verification in a fresh scratch build: `swift test --enable-code-coverage` passed 78/78 tests, including 12 feature-model, four artwork and seven Detail layout tests. The targeted cancellation test also passed ten repeated runs. Strict SwiftLint passed with zero violations in 72 files.
+- Local verification used macOS 15.7.7, x86_64 and Swift 6.2.3. This is not the ARM64 GitHub runner; the new commit still requires its own CI result.
+- Preview HTTP tests passed 3/3. TMDb's public image returned HTTP 200; both configured Worker domains still failed DNS outside the sandbox. Staging preflight reported three blockers and one warning; see [image-loading diagnostics](IMAGE_LOADING.md). No production image-delivery or signed-device claim is made.

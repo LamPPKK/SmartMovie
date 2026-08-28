@@ -22,7 +22,7 @@ Mục tiêu: biến source candidate hiện tại thành bản phát hành có t
 
 - Áp dụng D1 migrations cho staging/production; cấu hình khóa mã hóa session, TMDb token, callback origin và allowlist return URI.
 - Kích hoạt DNS/TLS cho Worker staging và production; chạy catalog smoke, protected account smoke và kiểm tra cache/rate-limit/error envelope.
-- Ưu tiên sửa luồng ảnh thật: xác nhận cấu hình TMDb, poster/backdrop/profile/logo và response ảnh trên mỗi client. Ngày 28/08/2026 hai domain Worker chưa phân giải DNS trên máy kiểm tra; ảnh preview cục bộ không thay thế smoke production. Xem [chẩn đoán và kiểm thử ảnh](IMAGE_LOADING.md).
+- Ưu tiên sửa luồng ảnh thật: xác nhận cấu hình TMDb, poster/backdrop/profile/logo và response ảnh trên mỗi client. Kiểm tra lại ngày 29/08/2026: hai domain Worker vẫn chưa phân giải DNS, trong khi CDN ảnh TMDb trả HTTP 200; ảnh preview cục bộ không thay thế smoke production. Xem [chẩn đoán và kiểm thử ảnh](IMAGE_LOADING.md).
 - Compact Detail đã sửa nhóm nút và metadata adaptive (29/08/2026): 7 render regression tests và capture iPhone ở cỡ chữ thường/Accessibility lớn nhất. Còn QA các hàng thông tin phía dưới (Status), sáu locale trên thiết bị, signed-in rating, VoiceOver/D-pad. Xem [bằng chứng và giới hạn](SCREENSHOTS.md).
 - Bổ sung capture riêng Catalyst, visionOS, native desktop/JS và thiết bị Android/TV/Wear; không coi ảnh Web hoặc component golden là ảnh các nền tảng này.
 - Hoàn tất Apple signing, CloudKit production schema, App Store Connect metadata, privacy/support URL và ảnh store.
