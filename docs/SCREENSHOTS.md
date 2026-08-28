@@ -17,6 +17,20 @@ Bộ ảnh này ghi lại UI phát triển của release train 3.0, không phả
   </tr>
 </table>
 
+### Detail và Dynamic Type — 29/08/2026
+
+Detail iPhone được chụp lại sau khi sửa nhóm nút và metadata adaptive. Ở cỡ chữ thường, Trailer/Favorite/Watchlist hiển thị đầy đủ. Ở `accessibility-extra-extra-extra-large`, điểm số/năm/thời lượng chuyển thành cột; Watchlist đọc được đầy đủ sau khi cuộn. Đây là kiểm tra iPhone 16/iOS 18.6, tiếng Anh, không phải nghiệm thu toàn bộ Dynamic Type, locale hay luồng tài khoản.
+
+<details>
+  <summary>Ảnh QA cỡ chữ Accessibility lớn nhất</summary>
+  <table>
+    <tr>
+      <td><img src="images/screenshots/iphone-detail-accessibility-metadata.png" alt="iPhone Detail metadata at maximum Accessibility text size" width="300"></td>
+      <td><img src="images/screenshots/iphone-detail-accessibility-watchlist.png" alt="iPhone Watchlist label after scrolling at maximum Accessibility text size" width="300"></td>
+    </tr>
+  </table>
+</details>
+
 ## iPad và Mac
 
 <table>
@@ -47,7 +61,7 @@ Mac Catalyst dùng cùng universal SwiftUI composition với iPad ở cửa sổ
 
 ## Phạm vi ảnh
 
-Lượt capture ngày 28/08/2026: Home/Detail iPhone, Home iPad, native macOS và Apple TV được chụp sau bản sửa `1806c44`; Profile iPhone thuộc lượt preview trước đó cùng ngày. Watch vẫn là baseline cũ. Mỗi ảnh chỉ chứng minh bề mặt đã chụp, không thay thế kiểm tra các nền tảng dùng chung source. Detail iPhone còn rút gọn nhãn Favorite/Watchlist ở bề ngang hẹp; đây là mục QA bố cục chưa hoàn tất, không phải lỗi tải ảnh.
+Home iPhone, Home iPad, native macOS và Apple TV được chụp ngày 28/08/2026 sau bản sửa `1806c44`; Profile iPhone thuộc lượt preview trước đó cùng ngày. Detail iPhone được cập nhật ngày 29/08/2026 với các nhãn hành động đầy đủ. Watch vẫn là baseline cũ. Mỗi ảnh chỉ chứng minh bề mặt đã chụp, không thay thế kiểm tra các nền tảng dùng chung source. QA chữ lớn vẫn còn các hàng thông tin phía dưới (ví dụ Status), luồng signed-in rating và kiểm tra VoiceOver/thiết bị thực.
 
 | Bề mặt | Ảnh đại diện | Nguồn |
 | --- | --- | --- |

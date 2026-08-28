@@ -150,7 +150,7 @@ public struct DetailView: View {
                 Text(detail.title)
                     .font(.system(.largeTitle, design: .serif, weight: .black))
                     .foregroundStyle(CinemaTheme.foreground)
-                HStack(spacing: 12) {
+                AdaptiveDetailGroup {
                     RatingBadge(rating: detail.voteAverage)
                     if let year = detail.releaseDate?.prefix(4) { Text(String(year)) }
                     if let runtime = detail.runtimeMinutes { Text(runtimeText(runtime)) }
@@ -182,7 +182,7 @@ public struct DetailView: View {
     }
 
     private func heroActions(_ model: DetailViewModel) -> some View {
-        HStack(spacing: 12) {
+        AdaptiveDetailGroup {
             ActionPill(
                 title: String(localized: "Trailer", bundle: .module),
                 systemImage: "play.fill",
@@ -231,8 +231,12 @@ public struct DetailView: View {
                 systemImage: accountRating == nil ? "star" : "star.fill"
             )
             .font(.subheadline.weight(.bold))
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .multilineTextAlignment(.leading)
             .padding(.horizontal, 14)
             .padding(.vertical, 11)
+            .frame(minHeight: 44)
             .background(CinemaTheme.surface, in: Capsule())
         }
         .foregroundStyle(CinemaTheme.foreground)

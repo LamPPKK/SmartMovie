@@ -57,3 +57,13 @@ This evidence proves the checked-in source behavior on the local host; it does n
 - Release/version checks passed: train `3.0.0`, contract `2.0.0` and vendored checksum remained consistent.
 
 The public TMDb example image was reachable, but both configured Worker domains failed DNS resolution from this machine. See [IMAGE_LOADING.md](IMAGE_LOADING.md); production image loading remains a release blocker, not a passing result hidden by demo artwork.
+
+## Compact Detail layout verification — 29 August 2026
+
+- SmartMovieKit: 78 tests passed, including seven new layout regressions for six action-label translation sets, a wide row, an extra action, long-label vertical growth, RTL alignment, minimum rendered button height and large metadata values.
+- Strict SwiftLint: zero violations in 72 files. Unsigned iOS Simulator and tvOS Simulator builds passed.
+- Detail action and metadata groups measure their full labels before choosing a row or leading-aligned column. Pill labels can wrap and have a minimum rendered height of 44 points. Existing action closures, trailer availability and signed-in rating conditions are unchanged.
+- These render tests run on macOS. The fourth-action test uses a generic pill, not the signed-in rating menu; they do not prove account interactions, VoiceOver, D-pad navigation or every locale/device at every Dynamic Type size.
+- Actual iPhone 16/iOS 18.6 preview captures confirmed full English action labels at normal size, unbroken rating/year/runtime at maximum Accessibility size, and the complete Watchlist label after scrolling. The simulator's original `large` text setting was restored. See [screenshots and remaining QA gaps](SCREENSHOTS.md).
+
+The release train and contract stay at `3.0.0`/`2.0.0`. Production/account/store gates remain open; this layout fix is not a release-readiness declaration.

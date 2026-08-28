@@ -1,6 +1,6 @@
 # Kế hoạch phát triển Smart Movie sau 3.0
 
-> Cập nhật: 28/08/2026 · Chủ sở hữu: hai repo **Smart Movie iOS** và **Smart Movie Android**
+> Cập nhật: 29/08/2026 · Chủ sở hữu: hai repo **Smart Movie iOS** và **Smart Movie Android**
 
 Tài liệu này là roadmap duy nhất cho toàn bộ Smart Movie. Mỗi hạng mục được triển khai theo một lát cắt hoàn chỉnh trên Worker, Apple, Android, TV, companion và KMP khi nền tảng đó có liên quan. UI vẫn tuân theo chuẩn từng hệ điều hành; hợp đồng dữ liệu, hành vi lỗi, quyền riêng tư, localization và semantic version phải đồng bộ.
 
@@ -23,7 +23,8 @@ Mục tiêu: biến source candidate hiện tại thành bản phát hành có t
 - Áp dụng D1 migrations cho staging/production; cấu hình khóa mã hóa session, TMDb token, callback origin và allowlist return URI.
 - Kích hoạt DNS/TLS cho Worker staging và production; chạy catalog smoke, protected account smoke và kiểm tra cache/rate-limit/error envelope.
 - Ưu tiên sửa luồng ảnh thật: xác nhận cấu hình TMDb, poster/backdrop/profile/logo và response ảnh trên mỗi client. Ngày 28/08/2026 hai domain Worker chưa phân giải DNS trên máy kiểm tra; ảnh preview cục bộ không thay thế smoke production. Xem [chẩn đoán và kiểm thử ảnh](IMAGE_LOADING.md).
-- Hoàn thiện QA compact Detail: tránh rút gọn nhãn hành động Favorite/Watchlist ở bề ngang nhỏ và kiểm tra sáu locale/Dynamic Type. Bổ sung capture riêng Catalyst, visionOS, native desktop/JS và thiết bị Android/TV/Wear; không coi ảnh Web hoặc component golden là ảnh các nền tảng này.
+- Compact Detail đã sửa nhóm nút và metadata adaptive (29/08/2026): 7 render regression tests và capture iPhone ở cỡ chữ thường/Accessibility lớn nhất. Còn QA các hàng thông tin phía dưới (Status), sáu locale trên thiết bị, signed-in rating, VoiceOver/D-pad. Xem [bằng chứng và giới hạn](SCREENSHOTS.md).
+- Bổ sung capture riêng Catalyst, visionOS, native desktop/JS và thiết bị Android/TV/Wear; không coi ảnh Web hoặc component golden là ảnh các nền tảng này.
 - Hoàn tất Apple signing, CloudKit production schema, App Store Connect metadata, privacy/support URL và ảnh store.
 - Hoàn tất Android signing, Play Internal Testing cho phone/tablet/TV/Wear, age rating, data safety và ảnh store.
 - Build candidate cho native macOS, Catalyst, visionOS, desktop JVM, JS và Wasm; xác nhận không có secret/session trong binary, log hoặc fixture.

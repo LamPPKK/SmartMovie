@@ -10,9 +10,12 @@ struct ActionPill: View {
         Button(action: action) {
             Label(title, systemImage: systemImage)
                 .font(.subheadline.weight(.bold))
-                .lineLimit(1)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 11)
+                .frame(minHeight: 44)
                 .background(prominent ? CinemaTheme.accent : CinemaTheme.surface, in: Capsule())
         }
         .buttonStyle(.plain)
