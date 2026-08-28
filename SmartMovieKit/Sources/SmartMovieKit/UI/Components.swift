@@ -13,23 +13,46 @@ public struct RemoteArtwork: View {
 
     public var body: some View {
         AsyncImage(url: url, transaction: Transaction(animation: .easeOut(duration: 0.25))) { phase in
+            ArtworkContent(phase: phase, kind: kind, contentMode: contentMode, isLoading: url != nil)
+        }
+    }
+}
+
+struct ArtworkContent: View {
+    let phase: AsyncImagePhase
+    let kind: ImageKind
+    let contentMode: ContentMode
+    let isLoading: Bool
+
+    var body: some View {
+        // The viewport, not the downloaded image's aspect ratio, owns layout.
+        // Otherwise a wide backdrop expands a compact hero after loading.
+        Color.clear.overlay {
             switch phase {
             case .empty:
-                LoadingPlaceholder()
+                if isLoading {
+                    LoadingPlaceholder()
+                } else {
+                    unavailableArtwork
+                }
             case .success(let image):
                 image.resizable().aspectRatio(contentMode: contentMode)
             case .failure:
-                ZStack {
-                    CinemaTheme.elevated
-                    Image(systemName: kind == .profile ? "person.crop.circle" : "film.stack")
-                        .font(.largeTitle)
-                        .foregroundStyle(CinemaTheme.muted)
-                }
+                unavailableArtwork
             @unknown default:
                 CinemaTheme.elevated
             }
         }
         .clipped()
+    }
+
+    private var unavailableArtwork: some View {
+        ZStack {
+            CinemaTheme.elevated
+            Image(systemName: kind == .profile ? "person.crop.circle" : "film.stack")
+                .font(.largeTitle)
+                .foregroundStyle(CinemaTheme.muted)
+        }
     }
 }
 
