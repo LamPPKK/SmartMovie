@@ -370,13 +370,8 @@ public struct EpisodeDetailView: View {
                         CreditShelf(title: String(localized: "Crew", bundle: .module), credits: detail.crew)
                         if case .signedIn = container.accountSession.state {
                             Menu {
-                                ForEach(1...10, id: \.self) { value in
-                                    Button("\(value) / 10") { Task { await setRating(Double(value), detail: detail) } }
-                                }
-                                if accountRating != nil {
-                                    Button(String(localized: "Remove rating", bundle: .module), role: .destructive) {
-                                        Task { await setRating(nil, detail: detail) }
-                                    }
+                                AccountRatingOptions(currentRating: accountRating) { value in
+                                    Task { await setRating(value, detail: detail) }
                                 }
                             } label: {
                                 Label(

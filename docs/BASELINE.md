@@ -75,3 +75,11 @@ The release train and contract stay at `3.0.0`/`2.0.0`. Production/account/store
 - Independent verification in a fresh scratch build: `swift test --enable-code-coverage` passed 78/78 tests, including 12 feature-model, four artwork and seven Detail layout tests. The targeted cancellation test also passed ten repeated runs. Strict SwiftLint passed with zero violations in 72 files.
 - Local verification used macOS 15.7.7, x86_64 and Swift 6.2.3. This is not the ARM64 GitHub runner; the new commit still requires its own CI result.
 - Preview HTTP tests passed 3/3. TMDb's public image returned HTTP 200; both configured Worker domains still failed DNS outside the sandbox. Staging preflight reported three blockers and one warning; see [image-loading diagnostics](IMAGE_LOADING.md). No production image-delivery or signed-device claim is made.
+
+## Half-step rating repair — 29 August 2026
+
+- Apple Movie/TV and Episode menus previously offered only integer scores. The shared `AccountRatingOptions` component now exposes all 20 contract values from 0.5 through 10, with locale-aware choice labels and unchanged conditional removal.
+- The range regression failed against the integer-only values before the repair. Independent final coverage verification passed 83/83 tests; strict SwiftLint passed with zero violations across 74 files. Unsigned iOS Simulator and tvOS Simulator builds passed.
+- New coverage verifies six-locale labels, actual shared content rendered against literal expected labels with/without removal, all 63 Movie/TV/Episode value/removal payloads after disk reload, restart/retry of a failed 0.5 episode rating, and HTTP PUT/DELETE path/value/idempotency preservation through 503 retry.
+- Render evidence is English macOS borderless content inside a VStack, not native popup-menu or signed-in gesture testing. Live TMDb and device/TV account QA remain open. Apple remote episode-rating hydration was found missing and is now explicitly recorded in [TMDb coverage](TMDB_COVERAGE.md).
+- The previous commit `e4778c0` completed all three Apple Swift/iOS/Xcode CI workflows successfully. This rating commit requires its own CI run. Worker/Android/KMP sources and the `3.0.0` release train / `2.0.0` contract are unchanged; no production deployment was attempted.

@@ -350,6 +350,63 @@ final class APIClientTests: XCTestCase {
     }
 }
 
+extension APIClientTests {
+    func testRatingWirePreservesHalfStepsRemovalAndRetryIdentity() async throws {
+        let repository = RemoteAccountRepository(
+            client: makeClient(), tokenStore: MemorySessionTokenStore(token: "unit-test-opaque-session")
+        )
+        let targets: [(MediaType?, String)] = [(.movie, "movie/550"), (.tv, "tv/550"), (nil, "episode/1399/2/3")]
+        let values: [Double?] = [0.5, 9.5, nil]
+        for (mediaType, path) in targets {
+            for value in values {
+                URLProtocolStub.reset()
+                let mutationID = UUID()
+                URLProtocolStub.enqueue(status: 503, body: errorBody(code: "upstream_error", requestID: "rating-test"))
+                URLProtocolStub.enqueue(status: 200, body: "{\"mutation_id\":\"\(mutationID)\",\"success\":true}")
+                let result: MutationResult
+                if let mediaType {
+                    result = try await repository.setRating(mediaType: mediaType, id: 550, value: value, mutationID: mutationID)
+                } else {
+                    result = try await repository.setEpisodeRating(
+                        seriesID: 1399, season: 2, episode: 3, value: value, mutationID: mutationID
+                    )
+                }
+                XCTAssertEqual(result.mutationId, mutationID)
+                XCTAssertEqual(URLProtocolStub.requests.count, 2)
+                for request in URLProtocolStub.requests {
+                    XCTAssertEqual(request.url?.path, "/api/v2/account/ratings/\(path)")
+                    XCTAssertEqual(request.httpMethod, value == nil ? "DELETE" : "PUT")
+                    XCTAssertEqual(request.value(forHTTPHeaderField: "Idempotency-Key"), mutationID.uuidString.lowercased())
+                    if let value {
+                        let body = try requestBody(request)
+                        let json = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+                        XCTAssertEqual(json["value"] as? Double, value)
+                        XCTAssertEqual((json["mutation_id"] as? String).flatMap(UUID.init(uuidString:)), mutationID)
+                    } else {
+                        XCTAssertNil(request.httpBody)
+                        XCTAssertNil(request.httpBodyStream)
+                    }
+                }
+            }
+        }
+    }
+
+    private func requestBody(_ request: URLRequest) throws -> Data {
+        if let body = request.httpBody { return body }
+        let stream = try XCTUnwrap(request.httpBodyStream)
+        stream.open()
+        defer { stream.close() }
+        var data = Data()
+        var buffer = [UInt8](repeating: 0, count: 1_024)
+        while stream.hasBytesAvailable {
+            let count = stream.read(&buffer, maxLength: buffer.count)
+            guard count > 0 else { break }
+            data.append(contentsOf: buffer.prefix(count))
+        }
+        return data
+    }
+}
+
 private struct TestPayload: Decodable, Sendable {
     let displayName: String
 }

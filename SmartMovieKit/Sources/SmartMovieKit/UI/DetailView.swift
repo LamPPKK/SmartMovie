@@ -217,13 +217,8 @@ public struct DetailView: View {
 
     private var ratingMenu: some View {
         Menu {
-            ForEach(1...10, id: \.self) { value in
-                Button("\(value) / 10") { Task { await setAccountRating(Double(value)) } }
-            }
-            if accountRating != nil {
-                Button(String(localized: "Remove rating", bundle: .module), role: .destructive) {
-                    Task { await setAccountRating(nil) }
-                }
+            AccountRatingOptions(currentRating: accountRating) { value in
+                Task { await setAccountRating(value) }
             }
         } label: {
             Label(

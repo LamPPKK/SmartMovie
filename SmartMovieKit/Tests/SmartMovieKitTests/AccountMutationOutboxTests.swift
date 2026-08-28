@@ -58,7 +58,7 @@ final class AccountMutationOutboxTests: XCTestCase {
         let mutationID = try XCTUnwrap(UUID(uuidString: "00000000-0000-4000-8000-000000000201"))
 
         _ = try await coordinator.enqueue(
-            .episodeRating(seriesID: 1399, seasonNumber: 1, episodeNumber: 1, value: 9),
+            .episodeRating(seriesID: 1399, seasonNumber: 1, episodeNumber: 1, value: 0.5),
             accountID: 42,
             id: mutationID
         )
@@ -68,13 +68,53 @@ final class AccountMutationOutboxTests: XCTestCase {
         XCTAssertEqual(retained.first?.id, mutationID)
         XCTAssertEqual(retained.first?.attemptCount, 1)
 
-        let secondFlush = await coordinator.flush(accountID: 42)
+        let reloaded = AccountMutationCoordinator(account: repository, store: FileAccountMutationStore(fileURL: fileURL))
+        let pendingRating = await reloaded.pendingEpisodeRating(accountID: 42, seriesID: 1399, seasonNumber: 1, episodeNumber: 1)
+        XCTAssertEqual(pendingRating?.value, 0.5)
+        let secondFlush = await reloaded.flush(accountID: 42)
         XCTAssertNil(secondFlush.failure)
         XCTAssertEqual(secondFlush.delivered[mutationID]?.mutationId, mutationID)
-        let remaining = await coordinator.pending(accountID: 42)
+        let remaining = await reloaded.pending(accountID: 42)
         let receivedIDs = await repository.receivedMutationIDs()
+        let receivedRatings = await repository.receivedRatingPayloads()
         XCTAssertTrue(remaining.isEmpty)
         XCTAssertEqual(receivedIDs, [mutationID, mutationID])
+        XCTAssertEqual(receivedRatings, Array(repeating:
+            .episodeRating(seriesID: 1399, seasonNumber: 1, episodeNumber: 1, value: 0.5), count: 2))
+    }
+
+    func testEveryRatingValueAndRemovalSurviveRestartForMovieTVAndEpisode() async throws {
+        let fileURL = temporaryFileURL()
+        addTeardownBlock { try? FileManager.default.removeItem(at: fileURL.deletingLastPathComponent()) }
+        let store = FileAccountMutationStore(fileURL: fileURL)
+        let values: [Double?] = [
+            0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5,
+            5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, nil
+        ]
+        let payloads: [AccountMutationPayload] = values.flatMap { value in
+            [
+                .titleRating(mediaType: .movie, mediaID: 550, value: value),
+                .titleRating(mediaType: .tv, mediaID: 1399, value: value),
+                .episodeRating(seriesID: 1399, seasonNumber: 2, episodeNumber: 3, value: value)
+            ]
+        }
+        for (index, payload) in payloads.enumerated() {
+            try await store.enqueue(AccountPendingMutation(
+                accountID: 42, payload: payload, createdAt: Date(timeIntervalSince1970: Double(index))
+            ))
+        }
+        let repository = FlakyAccountRepository(failuresBeforeSuccess: 0)
+        let reloaded = AccountMutationCoordinator(account: repository, store: FileAccountMutationStore(fileURL: fileURL))
+        let pending = await reloaded.pending(accountID: 42)
+        XCTAssertEqual(pending.map(\.payload), payloads)
+
+        let report = await reloaded.flush(accountID: 42)
+        let receivedRatings = await repository.receivedRatingPayloads()
+        let remaining = await reloaded.pending(accountID: 42)
+        XCTAssertNil(report.failure)
+        XCTAssertEqual(report.delivered.count, 63)
+        XCTAssertEqual(receivedRatings, payloads)
+        XCTAssertTrue(remaining.isEmpty)
     }
 
     func testCoordinatorDoesNotConfirmMismatchedAcknowledgement() async throws {
@@ -143,6 +183,7 @@ private actor FlakyAccountRepository: AccountRepository {
     private var failuresRemaining: Int
     private let acknowledgeDifferentID: Bool
     private var received: [UUID] = []
+    private var ratings: [AccountMutationPayload] = []
 
     init(failuresBeforeSuccess: Int, acknowledgeDifferentID: Bool = false) {
         failuresRemaining = failuresBeforeSuccess
@@ -150,6 +191,7 @@ private actor FlakyAccountRepository: AccountRepository {
     }
 
     func receivedMutationIDs() -> [UUID] { received }
+    func receivedRatingPayloads() -> [AccountMutationPayload] { ratings }
 
     func createAuthAttempt(returnURI: URL, mode: String) async throws -> AuthAttempt { throw APIError.unauthorized }
     func authAttempt(id: UUID, deviceCode: String?) async throws -> String { throw APIError.unauthorized }
@@ -171,7 +213,8 @@ private actor FlakyAccountRepository: AccountRepository {
         mutationID: UUID
     ) async throws -> MutationResult { throw APIError.unauthorized }
     func setRating(mediaType: MediaType, id: Int, value: Double?, mutationID: UUID) async throws -> MutationResult {
-        try acknowledge(mutationID)
+        ratings.append(.titleRating(mediaType: mediaType, mediaID: id, value: value))
+        return try acknowledge(mutationID)
     }
     func setEpisodeRating(
         seriesID: Int,
@@ -180,7 +223,8 @@ private actor FlakyAccountRepository: AccountRepository {
         value: Double?,
         mutationID: UUID
     ) async throws -> MutationResult {
-        try acknowledge(mutationID)
+        ratings.append(.episodeRating(seriesID: seriesID, seasonNumber: season, episodeNumber: episode, value: value))
+        return try acknowledge(mutationID)
     }
     func recommendations(mediaType: MediaType, page: Int, language: String) async throws -> PagedResult<TitleSummary> {
         throw APIError.unauthorized

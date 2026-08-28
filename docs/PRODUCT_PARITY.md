@@ -18,7 +18,7 @@ This document is the release authority for behavior shared by native Apple, nati
 | PAR-ADULT-001 | Adult content | Default off; require age confirmation and a local six-digit PIN; lock five minutes after five failures; partition Search, External ID, Title, Person, Collection, Company, Network, Keyword, Credit Detail and related-title responses at the Worker; filter again at every full client; exclude from companion/public surfaces. |
 | PAR-AUTH-001 | TMDb authorization | Use TMDb browser approval, opaque SmartMovie sessions, allowlisted callbacks, and no password collection. TV uses QR/polling and requires `tv_qr_auth`; phone, desktop, and web require `browser_auth`, with Web using an `HttpOnly` cookie. Missing/false capabilities must fail closed, show a localized unavailable state, and prevent account requests. |
 | PAR-LIBRARY-002 | Account library | Merge local and TMDb Favorites/Watchlist on first login; local pending mutations win; durable outbox retry is idempotent; logout offers keep-local or remove-account-data. |
-| PAR-RATING-001 | Ratings | Rate/remove Movie, TV, and Episode values from 0.5 through 10; update optimistically; persist and retry the same mutation ID. |
+| PAR-RATING-001 | Ratings | Offer every 0.5 step from 0.5 through 10 for Movie, TV, and Episode; nil means remove, never zero. Hydrate the account's existing rating, let pending local mutations win, update optimistically, and persist/retry the same value and mutation ID. |
 | PAR-RECOMMENDATIONS-001 | Account recommendations | After TMDb sign-in, display separate Movie/TV recommendations with retry, pagination, title navigation, `libraryKey` deduplication, and the same local adult-PIN visibility rule as catalog search. |
 | PAR-LISTS-001 | Custom lists | Support mixed Movie/TV list CRUD and item changes through the durable account outbox. |
 | PAR-NETWORK-002 | Network | Send stable anonymous client identity, honor the normalized error envelope, retry 429/transient 5xx at most twice, honor `Retry-After`, and preserve cancellation. |
@@ -42,3 +42,15 @@ This document is the release authority for behavior shared by native Apple, nati
 - `/v1` remains available for 2.0 clients for at least 12 months after the 3.0 production release. `/v2` is additive-only.
 
 The current release manifest has no recorded parity exceptions. This does **not** mean product parity is complete: unresolved coverage blockers are tracked in [TMDb coverage](TMDB_COVERAGE.md).
+
+### Rating audit — 29 August 2026
+
+Apple Movie/TV and Episode menus now share 20 rating choices, matching the existing
+Android/KMP half-step sliders and unchanged Worker contract. Regression coverage
+includes six-locale choice labels, rendered content with/without removal, all 63 value/removal combinations through the
+Movie/TV/Episode file outbox, restart after a failed half-step write, and HTTP
+PUT/DELETE retries with unchanged values and idempotency keys.
+
+This does not close all rating parity: Apple Episode Detail currently reads only
+pending local ratings, not the remote account's existing episode rating. Remote
+hydration and signed-in device/TV interaction QA remain required.
