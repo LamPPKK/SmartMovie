@@ -59,9 +59,9 @@ If thumbnails are missing, see [image loading diagnostics](docs/IMAGE_LOADING.md
     <td width="33%" align="center"><strong>Profile</strong><br><sub>TMDb browser auth, region and local adult-content PIN</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/screenshots/iphone-home.png" alt="Smart Movie iOS Home on iPhone" width="300"></td>
-    <td align="center"><img src="docs/images/screenshots/iphone-detail.png" alt="Smart Movie iOS title detail on iPhone" width="300"></td>
-    <td align="center"><img src="docs/images/screenshots/iphone-profile.png" alt="Smart Movie iOS Profile on iPhone" width="300"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/iphone-home.png" alt="Smart Movie iOS Home on iPhone" width="300"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/iphone-detail.png" alt="Smart Movie iOS title detail on iPhone" width="300"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/iphone-profile.png" alt="Smart Movie iOS Profile on iPhone" width="300"></td>
   </tr>
 </table>
 
@@ -73,8 +73,8 @@ If thumbnails are missing, see [image loading diagnostics](docs/IMAGE_LOADING.md
     <td width="50%" align="center"><strong>Native macOS</strong><br><sub>NavigationSplitView, resizable window and five destinations</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/screenshots/ipad-home.png" alt="Smart Movie iOS adaptive Home on iPad" width="660"></td>
-    <td align="center"><img src="docs/images/screenshots/macos-home.png" alt="Smart Movie native macOS Home" width="660"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/ipad-home.png" alt="Smart Movie iOS adaptive Home on iPad" width="660"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/macos-home.png" alt="Smart Movie native macOS Home" width="660"></td>
   </tr>
 </table>
 
@@ -86,8 +86,8 @@ If thumbnails are missing, see [image loading diagnostics](docs/IMAGE_LOADING.md
     <td width="28%" align="center"><strong>Apple Watch</strong><br><sub>Safe title/episode context with exact-detail iPhone handoff</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="docs/images/screenshots/apple-tv-home.png" alt="Smart Movie Home on Apple TV" width="760"></td>
-    <td align="center"><img src="docs/images/screenshots/watch-remote.png" alt="Smart Movie companion remote on Apple Watch" width="260"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/apple-tv-home.png" alt="Smart Movie Home on Apple TV" width="760"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/watch-remote.png" alt="Smart Movie companion remote on Apple Watch" width="260"></td>
   </tr>
 </table>
 

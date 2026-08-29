@@ -154,7 +154,7 @@
 "Watched %d of %d" = "已看 %d/%d";
 "Episode progress description" = "可将单集或整季标记为已看。进度保存在您的私有 Apple 资料库中以供离线使用，不会发送到 SmartMovie Worker 或 TMDb。";
 "Development roadmap" = "开发路线图";
-"Catalog metadata description" = "查看 TMDb 图片、视频、影评、推荐、发行信息、本地化内容和外部标识符。本地成人内容 PIN 适用于搜索及人物、合集、公司、电视网、关键词和演职员详情的所有相关页面。";
+"Catalog metadata description" = "查看 TMDb 图片、视频、影评、推荐、发行信息、本地化内容和外部标识符。图片使用规范化的 TMDb CDN URL；不可用时会显示占位图。本地成人内容 PIN 适用于搜索及人物、合集、公司、电视网、关键词和演职员详情的所有相关页面。";
 "Account sync description" = "通过 TMDb 登录，同步收藏、观看列表、评分、推荐及电影/电视混合片单；离线更改会持久保存并安全重试。";
 "Details" = "详细信息";
 "Images" = "图片";

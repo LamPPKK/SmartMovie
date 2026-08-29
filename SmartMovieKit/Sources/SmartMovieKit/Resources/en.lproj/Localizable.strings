@@ -154,7 +154,7 @@
 "Watched %d of %d" = "Watched %d of %d";
 "Episode progress description" = "Mark episodes or a whole season watched. Progress stays in your private Apple library for offline access and is never sent to the SmartMovie Worker or TMDb.";
 "Development roadmap" = "Development roadmap";
-"Catalog metadata description" = "Explore TMDb image and video galleries, member reviews, recommendations, regional release dates, certifications, localized titles, translations and external identifiers. The local adult-content PIN applies to Search and every related Person, Collection, Company, Network, Keyword and Credit Detail surface.";
+"Catalog metadata description" = "Explore TMDb image and video galleries, member reviews, recommendations, regional release dates, certifications, localized titles, translations and external identifiers. Artwork uses normalized TMDb CDN URLs and shows a placeholder when unavailable. The local adult-content PIN applies to Search and every related Person, Collection, Company, Network, Keyword and Credit Detail surface.";
 "Account sync description" = "Sign in through TMDb to sync favorites, watchlist, ratings, recommendations, and mixed Movie/TV lists with durable offline changes and safe retry.";
 "Details" = "Details";
 "Images" = "Images";

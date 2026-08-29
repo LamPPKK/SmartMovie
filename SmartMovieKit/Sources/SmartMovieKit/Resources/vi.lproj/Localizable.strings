@@ -154,7 +154,7 @@
 "Watched %d of %d" = "Đã xem %d/%d";
 "Episode progress description" = "Đánh dấu từng tập hoặc cả mùa đã xem. Tiến độ nằm trong thư viện Apple riêng tư để đọc offline và không được gửi tới SmartMovie Worker hoặc TMDb.";
 "Development roadmap" = "Kế hoạch phát triển";
-"Catalog metadata description" = "Khám phá hình ảnh, video, bài đánh giá, đề xuất, thông tin phát hành, bản địa hóa và định danh ngoài từ TMDb. PIN nội dung 18+ cục bộ áp dụng cho Tìm kiếm và mọi trang Người, Bộ sưu tập, Công ty, Mạng, Từ khóa và Chi tiết vai trò liên quan.";
+"Catalog metadata description" = "Khám phá hình ảnh, video, bài đánh giá, đề xuất, thông tin phát hành, bản địa hóa và định danh ngoài từ TMDb. Ảnh dùng URL CDN TMDb đã chuẩn hóa và hiển thị ảnh giữ chỗ khi không khả dụng. PIN nội dung 18+ cục bộ áp dụng cho Tìm kiếm và mọi trang Người, Bộ sưu tập, Công ty, Mạng, Từ khóa và Chi tiết vai trò liên quan.";
 "Account sync description" = "Đăng nhập qua TMDb để đồng bộ Yêu thích, Danh sách xem, điểm đánh giá, đề xuất và danh sách Phim/TV hỗn hợp; thay đổi offline được lưu bền vững và thử lại an toàn.";
 "Details" = "Chi tiết";
 "Images" = "Hình ảnh";

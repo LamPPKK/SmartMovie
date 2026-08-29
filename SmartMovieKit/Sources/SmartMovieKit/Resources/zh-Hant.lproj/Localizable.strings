@@ -154,7 +154,7 @@
 "Watched %d of %d" = "已看 %d/%d";
 "Episode progress description" = "可將單集或整季標示為已看。進度保存在您的私人 Apple 資料庫中以供離線使用，不會傳送到 SmartMovie Worker 或 TMDb。";
 "Development roadmap" = "開發藍圖";
-"Catalog metadata description" = "查看 TMDb 圖片、影片、影評、推薦、發行資訊、在地化內容和外部識別碼。本機成人內容 PIN 適用於搜尋及人物、合輯、公司、電視網、關鍵字和演職員詳細資料的所有相關頁面。";
+"Catalog metadata description" = "查看 TMDb 圖片、影片、影評、推薦、發行資訊、在地化內容和外部識別碼。圖片使用標準化的 TMDb CDN URL；無法使用時會顯示預留位置。本機成人內容 PIN 適用於搜尋及人物、合輯、公司、電視網、關鍵字和演職員詳細資料的所有相關頁面。";
 "Account sync description" = "透過 TMDb 登入，同步收藏、觀看清單、評分、推薦及電影／電視混合片單；離線變更會持久保存並安全重試。";
 "Details" = "詳細資料";
 "Images" = "圖片";

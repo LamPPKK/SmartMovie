@@ -10,6 +10,9 @@ and the shared Apple image component. This is not a production-readiness sign-of
 | Local preview | Earlier `/v1` preview returned null image paths and empty image configuration. Nested `/v2` fixture paths also referenced nonexistent files. | Android `multiplatform/tools/preview_server.py` now serves explicit local demo artwork/configuration and remaps nested fixture paths without editing the canonical fixtures. |
 | Apple layout after success | A 1920×1080 loaded backdrop expanded a 343-point hero to about 693 points; fit-mode artwork shrank a 320-point viewport to 45 points. | `RemoteArtwork` now lets the caller's viewport own layout. Four render regression tests cover fill, fit, failure and nil URL. |
 | Apple missing URL | No request could complete, but the empty phase displayed loading indefinitely. | Nil URLs render the same unavailable-artwork state as failure. |
+| Android failed artwork | Native Android only drew its missing-artwork icon when the URL itself was null, so a non-null Coil request that failed could leave an empty card. | The fallback now stays behind the remote request; failed requests expose the placeholder. Image-configuration fetch failures retain the bundled TMDb CDN configuration instead of escaping the application coroutine. |
+| KMP URL construction | KMP relied on both the configuration base and the image path carrying the expected slash, which made equivalent valid inputs produce malformed URLs. | Poster, backdrop and profile URLs now normalize whitespace and separators, reject blank paths and preserve explicit preview URLs. Native and KMP unit tests cover these cases. |
+| GitHub galleries | Relative `<img>` sources were valid in GitHub but depended on the current Markdown renderer resolving repository paths. | Both README files and both screenshot galleries now use stable raw `main` URLs. All 20 unique referenced files returned HTTP 200, `image/png`, and complete PNG data. |
 | TMDb public image CDN | A public image from TMDb's official image-basics example returned HTTP 200, `image/jpeg`, 103,520 bytes. | The CDN was reachable from this machine; this does not verify every title image. |
 | Staging and production Worker origins | Requests to `staging-catalog.smartmovie.app` and `catalog.smartmovie.app` failed DNS resolution (`curl` exit 6), including outside the sandbox on 29 August. | Unresolved infrastructure blocker. No DNS, secret, token or deployment was changed. |
 
@@ -47,7 +50,9 @@ image delivery. Native Android/TV/Wear image rendering is not revalidated by the
 
 Recheck on 29 August: the preview configuration endpoint was reachable and all three
 preview HTTP tests passed again. The public TMDb image returned HTTP 200 with
-`image/jpeg` and content length 103,520. Both Worker domains still failed DNS.
+`image/jpeg`. Both Worker domains still failed DNS. Android/KMP URL regression tests,
+native Android compile/lint, KMP desktop tests plus JS/Wasm compilation, and the 20-link
+GitHub gallery probe passed after the client/documentation repair.
 The clients cannot fetch fresh catalog paths while those origins are unavailable;
 an existing bundled image configuration or successful demo capture does not resolve that outage.
 

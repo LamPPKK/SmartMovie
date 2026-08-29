@@ -11,9 +11,9 @@ Bộ ảnh này ghi lại UI phát triển của release train 3.0, không phả
     <td width="33%" align="center"><strong>Profile</strong><br><sub>TMDb auth, region và PIN nội dung 18+</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="images/screenshots/iphone-home.png" alt="Smart Movie iOS Home on iPhone" width="300"></td>
-    <td align="center"><img src="images/screenshots/iphone-detail.png" alt="Smart Movie iOS title detail on iPhone" width="300"></td>
-    <td align="center"><img src="images/screenshots/iphone-profile.png" alt="Smart Movie iOS Profile on iPhone" width="300"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/iphone-home.png" alt="Smart Movie iOS Home on iPhone" width="300"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/iphone-detail.png" alt="Smart Movie iOS title detail on iPhone" width="300"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/iphone-profile.png" alt="Smart Movie iOS Profile on iPhone" width="300"></td>
   </tr>
 </table>
 
@@ -25,8 +25,8 @@ Detail iPhone được chụp lại sau khi sửa nhóm nút và metadata adapti
   <summary>Ảnh QA cỡ chữ Accessibility lớn nhất</summary>
   <table>
     <tr>
-      <td><img src="images/screenshots/iphone-detail-accessibility-metadata.png" alt="iPhone Detail metadata at maximum Accessibility text size" width="300"></td>
-      <td><img src="images/screenshots/iphone-detail-accessibility-watchlist.png" alt="iPhone Watchlist label after scrolling at maximum Accessibility text size" width="300"></td>
+      <td><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/iphone-detail-accessibility-metadata.png" alt="iPhone Detail metadata at maximum Accessibility text size" width="300"></td>
+      <td><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/iphone-detail-accessibility-watchlist.png" alt="iPhone Detail Watchlist label after scrolling at maximum Accessibility text size" width="300"></td>
     </tr>
   </table>
 </details>
@@ -39,8 +39,8 @@ Detail iPhone được chụp lại sau khi sửa nhóm nút và metadata adapti
     <td width="50%" align="center"><strong>Native macOS</strong><br><sub>NavigationSplitView, keyboard và cửa sổ resizable</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="images/screenshots/ipad-home.png" alt="Smart Movie iOS adaptive Home on iPad" width="660"></td>
-    <td align="center"><img src="images/screenshots/macos-home.png" alt="Smart Movie native macOS Home" width="660"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/ipad-home.png" alt="Smart Movie iOS adaptive Home on iPad" width="660"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/macos-home.png" alt="Smart Movie native macOS Home" width="660"></td>
   </tr>
 </table>
 
@@ -54,8 +54,8 @@ Mac Catalyst dùng cùng universal SwiftUI composition với iPad ở cửa sổ
     <td width="28%" align="center"><strong>Apple Watch</strong><br><sub>Safe title/episode context và iPhone handoff</sub></td>
   </tr>
   <tr>
-    <td align="center"><img src="images/screenshots/apple-tv-home.png" alt="Smart Movie Home on Apple TV" width="760"></td>
-    <td align="center"><img src="images/screenshots/watch-remote.png" alt="Smart Movie companion remote on Apple Watch" width="260"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/apple-tv-home.png" alt="Smart Movie Home on Apple TV" width="760"></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/LamPPKK/Smart-Movie-iOS/main/docs/images/screenshots/watch-remote.png" alt="Smart Movie companion remote on Apple Watch" width="260"></td>
   </tr>
 </table>
 
