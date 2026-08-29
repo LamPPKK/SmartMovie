@@ -144,6 +144,15 @@
 "Translations" = "翻訳";
 "External identifiers" = "外部識別子";
 "Source repositories" = "ソースリポジトリ";
+"Episode progress" = "エピソードの進捗";
+"Episode" = "エピソード";
+"Episode progress is unavailable." = "エピソードの進捗を読み込めません。";
+"Mark as watched" = "視聴済みにする";
+"Mark as unwatched" = "未視聴に戻す";
+"Mark season watched" = "シーズンを視聴済みにする";
+"Mark season unwatched" = "シーズンを未視聴に戻す";
+"Watched %d of %d" = "%2$d話中%1$d話を視聴済み";
+"Episode progress description" = "エピソード単位またはシーズン全体を視聴済みにできます。進捗はオフライン利用のため個人のAppleライブラリに保存され、SmartMovie WorkerやTMDbには送信されません。";
 "Development roadmap" = "開発ロードマップ";
 "Catalog metadata description" = "TMDbの画像、動画、レビュー、おすすめ、公開情報、ローカライズ、外部識別子を確認できます。端末内の成人向けPINは、検索と人物、コレクション、会社、ネットワーク、キーワード、クレジット詳細の関連画面すべてに適用されます。";
 "Account sync description" = "TMDb経由でログインし、お気に入り、ウォッチリスト、評価、おすすめ、映画とTVの混合リストを同期できます。オフライン変更は永続化され、安全に再試行されます。";

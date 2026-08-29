@@ -6,6 +6,7 @@ import Observation
 public final class AppContainer {
     public let catalog: any CatalogRepository
     public let library: any LibraryRepository
+    public let episodeProgress: any EpisodeProgressRepository
     public let account: any AccountRepository
     public let accountSession: AccountSessionController
     public let accountMutations: AccountMutationCoordinator
@@ -20,11 +21,13 @@ public final class AppContainer {
         profileSizes: ["w185", "h632", "original"]
     )
     public private(set) var capabilities: CapabilitiesV2?
+    public private(set) var episodeProgressRevision = 0
     private var accountCapabilityGate = AccountCapabilityGate()
 
     public init(
         catalog: any CatalogRepository,
         library: any LibraryRepository,
+        episodeProgress: (any EpisodeProgressRepository)? = nil,
         account: any AccountRepository = UnavailableAccountRepository(),
         accountMutationStore: any AccountMutationStoring = FileAccountMutationStore(),
         watchRemoteSession: (any WatchRemoteSession)? = nil,
@@ -32,6 +35,7 @@ public final class AppContainer {
     ) {
         self.catalog = catalog
         self.library = library
+        self.episodeProgress = episodeProgress ?? UnavailableEpisodeProgressRepository()
         self.account = account
         accountSession = AccountSessionController(account: account)
         accountMutations = AccountMutationCoordinator(account: account, store: accountMutationStore)
@@ -44,10 +48,15 @@ public final class AppContainer {
     public func prepare() async {
         do {
             try library.reconcileDuplicates()
+            try episodeProgress.reconcileDuplicates()
+        } catch {
+            // Individual feature screens surface storage failures when users mutate state.
+        }
+        do {
             imageConfiguration = try await catalog.imageConfiguration()
         } catch {
-            // Feature screens surface network failures. A bundled image configuration
-            // remains available so a configuration outage does not blank the UI.
+            // A bundled image configuration remains available so a configuration outage
+            // does not blank the UI.
         }
         if let catalog = catalog as? any CatalogV2Repository {
             capabilities = try? await catalog.capabilities()
@@ -267,6 +276,28 @@ public final class AppContainer {
             ? imageConfiguration.secureBaseURL
             : imageConfiguration.secureBaseURL + "/"
         return URL(string: base + size + "/" + normalizedPath(path))
+    }
+
+    public func isEpisodeWatched(_ key: EpisodeWatchKey) throws -> Bool {
+        try episodeProgress.isWatched(key)
+    }
+
+    public func watchedEpisodeNumbers(seriesID: Int, seasonNumber: Int) throws -> Set<Int> {
+        try episodeProgress.watchedEpisodeNumbers(seriesID: seriesID, seasonNumber: seasonNumber)
+    }
+
+    public func setEpisodeWatched(_ watched: Bool, key: EpisodeWatchKey) throws {
+        try episodeProgress.setWatched(watched, for: key)
+        episodeProgressRevision += 1
+    }
+
+    public func setSeasonWatched(
+        _ watched: Bool, seriesID: Int, seasonNumber: Int, episodeNumbers: [Int]
+    ) throws {
+        try episodeProgress.setSeasonWatched(
+            watched, seriesID: seriesID, seasonNumber: seasonNumber, episodeNumbers: episodeNumbers
+        )
+        episodeProgressRevision += 1
     }
 
     private func preferredSize(_ available: [String], candidates: [String]) -> String {

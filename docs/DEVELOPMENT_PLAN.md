@@ -37,7 +37,7 @@ Mục tiêu: biến source candidate hiện tại thành bản phát hành có t
 
 Mục tiêu: giúp người dùng biết mình đang xem tới đâu và nội dung nào sắp phát hành mà không biến Smart Movie thành dịch vụ streaming.
 
-- Đánh dấu đã xem cho season/episode; hiển thị tiến độ series, tập kế tiếp và nút tiếp tục từ Library/Detail.
+- Đánh dấu đã xem cho season/episode; hiển thị tiến độ series, tập kế tiếp và nút tiếp tục từ Library/Detail. **Apple slice đã có:** toggle từng tập/cả mùa, tiến độ mùa, lưu SwiftData offline, migration giữ nguyên Favorite/Watchlist, layout compact/Accessibility và sáu locale. Native Android/KMP, tiến độ toàn series, tập kế tiếp và Continue vẫn đang chờ.
 - Lưu tiến độ local-first, đọc offline và có migration không mất Favorite/Watchlist hiện tại.
 - Thêm lịch phát hành theo region/timezone cho movie, season và episode; lọc theo ngày/tuần/tháng.
 - Thêm nhắc lịch tùy chọn trên iOS/Android/desktop. Notification không chứa nội dung 18+ và không xuất hiện trên Watch/Wear nếu chưa đủ ngữ cảnh an toàn.

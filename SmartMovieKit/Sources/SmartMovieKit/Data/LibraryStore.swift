@@ -113,7 +113,10 @@ public enum LibraryStoreFactory {
             isStoredInMemoryOnly: inMemory,
             cloudKitDatabase: cloudKitDatabase
         )
-        return try ModelContainer(for: LibraryItem.self, LibraryOutboxItem.self, configurations: configuration)
+        return try ModelContainer(
+            for: LibraryItem.self, LibraryOutboxItem.self, EpisodeWatchRecord.self,
+            configurations: configuration
+        )
     }
 }
 

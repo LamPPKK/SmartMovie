@@ -144,6 +144,15 @@
 "Translations" = "翻译";
 "External identifiers" = "外部标识符";
 "Source repositories" = "源代码仓库";
+"Episode progress" = "剧集进度";
+"Episode" = "第";
+"Episode progress is unavailable." = "无法载入剧集进度。";
+"Mark as watched" = "标记为已看";
+"Mark as unwatched" = "标记为未看";
+"Mark season watched" = "将本季标记为已看";
+"Mark season unwatched" = "将本季标记为未看";
+"Watched %d of %d" = "已看 %d/%d";
+"Episode progress description" = "可将单集或整季标记为已看。进度保存在您的私有 Apple 资料库中以供离线使用，不会发送到 SmartMovie Worker 或 TMDb。";
 "Development roadmap" = "开发路线图";
 "Catalog metadata description" = "查看 TMDb 图片、视频、影评、推荐、发行信息、本地化内容和外部标识符。本地成人内容 PIN 适用于搜索及人物、合集、公司、电视网、关键词和演职员详情的所有相关页面。";
 "Account sync description" = "通过 TMDb 登录，同步收藏、观看列表、评分、推荐及电影/电视混合片单；离线更改会持久保存并安全重试。";

@@ -25,7 +25,9 @@ final class AppRuntime {
         let client = APIClient(baseURL: serviceURL)
         let catalog = RemoteCatalogRepository(client: client)
         let account = RemoteAccountRepository(client: client)
-        let library = SwiftDataLibraryRepository(context: ModelContext(persistentContainer))
+        let storageContext = ModelContext(persistentContainer)
+        let library = SwiftDataLibraryRepository(context: storageContext)
+        let episodeProgress = SwiftDataEpisodeProgressRepository(context: storageContext)
         let remoteCoordinator = WatchRemoteCoordinator()
         #if os(iOS) && !targetEnvironment(macCatalyst)
         let watchRemoteSession: (any WatchRemoteSession)? = PhoneWatchRemoteController(
@@ -38,6 +40,7 @@ final class AppRuntime {
         container = AppContainer(
             catalog: catalog,
             library: library,
+            episodeProgress: episodeProgress,
             account: account,
             watchRemoteSession: watchRemoteSession,
             watchRemoteCoordinator: remoteCoordinator

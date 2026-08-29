@@ -47,6 +47,11 @@ public struct AboutView: View {
                 ))
                     .foregroundStyle(CinemaTheme.muted)
                 Text(String(
+                    localized: "Episode progress description",
+                    bundle: .module
+                ))
+                    .foregroundStyle(CinemaTheme.muted)
+                Text(String(
                     localized: "Companion episode description",
                     bundle: .module
                 ))
