@@ -20,3 +20,12 @@ struct AccountCapabilityGate {
         return enabled ? url : nil
     }
 }
+
+extension AccountSessionController.State {
+    func ratingAccountID(capabilities: CapabilitiesV2?, mode: String) -> Int? {
+        guard capabilities?.supportsAccountAuthentication(mode: mode) == true,
+              capabilities?.supportsAccount("ratings") == true,
+              case .signedIn(let profile) = self else { return nil }
+        return profile.id
+    }
+}

@@ -198,6 +198,9 @@ private actor FlakyAccountRepository: AccountRepository {
     func completeAuth(id: UUID, deviceCode: String?) async throws -> AuthSession { throw APIError.unauthorized }
     func profile() async throws -> AccountProfile { throw APIError.unauthorized }
     func accountState(mediaType: MediaType, id: Int) async throws -> AccountState { throw APIError.unauthorized }
+    func episodeAccountState(seriesID: Int, season: Int, episode: Int) async throws -> EpisodeAccountState {
+        throw APIError.unauthorized
+    }
     func logout() async throws {}
     func library(
         _ collection: LibraryCollection,

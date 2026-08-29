@@ -331,8 +331,6 @@ public struct EpisodeDetailView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.locale) private var locale
     @State private var state: Loadable<EpisodeDetail> = .idle
-    @State private var accountRating: Double?
-    @State private var ratingMessage: String?
     private let route: EpisodeRoute
 
     public init(route: EpisodeRoute) { self.route = route }
@@ -368,19 +366,12 @@ public struct EpisodeDetailView: View {
                         CatalogMediaSection(images: detail.images, videos: detail.videos)
                         CreditShelf(title: String(localized: "Guest stars", bundle: .module), credits: detail.guestStars)
                         CreditShelf(title: String(localized: "Crew", bundle: .module), credits: detail.crew)
-                        if case .signedIn = container.accountSession.state {
-                            Menu {
-                                AccountRatingOptions(currentRating: accountRating) { value in
-                                    Task { await setRating(value, detail: detail) }
-                                }
-                            } label: {
-                                Label(
-                                    accountRating.map { String(format: "%.1f", $0) } ?? String(localized: "Rate episode", bundle: .module),
-                                    systemImage: accountRating == nil ? "star" : "star.fill"
-                                )
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(CinemaTheme.accent)
+                        if let accountID = container.ratingAccountID {
+                            let context = EpisodeRatingContext(
+                                accountID: accountID, seriesID: detail.seriesId,
+                                seasonNumber: detail.seasonNumber, episodeNumber: detail.episodeNumber
+                            )
+                            EpisodeRatingView(context: context).id(context)
                         }
                     }
                     .frame(maxWidth: 900, alignment: .leading)
@@ -394,10 +385,6 @@ public struct EpisodeDetailView: View {
         .onDisappear {
             container.watchRemoteSession?.clear(contextKey: "episode:\(route.episode.episodeKey)")
         }
-        .alert(String(localized: "Rating", bundle: .module), isPresented: Binding(
-            get: { ratingMessage != nil },
-            set: { if !$0 { ratingMessage = nil } }
-        )) { Button(String(localized: "OK", bundle: .module), role: .cancel) {} } message: { Text(ratingMessage ?? "") }
     }
 
     private func load() async {
@@ -412,13 +399,6 @@ public struct EpisodeDetailView: View {
             )
             state = .loaded(detail)
             syncWatchRemote(detail)
-            if let pending = await container.pendingEpisodeRating(
-                seriesID: detail.seriesId,
-                seasonNumber: detail.seasonNumber,
-                episodeNumber: detail.episodeNumber
-            ) {
-                accountRating = pending.value
-            }
         } catch { state = .failed(error.localizedDescription) }
     }
 
@@ -469,19 +449,4 @@ public struct EpisodeDetailView: View {
         )
     }
 
-    @MainActor
-    private func setRating(_ value: Double?, detail: EpisodeDetail) async {
-        do {
-            _ = try await container.queueEpisodeRating(
-                seriesID: detail.seriesId,
-                seasonNumber: detail.seasonNumber,
-                episodeNumber: detail.episodeNumber,
-                value: value
-            )
-            accountRating = value
-            _ = await container.flushAccountOutbox()
-        } catch {
-            ratingMessage = error.localizedDescription
-        }
-    }
 }

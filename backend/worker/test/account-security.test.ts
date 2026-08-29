@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import accountFixture from "../contract/v2/fixtures/account.json";
 import worker, { type Env } from "../src/index";
 import { decryptSecret, encryptSecret, sha256 } from "../src/crypto";
 
@@ -8,6 +9,32 @@ const context = { waitUntil: (promise: Promise<unknown>) => void promise };
 afterEach(() => vi.unstubAllGlobals());
 
 describe("v2 session broker security", () => {
+  it.each(accountFixture.episode_states)("returns private canonical episode state for season $season_number", async (expected) => {
+    const bearer = "fixture-episode-session";
+    const database = new SessionDatabase({
+      token_hash: await sha256(bearer), account_object_id: "fixture-account", account_id: 42,
+      access_token_encrypted: await encryptSecret("fixture-access", secret),
+      v3_session_encrypted: await encryptSecret("fixture-v3", secret), csrf_hash: "unused",
+      created_at: now() - 10, last_seen_at: now() - 10, expires_at: now() + 300, revoked_at: null,
+    });
+    const { series_id, season_number, episode_number, ...upstreamState } = expected;
+    const upstream = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(input instanceof Request ? input.url : input.toString());
+      expect(url.pathname).toBe(`/3/tv/${series_id}/season/${season_number}/episode/${episode_number}/account_states`);
+      expect(url.searchParams.get("session_id")).toBe("fixture-v3");
+      return Response.json(upstreamState);
+    });
+    vi.stubGlobal("fetch", upstream);
+    const response = await worker.fetch(new Request(
+      `https://catalog.example/v2/account/state/episode/${series_id}/${season_number}/${episode_number}`,
+      { headers: { Authorization: `Bearer ${bearer}`, "X-SmartMovie-Client": "test" } },
+    ), accountEnv(database), context);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    await expect(response.json()).resolves.toEqual(expected);
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
   it("keeps private cache and Worker-version metadata on account errors", async () => {
     const database = new SessionDatabase({
       token_hash: "unused",

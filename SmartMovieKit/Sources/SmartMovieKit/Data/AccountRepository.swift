@@ -105,6 +105,13 @@ public actor RemoteAccountRepository: AccountRepository {
         )
     }
 
+    public func episodeAccountState(seriesID: Int, season: Int, episode: Int) async throws -> EpisodeAccountState {
+        try await client.get(
+            "v2/account/state/episode/\(seriesID)/\(season)/\(episode)",
+            headers: try await authorizationHeaders()
+        )
+    }
+
     public func logout() async throws {
         let _: LogoutResult = try await client.send(
             "POST",

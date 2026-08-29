@@ -51,7 +51,7 @@ public protocol AccountListLoading: Sendable {
     func list(id: Int, page: Int, language: String) async throws -> UserList
 }
 
-public protocol AccountRepository: AccountRecommendationsLoading, AccountListLoading, Sendable {
+public protocol AccountRepository: AccountRecommendationsLoading, AccountListLoading, EpisodeAccountStateLoading {
     func createAuthAttempt(returnURI: URL, mode: String) async throws -> AuthAttempt
     func authAttempt(id: UUID, deviceCode: String?) async throws -> String
     func completeAuth(id: UUID, deviceCode: String?) async throws -> AuthSession
@@ -171,6 +171,9 @@ public actor UnavailableAccountRepository: AccountRepository {
     public func completeAuth(id: UUID, deviceCode: String?) async throws -> AuthSession { throw APIError.unauthorized }
     public func profile() async throws -> AccountProfile { throw APIError.unauthorized }
     public func accountState(mediaType: MediaType, id: Int) async throws -> AccountState { throw APIError.unauthorized }
+    public func episodeAccountState(seriesID: Int, season: Int, episode: Int) async throws -> EpisodeAccountState {
+        throw APIError.unauthorized
+    }
     public func logout() async throws { throw APIError.unauthorized }
     public func library(
         _ collection: LibraryCollection,

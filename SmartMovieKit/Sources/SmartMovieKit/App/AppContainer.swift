@@ -277,6 +277,14 @@ public final class AppContainer {
         path.hasPrefix("/") ? String(path.dropFirst()) : path
     }
 
+    var ratingAccountID: Int? {
+        #if os(tvOS)
+        accountSession.state.ratingAccountID(capabilities: capabilities, mode: "tv")
+        #else
+        accountSession.state.ratingAccountID(capabilities: capabilities, mode: "browser")
+        #endif
+    }
+
     private var signedInAccountID: Int? {
         guard case .signedIn(let profile) = accountSession.state else { return nil }
         return profile.id

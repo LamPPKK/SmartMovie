@@ -16,6 +16,10 @@
     "watchlist": false,
     "rated": { "value": 8.5 }
   },
+  "episode_states": [
+    { "series_id": 11, "season_number": 1, "episode_number": 2, "rated": { "value": 0.5 }, "future_note": null },
+    { "series_id": 11, "season_number": 0, "episode_number": 1, "rated": false }
+  ],
   "list": {
     "id": 7,
     "name": "Mixed favorites",

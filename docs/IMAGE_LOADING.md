@@ -51,6 +51,11 @@ preview HTTP tests passed again. The public TMDb image returned HTTP 200 with
 The clients cannot fetch fresh catalog paths while those origins are unavailable;
 an existing bundled image configuration or successful demo capture does not resolve that outage.
 
+A second outside-sandbox check on 29 August reproduced the same boundary: the public
+TMDb image returned HTTP 200 and 103,520 bytes, while both Worker hostnames failed DNS
+resolution. This directly explains why current production-configured clients cannot
+load fresh thumbnail paths; it is not an `AsyncImage` or CDN outage.
+
 The read-only staging preflight also reported missing `ANDROID_CONTRACT_SYNC_TOKEN`,
 a missing or unreadable GitHub staging environment, and unauthenticated local Wrangler.
 The release owner must provision the protected deployment path or authenticate Cloudflare

@@ -3,6 +3,35 @@ import XCTest
 @testable import SmartMovieKit
 
 final class AccountCapabilityGateTests: XCTestCase {
+    func testRatingGateRequiresSignedInAccountRatingsAndPlatformAuthenticationCapability() {
+        let profile = AccountProfile(
+            id: 42, username: "fixture", name: "Fixture", language: nil, country: nil,
+            includeAdult: false, avatarPath: nil, gravatarHash: nil
+        )
+        let signedIn = AccountSessionController.State.signedIn(profile)
+        XCTAssertNil(signedIn.ratingAccountID(capabilities: nil, mode: "browser"))
+        for ratings in [true, false] {
+            for browser in [true, false] {
+                for television in [true, false] {
+                    let capabilities = CapabilitiesV2(
+                        apiVersion: "v2", releaseTrain: "3.0.0", catalog: [:],
+                        account: ["ratings": ratings, "browser_auth": browser, "tv_qr_auth": television]
+                    )
+                    XCTAssertEqual(signedIn.ratingAccountID(capabilities: capabilities, mode: "browser"), ratings && browser ? 42 : nil)
+                    XCTAssertEqual(signedIn.ratingAccountID(capabilities: capabilities, mode: "tv"), ratings && television ? 42 : nil)
+                    for state: AccountSessionController.State in [.checking, .signedOut, .authorizing, .failed("offline")] {
+                        XCTAssertNil(state.ratingAccountID(capabilities: capabilities, mode: "browser"))
+                        XCTAssertNil(state.ratingAccountID(capabilities: capabilities, mode: "tv"))
+                    }
+                }
+            }
+        }
+        let missingRatings = CapabilitiesV2(
+            apiVersion: "v2", releaseTrain: "3.0.0", catalog: [:], account: ["browser_auth": true]
+        )
+        XCTAssertNil(signedIn.ratingAccountID(capabilities: missingRatings, mode: "browser"))
+    }
+
     @MainActor
     func testDisabledSessionDoesNotCompleteCallback() async throws {
         let account = CompletionAccountRepository()
@@ -106,6 +135,9 @@ private actor CompletionAccountRepository: AccountRepository {
     func authAttempt(id: UUID, deviceCode: String?) async throws -> String { throw APIError.unauthorized }
     func profile() async throws -> AccountProfile { throw APIError.unauthorized }
     func accountState(mediaType: MediaType, id: Int) async throws -> AccountState { throw APIError.unauthorized }
+    func episodeAccountState(seriesID: Int, season: Int, episode: Int) async throws -> EpisodeAccountState {
+        throw APIError.unauthorized
+    }
     func logout() async throws { throw APIError.unauthorized }
     func library(
         _ collection: LibraryCollection,

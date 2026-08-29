@@ -84,6 +84,10 @@ final class ContractV2ConformanceTests: XCTestCase {
     func testAccountAuthMutationAndErrorFixturesDecode() throws {
         let account = try decode(AccountFixture.self, fixture: "account")
         XCTAssertTrue(account.state.favorite)
+        XCTAssertEqual(account.episodeStates.map(\.seriesId), [11, 11])
+        XCTAssertEqual(account.episodeStates.map(\.seasonNumber), [1, 0])
+        XCTAssertEqual(account.episodeStates.map(\.episodeNumber), [2, 1])
+        XCTAssertEqual(account.episodeStates.map(\.ratingValue), [0.5, nil])
         XCTAssertEqual(account.list.results.map(\.libraryKey), ["movie:10", "tv:11"])
 
         let attempt = try decode(AuthAttempt.self, fixture: "auth-attempt")
@@ -143,5 +147,6 @@ final class ContractV2ConformanceTests: XCTestCase {
 private struct AccountFixture: Decodable {
     let profile: AccountProfile
     let state: AccountState
+    let episodeStates: [EpisodeAccountState]
     let list: UserList
 }

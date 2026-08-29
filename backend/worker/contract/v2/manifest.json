@@ -4,5 +4,5 @@
   "compatibility": "additive-only-within-v2",
   "legacy_v1_support": "at-least-12-months-after-3.0.0",
   "openapi_sha256": "8bf63751f286daa30263a74aa98b633ccb78e9d2777e21a5023719fd1c3b6257",
-  "fixtures_sha256": "facc5f3bd1eaf0fd2fb9ba4dfd180f0c913ea1b3aa3518121dffd8bfa788e191"
+  "fixtures_sha256": "7ab968a4781b02010e2f213666ba587ce840f414de0eace72d1cf51f47faa96f"
 }

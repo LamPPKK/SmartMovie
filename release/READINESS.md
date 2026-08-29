@@ -14,7 +14,7 @@
 
 ## Product coverage status
 
-[TMDb coverage](../docs/TMDB_COVERAGE.md) records an open Apple episode-account-state **Blocker**: the half-step rating menu is present, but Episode Detail does not yet hydrate the remote account rating. Mixed-list editing/items, account recommendations, and Worker TMDb-change-feed cache invalidation have cross-platform or backend test coverage. Account authorization is fail-closed on every full client: Apple/Android TV require `tv_qr_auth`, while phone, desktop, and web require `browser_auth`; missing or false flags disable the action before any account request.
+[TMDb coverage](../docs/TMDB_COVERAGE.md) records Apple Episode account-state as implemented with model, HTTP, canonical fixture, pending-local precedence, and capability-gate coverage; live signed-in device/TV QA remains open. Mixed-list editing/items, account recommendations, and Worker TMDb-change-feed cache invalidation have cross-platform or backend test coverage. Account authorization is fail-closed on every full client: Apple/Android TV require `tv_qr_auth`, while phone, desktop, and web require `browser_auth`; missing or false flags disable the action before any account request.
 
 ## Release-owner actions
 

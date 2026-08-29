@@ -51,6 +51,9 @@ includes six-locale choice labels, rendered content with/without removal, all 63
 Movie/TV/Episode file outbox, restart after a failed half-step write, and HTTP
 PUT/DELETE retries with unchanged values and idempotency keys.
 
-This does not close all rating parity: Apple Episode Detail currently reads only
-pending local ratings, not the remote account's existing episode rating. Remote
-hydration and signed-in device/TV interaction QA remain required.
+Apple Episode Detail now hydrates the remote account state through the authenticated
+episode-state route, rechecks the durable outbox after suspended reads, and rejects
+late responses after an episode/account change, cancellation, disappearance, or local
+write. Ninety-three Swift tests cover the model, exact HTTP route/authorization,
+canonical half-step/unrated fixtures, and fail-closed account capability gate.
+Signed-in device/TV interaction and live TMDb account QA remain required.
